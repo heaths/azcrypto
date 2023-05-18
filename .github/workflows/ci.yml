@@ -2,9 +2,15 @@ name: ci
 
 on:
   pull_request:
+    paths-ignore:
+    - CONTRIBUTING.md
+    - README.md
   push:
     branches:
     - main
+    paths-ignore:
+    - CONTRIBUTING.md
+    - README.md
   workflow_call:
     inputs:
       release:
