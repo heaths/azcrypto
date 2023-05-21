@@ -2,7 +2,13 @@
   "version": "0.2",
   "language": "en",
   "words": [
-    "GOVERSION"
+    "azcore",
+    "azcrypto",
+    "azidentity",
+    "azkeys",
+    "GOVERSION",
+    "keyvault",
+    "stretchr"
   ],
   "overrides": [
     {
