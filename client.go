@@ -1,3 +1,6 @@
+// Copyright 2023 Heath Stewart.
+// Licensed under the MIT License. See LICENSE.txt in the project root for license information.
+
 package azcrypto
 
 // TODO: Remove calls to log throughout this module.
@@ -16,6 +19,8 @@ import (
 	"github.com/heaths/azcrypto/internal/algorithm"
 )
 
+// Client defines helpful methods to perform cryptography operations against a specific keyID,
+// which should be stored with your data and used to perform the reverse cryptographic operations.
 type Client struct {
 	keyID      string
 	keyName    string
@@ -97,8 +102,27 @@ func (client *Client) init(ctx context.Context) {
 	})
 }
 
+// SignatureAlgorithm defines the key algorithms supported by Azure Key Vault or Managed HSM.
 type SignatureAlgorithm = algorithm.SignatureAlgorithm
+
+const (
+	// SignatureAlgorithmES256 uses the P-256 curve requiring a SHA-256 digest.
+	SignatureAlgorithmES256 SignatureAlgorithm = azkeys.JSONWebKeySignatureAlgorithmES256
+
+	// SignatureAlgorithmES256K uses the P-256K curve requiring a SHA-256 digest.
+	SignatureAlgorithmES256K SignatureAlgorithm = azkeys.JSONWebKeySignatureAlgorithmES256K
+
+	// SignatureAlgorithmES384 uses the P-384 curve requiring a SHA-384 digest.
+	SignatureAlgorithmES384 SignatureAlgorithm = azkeys.JSONWebKeySignatureAlgorithmES384
+
+	// SignatureAlgorithmES512 uses the P-521 curve requiring a SHA-512 digest.
+	SignatureAlgorithmES512 SignatureAlgorithm = azkeys.JSONWebKeySignatureAlgorithmES512
+)
+
+// SignOptions defines options for the Sign method.
 type SignOptions = azkeys.SignOptions
+
+// SignResult contains information returned by the Sign method.
 type SignResult = algorithm.SignResult
 
 // Sign signs the specified digest using the specified algorithm.
@@ -138,7 +162,10 @@ func (client *Client) Sign(ctx context.Context, algorithm SignatureAlgorithm, di
 	return result, nil
 }
 
+// VerifyOptions defines options or the Verify method.
 type VerifyOptions = azkeys.VerifyOptions
+
+// VerifyResult contains information returned by the Verify method.
 type VerifyResult = algorithm.VerifyResult
 
 // Verify verifies that the specified digest is valid using the specified signature and algorithm.

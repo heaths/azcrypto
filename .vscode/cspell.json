@@ -9,6 +9,8 @@
     "ECHSM",
     "GOVERSION",
     "keyvault",
+    "SECG",
+    "SECP",
     "stretchr"
   ],
   "overrides": [

@@ -1,3 +1,6 @@
+// Copyright 2023 Heath Stewart.
+// Licensed under the MIT License. See LICENSE.txt in the project root for license information.
+
 package algorithm
 
 import (
@@ -30,7 +33,7 @@ func Wrap(key azkeys.JSONWebKey) (Algorithm, error) {
 
 type SignResult struct {
 	// Algorithm is algorithm used to sign.
-	Algorithm azkeys.JSONWebKeySignatureAlgorithm
+	Algorithm SignatureAlgorithm
 
 	// KeyID is the key ID used to sign. This key ID should be retained.
 	KeyID string
@@ -41,7 +44,7 @@ type SignResult struct {
 
 type VerifyResult struct {
 	// Algorithm is algorithm used to verify.
-	Algorithm azkeys.JSONWebKeySignatureAlgorithm
+	Algorithm SignatureAlgorithm
 
 	// KeyID is the key ID used to verify.
 	KeyID string
