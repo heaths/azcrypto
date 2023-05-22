@@ -35,6 +35,7 @@ func newECDsa(key azkeys.JSONWebKey) (ECDsa, error) {
 	if key.KID != nil {
 		keyID = string(*key.KID)
 	}
+
 	return ECDsa{
 		keyID: keyID,
 		pub: ecdsa.PublicKey{
@@ -66,9 +67,9 @@ func (c ECDsa) Verify(algorithm SignatureAlgorithm, digest, signature []byte) (V
 	log.Println("Verifying locally")
 
 	// Naive split of r, s.
-	// TODO: See https://github.com/schaabs/azure-keyvault-java/blob/e643aff088bb5cc60bef23ba4edb67b518301fa8/azure-keyvault-cryptography/src/main/java/com/microsoft/azure/keyvault/cryptography/SignatureEncoding.java#L130
-	r := new(big.Int).SetBytes(digest[:len(digest)/2])
-	s := new(big.Int).SetBytes(digest[len(digest)/2:])
+	// See https://github.com/schaabs/azure-keyvault-java/blob/e643aff088bb5cc60bef23ba4edb67b518301fa8/azure-keyvault-cryptography/src/main/java/com/microsoft/azure/keyvault/cryptography/SignatureEncoding.java#L130
+	r := new(big.Int).SetBytes(signature[:len(signature)/2])
+	s := new(big.Int).SetBytes(signature[len(signature)/2:])
 
 	return VerifyResult{
 		Algorithm: algorithm,

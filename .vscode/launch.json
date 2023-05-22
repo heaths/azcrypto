@@ -6,7 +6,24 @@
       "type": "go",
       "request": "launch",
       "mode": "auto",
-      "program": "${workspaceFolder}"
+      "program": "${workspaceFolder}/cmd/sign",
+      "args": [
+        "${input:keyID}",
+        "${input:message}"
+      ]
+    }
+  ],
+  "inputs": [
+    {
+      "id": "keyID",
+      "type": "promptString",
+      "description": "URL to the Key Vault key used to sign."
+    },
+    {
+      "id": "message",
+      "type": "promptString",
+      "description": "The message to sign.",
+      "default": "This is a test."
     }
   ]
 }
