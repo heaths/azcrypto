@@ -12,7 +12,7 @@ type Credential struct{}
 
 func (c *Credential) GetToken(ctx context.Context, options policy.TokenRequestOptions) (azcore.AccessToken, error) {
 	return azcore.AccessToken{
-		Token:     "mock",
+		Token:     "bW9jaw==", // "mock"
 		ExpiresOn: time.Now().Add(2 * time.Hour),
 	}, nil
 }

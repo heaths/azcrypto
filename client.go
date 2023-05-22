@@ -1,25 +1,29 @@
 package azcrypto
 
+// TODO: Remove calls to log throughout this module.
+
 import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
 	"sync"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/keyvault/azkeys"
 	"github.com/heaths/azcrypto/internal"
+	"github.com/heaths/azcrypto/internal/algorithm"
 )
 
 type Client struct {
-	keyURL     string
+	keyID      string
 	keyName    string
 	keyVersion string
 
 	options      *ClientOptions
 	remoteClient *azkeys.Client
-	localClient  algorithm
+	localClient  algorithm.Algorithm
 
 	_init sync.Once
 }
@@ -51,7 +55,7 @@ func NewClient(keyID string, credential azcore.TokenCredential, options *ClientO
 	}
 
 	return &Client{
-		keyURL:       keyID,
+		keyID:        keyID,
 		keyName:      *name,
 		keyVersion:   *version,
 		options:      options,
@@ -61,7 +65,7 @@ func NewClient(keyID string, credential azcore.TokenCredential, options *ClientO
 
 // KeyID gets the key ID passed to NewClient.
 func (client *Client) KeyID() string {
-	return client.keyURL
+	return client.keyID
 }
 
 func (client *Client) init(ctx context.Context) {
@@ -70,23 +74,32 @@ func (client *Client) init(ctx context.Context) {
 			return
 		}
 
-		// TODO: Download the key, check if the operation is supported, and initial a local client.
+		log.Println("Getting", client.keyID)
+		response, err := client.remoteClient.GetKey(ctx, client.keyName, client.keyVersion, nil)
+		if err != nil {
+			log.Println("Failed:", err)
+			return
+		}
+
+		key := response.Key
+		if key == nil {
+			log.Panic("No key")
+			return
+		}
+
+		alg, err := algorithm.Wrap(*key)
+		if err != nil {
+			log.Println("Not supported:", err)
+			return
+		}
+
+		client.localClient = alg
 	})
 }
 
-type SignatureAlgorithm = azkeys.JSONWebKeySignatureAlgorithm
+type SignatureAlgorithm = algorithm.SignatureAlgorithm
 type SignOptions = azkeys.SignOptions
-
-type SignResult struct {
-	// Algorithm is algorithm used to sign.
-	Algorithm azkeys.JSONWebKeySignatureAlgorithm
-
-	// KeyID is the key ID used to sign. This key ID should be retained.
-	KeyID string
-
-	// Signature is a signed hash of the data.
-	Signature []byte
-}
+type SignResult = algorithm.SignResult
 
 // Sign signs the specified digest using the specified algorithm.
 func (client *Client) Sign(ctx context.Context, algorithm SignatureAlgorithm, digest []byte, options *SignOptions) (SignResult, error) {
@@ -94,7 +107,7 @@ func (client *Client) Sign(ctx context.Context, algorithm SignatureAlgorithm, di
 
 	if client.localClient != nil {
 		result, err := client.localClient.Sign(algorithm, digest)
-		if !errors.Is(err, internal.Unsupported) {
+		if !errors.Is(err, internal.ErrUnsupported) {
 			return result, err
 		}
 	}
@@ -103,6 +116,8 @@ func (client *Client) Sign(ctx context.Context, algorithm SignatureAlgorithm, di
 		Algorithm: &algorithm,
 		Value:     digest,
 	}
+
+	log.Println("Signing remotely")
 	response, err := client.remoteClient.Sign(
 		ctx,
 		client.keyName,
@@ -124,17 +139,7 @@ func (client *Client) Sign(ctx context.Context, algorithm SignatureAlgorithm, di
 }
 
 type VerifyOptions = azkeys.VerifyOptions
-
-type VerifyResult struct {
-	// Algorithm is algorithm used to verify.
-	Algorithm azkeys.JSONWebKeySignatureAlgorithm
-
-	// KeyID is the key ID used to verify.
-	KeyID string
-
-	// Valid is true of the signature is valid.
-	Valid bool
-}
+type VerifyResult = algorithm.VerifyResult
 
 // Verify verifies that the specified digest is valid using the specified signature and algorithm.
 func (client *Client) Verify(ctx context.Context, algorithm SignatureAlgorithm, digest, signature []byte, options *VerifyOptions) (VerifyResult, error) {
@@ -142,7 +147,7 @@ func (client *Client) Verify(ctx context.Context, algorithm SignatureAlgorithm, 
 
 	if client.localClient != nil {
 		result, err := client.localClient.Verify(algorithm, digest, signature)
-		if !errors.Is(err, internal.Unsupported) {
+		if !errors.Is(err, internal.ErrUnsupported) {
 			return result, err
 		}
 	}
@@ -152,6 +157,8 @@ func (client *Client) Verify(ctx context.Context, algorithm SignatureAlgorithm, 
 		Digest:    digest,
 		Signature: signature,
 	}
+
+	log.Println("Verifying remotely")
 	response, err := client.remoteClient.Verify(
 		ctx,
 		client.keyName,
@@ -165,7 +172,7 @@ func (client *Client) Verify(ctx context.Context, algorithm SignatureAlgorithm, 
 
 	result := VerifyResult{
 		Algorithm: algorithm,
-		KeyID:     client.keyURL,
+		KeyID:     client.keyID,
 		Valid:     *response.Value,
 	}
 

@@ -3,5 +3,5 @@ package internal
 import "errors"
 
 var (
-	Unsupported = errors.New("operation unsupported")
+	ErrUnsupported = errors.New("operation unsupported")
 )

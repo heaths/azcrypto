@@ -6,6 +6,7 @@
     "azcrypto",
     "azidentity",
     "azkeys",
+    "ECHSM",
     "GOVERSION",
     "keyvault",
     "stretchr"
