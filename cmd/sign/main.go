@@ -1,3 +1,6 @@
+// Copyright 2023 Heath Stewart.
+// Licensed under the MIT License. See LICENSE.txt in the project root for license information.
+
 package main
 
 import (
@@ -7,7 +10,6 @@ import (
 	"os"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
-	"github.com/Azure/azure-sdk-for-go/sdk/keyvault/azkeys"
 	"github.com/heaths/azcrypto"
 )
 
@@ -30,7 +32,7 @@ func main() {
 	digest := sha256.Sum(nil)
 
 	ctx := context.Background()
-	signed, err := client.Sign(ctx, azkeys.JSONWebKeySignatureAlgorithmES256, digest, nil)
+	signed, err := client.Sign(ctx, azcrypto.SignatureAlgorithmES256, digest, nil)
 	if err != nil {
 		log.Fatal(err)
 	}
