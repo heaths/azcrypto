@@ -46,7 +46,11 @@ func main() {
         // TODO: handle error
     }
 
-    client, err := azcrypto.NewClient("https://{vault-name}.vault.azure.net/keys/{key-name}/{key-version}", cred, nil)
+    client, err := azcrypto.NewClient(
+        "https://{vault-name}.vault.azure.net/keys/{key-name}/{key-version}",
+        cred,
+        nil,
+    )
     if err != nil {
         // TODO: handle error
     }
@@ -75,13 +79,24 @@ func signAndVerify(client *azcrypto.Client, plaintext string) (bool, error) {
     digest := hash.Sum(nil)
 
     // Performed remotely by Azure Key Vault or Managed HSM.
-    signResult, err := client.Sign(context.TODO(), azcrypto.SignatureAlgorithmES256, digest, nil)
+    signResult, err := client.Sign(
+        context.TODO(),
+        azcrypto.SignatureAlgorithmES256,
+        digest,
+        nil,
+    )
     if err != nil {
         return false, err
     }
 
     // Performed locally if the public key could be retrieved.
-    verifyResult, err := client.Verify(context.TODO(), signResult.Algorithm, digest, signResult.Signature, nil)
+    verifyResult, err := client.Verify(
+        context.TODO(),
+        signResult.Algorithm,
+        digest,
+        signResult.Signature,
+        nil,
+    )
     if err != nil {
         return false, err
     }
@@ -105,4 +120,4 @@ Licensed under the [MIT](LICENSE.txt) license.
 [CryptographyClient]: https://learn.microsoft.com/dotnet/api/azure.security.keyvault.keys.cryptography.cryptographyclient
 [examples]: https://pkg.go.dev/github.com/heaths/azcrypto#pkg-examples
 [managed identity]: https://docs.microsoft.com/azure/active-directory/managed-identities-azure-resources/overview
-[rate limits]: https://learn.microsoft.com/en-us/azure/key-vault/general/service-limits
+[rate limits]: https://learn.microsoft.com/azure/key-vault/general/service-limits
