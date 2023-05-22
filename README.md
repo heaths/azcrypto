@@ -1,6 +1,5 @@
 # Cryptography Client for Azure Key Vault
 
-[![releases](https://img.shields.io/github/v/release/heaths/azcrypto.svg?logo=github)](https://github.com/heaths/azcrypto/releases/latest)
 [![reference](https://pkg.go.dev/badge/github.com/heaths/azcrypto.svg)](https://pkg.go.dev/github.com/heaths/azcrypto)
 [![ci](https://github.com/heaths/azcrypto/actions/workflows/ci.yml/badge.svg?event=push)](https://github.com/heaths/azcrypto/actions/workflows/ci.yml)
 
