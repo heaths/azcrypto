@@ -40,6 +40,7 @@ func TestClient_SignData(t *testing.T) {
 	const (
 		host = "https://test.vault.azure.net"
 
+		// Signatures of "message".
 		path256         = "/keys/ec256/d66bce8f4df64a9a9e172239d9f62572"
 		kid256          = host + path256
 		sig256base64url = "bx69NxzK4aRVu3CcW7LD6Znt5-00uOXj05lFCPI4wzxI-XnJhhgva4970_snfMOmwQ9C7pBtGEINbueJVyD8qA"
@@ -54,8 +55,6 @@ func TestClient_SignData(t *testing.T) {
 		kid521          = host + path521
 		sig521base64url = "AaZsoVz1dt-1wYiQ1VwIpD_08puGyvRII5tW0JumWLa8g87pJlWYJXihb10t_UAT-_ECEBncj82CVoRTeSjptMpWAb9F8mXKSuk_iJyDuOBIcKtFlfk1d7sgEDMxtoB34inrPXGg6eqvSgJ3k3xbPL29U54fIa82C6wwvtNopSpp5QTr"
 		sig521          = "01a66ca15cf576dfb5c18890d55c08a43ff4f29b86caf448239b56d09ba658b6bc83cee92655982578a16f5d2dfd4013fbf1021019dc8fcd825684537928e9b4ca5601bf45f265ca4ae93f889c83b8e04870ab4595f93577bb20103331b68077e229eb3d71a0e9eaaf4a0277937c5b3cbdbd539e1f21af360bac30bed368a52a69e504eb"
-
-		plaintext = "message"
 	)
 	// cspell:enable
 
