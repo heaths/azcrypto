@@ -8,7 +8,6 @@ import (
 	"crypto/elliptic"
 	"errors"
 	"fmt"
-	"log"
 	"math/big"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azkeys"
@@ -63,12 +62,11 @@ func fromCurve(crv azkeys.JSONWebKeyCurveName) (elliptic.Curve, error) {
 }
 
 func (c ECDsa) Sign(algorithm SignatureAlgorithm, digest []byte) (SignResult, error) {
+	// TODO: Consider removing operations requiring the private key entirely from interface, or implement to support JWTs passed to the Client.
 	return SignResult{}, internal.ErrUnsupported
 }
 
 func (c ECDsa) Verify(algorithm SignatureAlgorithm, digest, signature []byte) (VerifyResult, error) {
-	log.Println("Verifying locally")
-
 	// Naive split of r, s.
 	// See https://github.com/schaabs/azure-keyvault-java/blob/e643aff088bb5cc60bef23ba4edb67b518301fa8/azure-keyvault-cryptography/src/main/java/com/microsoft/azure/keyvault/cryptography/SignatureEncoding.java#L130
 	r := new(big.Int).SetBytes(signature[:len(signature)/2])
