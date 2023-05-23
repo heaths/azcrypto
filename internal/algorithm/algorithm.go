@@ -4,7 +4,7 @@
 package algorithm
 
 import (
-	"github.com/Azure/azure-sdk-for-go/sdk/keyvault/azkeys"
+	"github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azkeys"
 	"github.com/heaths/azcrypto/internal"
 )
 

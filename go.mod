@@ -5,13 +5,13 @@ go 1.18
 require (
 	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.4.0
 	github.com/Azure/azure-sdk-for-go/sdk/azidentity v1.1.0
-	github.com/Azure/azure-sdk-for-go/sdk/keyvault/azkeys v0.10.0
+	github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azkeys v0.11.0
 	github.com/stretchr/testify v1.8.3
 )
 
 require (
 	github.com/Azure/azure-sdk-for-go/sdk/internal v1.2.0 // indirect
-	github.com/Azure/azure-sdk-for-go/sdk/keyvault/internal v0.7.1 // indirect
+	github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/internal v0.8.0 // indirect
 	github.com/AzureAD/microsoft-authentication-library-for-go v0.5.1 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/golang-jwt/jwt v3.2.1+incompatible // indirect
