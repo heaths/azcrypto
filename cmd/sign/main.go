@@ -39,6 +39,7 @@ func main() {
 
 	log.Println("Message:", message)
 	log.Printf("Digest: %x\n", digest)
+	log.Println("Key ID:", signed.KeyID)
 	log.Printf("Signature: %x\n", signed.Signature)
 
 	verified, err := client.Verify(ctx, signed.Algorithm, digest, signed.Signature, nil)
