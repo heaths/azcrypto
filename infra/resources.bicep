@@ -1,6 +1,6 @@
 @minLength(1)
 @description('Primary location for all resources')
-param location string
+param location string = resourceGroup().location
 
 @description('User principal ID')
 param principalId string

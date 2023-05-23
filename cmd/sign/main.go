@@ -5,7 +5,7 @@ package main
 
 import (
 	"context"
-	"crypto/sha256"
+	"crypto/sha512"
 	"log"
 	"os"
 
@@ -27,12 +27,12 @@ func main() {
 		log.Fatal(err)
 	}
 
-	sha256 := sha256.New()
-	sha256.Write([]byte(message))
-	digest := sha256.Sum(nil)
+	hash := sha512.New()
+	hash.Write([]byte(message))
+	digest := hash.Sum(nil)
 
 	ctx := context.Background()
-	signed, err := client.Sign(ctx, azcrypto.SignatureAlgorithmES256, digest, nil)
+	signed, err := client.Sign(ctx, azcrypto.SignatureAlgorithmES512, digest, nil)
 	if err != nil {
 		log.Fatal(err)
 	}

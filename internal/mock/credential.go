@@ -11,11 +11,16 @@ import (
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/policy"
 )
 
-type Credential struct{}
+const (
+	Token       = "mock"
+	TokenBase64 = "bW9jaw=="
+)
 
-func (c *Credential) GetToken(ctx context.Context, options policy.TokenRequestOptions) (azcore.AccessToken, error) {
+type TokenCredential struct{}
+
+func (c *TokenCredential) GetToken(ctx context.Context, options policy.TokenRequestOptions) (azcore.AccessToken, error) {
 	return azcore.AccessToken{
-		Token:     "bW9jaw==", // "mock"
+		Token:     TokenBase64,
 		ExpiresOn: time.Now().Add(2 * time.Hour),
 	}, nil
 }

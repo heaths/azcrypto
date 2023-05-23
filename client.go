@@ -9,14 +9,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log"
 	"sync"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azkeys"
 	"github.com/heaths/azcrypto/internal"
-	"github.com/heaths/azcrypto/internal/algorithm"
+	alg "github.com/heaths/azcrypto/internal/algorithm"
 )
 
 // Client defines helpful methods to perform cryptography operations against a specific keyID,
@@ -28,7 +27,7 @@ type Client struct {
 
 	options      *ClientOptions
 	remoteClient *azkeys.Client
-	localClient  algorithm.Algorithm
+	localClient  alg.Algorithm
 
 	_init sync.Once
 }
@@ -79,22 +78,18 @@ func (client *Client) init(ctx context.Context) {
 			return
 		}
 
-		log.Println("Getting", client.keyID)
 		response, err := client.remoteClient.GetKey(ctx, client.keyName, client.keyVersion, nil)
 		if err != nil {
-			log.Println("Failed:", err)
 			return
 		}
 
 		key := response.Key
 		if key == nil {
-			log.Panic("No key")
 			return
 		}
 
-		alg, err := algorithm.Wrap(*key)
+		alg, err := alg.NewAlgorithm(*key)
 		if err != nil {
-			log.Println("Not supported:", err)
 			return
 		}
 
@@ -103,7 +98,7 @@ func (client *Client) init(ctx context.Context) {
 }
 
 // SignatureAlgorithm defines the key algorithms supported by Azure Key Vault or Managed HSM.
-type SignatureAlgorithm = algorithm.SignatureAlgorithm
+type SignatureAlgorithm = alg.SignatureAlgorithm
 
 const (
 	// SignatureAlgorithmES256 uses the P-256 curve requiring a SHA-256 digest.
@@ -120,34 +115,40 @@ const (
 )
 
 // SignOptions defines options for the Sign method.
-type SignOptions = azkeys.SignOptions
+type SignOptions struct {
+	azkeys.SignOptions
+}
 
 // SignResult contains information returned by the Sign method.
-type SignResult = algorithm.SignResult
+type SignResult = alg.SignResult
 
 // Sign signs the specified digest using the specified algorithm.
 func (client *Client) Sign(ctx context.Context, algorithm SignatureAlgorithm, digest []byte, options *SignOptions) (SignResult, error) {
-	client.init(ctx)
+	// TODO: Consider removing operations requiring the private key entirely, or implement to support JWTs passed to the Client.
+	// client.init(ctx)
 
-	if client.localClient != nil {
-		result, err := client.localClient.Sign(algorithm, digest)
-		if !errors.Is(err, internal.ErrUnsupported) {
-			return result, err
-		}
-	}
+	// if client.localClient != nil {
+	// 	result, err := client.localClient.Sign(algorithm, digest)
+	// 	if !errors.Is(err, internal.ErrUnsupported) {
+	// 		return result, err
+	// 	}
+	// }
 
 	parameters := azkeys.SignParameters{
 		Algorithm: &algorithm,
 		Value:     digest,
 	}
 
-	log.Println("Signing remotely")
+	if options == nil {
+		options = &SignOptions{}
+	}
+
 	response, err := client.remoteClient.Sign(
 		ctx,
 		client.keyName,
 		client.keyVersion,
 		parameters,
-		options,
+		&options.SignOptions,
 	)
 	if err != nil {
 		return SignResult{}, err
@@ -162,11 +163,35 @@ func (client *Client) Sign(ctx context.Context, algorithm SignatureAlgorithm, di
 	return result, nil
 }
 
-// VerifyOptions defines options or the Verify method.
-type VerifyOptions = azkeys.VerifyOptions
+// SignDataOptions defines options for the SignData method.
+type SignDataOptions struct {
+	SignOptions
+}
+
+// SignData hashes the data using a suitable hash based on the specified algorithm.
+func (client *Client) SignData(ctx context.Context, algorithm SignatureAlgorithm, data []byte, options *SignDataOptions) (SignResult, error) {
+	hash, err := alg.GetHash(algorithm)
+	if err != nil {
+		return SignResult{}, err
+	}
+
+	hash.Write(data)
+	digest := hash.Sum(nil)
+
+	if options == nil {
+		options = &SignDataOptions{}
+	}
+
+	return client.Sign(ctx, algorithm, digest, &options.SignOptions)
+}
+
+// VerifyOptions defines options for the Verify method.
+type VerifyOptions struct {
+	azkeys.VerifyOptions
+}
 
 // VerifyResult contains information returned by the Verify method.
-type VerifyResult = algorithm.VerifyResult
+type VerifyResult = alg.VerifyResult
 
 // Verify verifies that the specified digest is valid using the specified signature and algorithm.
 func (client *Client) Verify(ctx context.Context, algorithm SignatureAlgorithm, digest, signature []byte, options *VerifyOptions) (VerifyResult, error) {
@@ -185,13 +210,16 @@ func (client *Client) Verify(ctx context.Context, algorithm SignatureAlgorithm, 
 		Signature: signature,
 	}
 
-	log.Println("Verifying remotely")
+	if options == nil {
+		options = &VerifyOptions{}
+	}
+
 	response, err := client.remoteClient.Verify(
 		ctx,
 		client.keyName,
 		client.keyVersion,
 		parameters,
-		options,
+		&options.VerifyOptions,
 	)
 	if err != nil {
 		return VerifyResult{}, nil
@@ -204,4 +232,26 @@ func (client *Client) Verify(ctx context.Context, algorithm SignatureAlgorithm, 
 	}
 
 	return result, nil
+}
+
+// VerifyDataOptions defines options for the VerifyData method.
+type VerifyDataOptions struct {
+	VerifyOptions
+}
+
+// VerifyData verifies the digest of the data is valid using a suitable hash based on the specified algorithm.
+func (client *Client) VerifyData(ctx context.Context, algorithm SignatureAlgorithm, data, signature []byte, options *VerifyDataOptions) (VerifyResult, error) {
+	hash, err := alg.GetHash(algorithm)
+	if err != nil {
+		return VerifyResult{}, err
+	}
+
+	hash.Write(data)
+	digest := hash.Sum(nil)
+
+	if options == nil {
+		options = &VerifyDataOptions{}
+	}
+
+	return client.Verify(ctx, algorithm, digest, signature, &options.VerifyOptions)
 }
