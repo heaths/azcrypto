@@ -60,21 +60,37 @@ resource vault 'Microsoft.KeyVault/vaults@2023-02-01' = {
     ]
   }
 
-  resource ecKey 'keys' = [for ecKey in ecKeys: {
-    name: ecKey.name
+  resource ecKey 'keys' = [for key in ecKeys: {
+    name: key.name
     properties: {
       kty: 'EC'
-      curveName: ecKey.curve
+      curveName: key.curve
     }
   }]
 
-  resource ecKeyHsm 'keys' = [for ecKey in ecKeys: if (sku == 'premium') {
-    name: '${ecKey.name}hsm'
+  resource ecKeyHsm 'keys' = [for key in ecKeys: if (sku == 'premium') {
+    name: '${key.name}hsm'
     properties: {
       kty: 'EC-HSM'
-      curveName: ecKey.curve
+      curveName: key.curve
     }
   }]
+
+  resource rsaKey 'keys' = {
+    name: 'rsa2048'
+    properties: {
+      kty: 'RSA'
+      keySize: 2048
+    }
+  }
+
+  resource rsaKeyHsm 'keys' = if (sku == 'premium') {
+    name: 'rsa2048hsm'
+    properties: {
+      kty: 'RSA-HSM'
+      keySize: 2048
+    }
+  }
 }
 
 output vaultUri string = vault.properties.vaultUri
