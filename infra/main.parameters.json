@@ -10,6 +10,9 @@
     },
     "principalId": {
       "value": "${AZURE_PRINCIPAL_ID}"
+    },
+    "sku": {
+      "value": "${AZURE_KEYVAULT_SKU=standard}"
     }
   }
 }

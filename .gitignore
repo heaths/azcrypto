@@ -1,3 +1,4 @@
 .azure/
+.env
 /azcrypto
 /azcrypto.exe

@@ -7,6 +7,7 @@ require (
 	github.com/Azure/azure-sdk-for-go/sdk/azidentity v1.1.0
 	github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azkeys v0.11.0
 	github.com/h2non/gock v1.2.0
+	github.com/joho/godotenv v1.5.1
 	github.com/stretchr/testify v1.8.3
 )
 
