@@ -10,12 +10,15 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
+	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azkeys"
 	"github.com/h2non/gock"
+	"github.com/heaths/azcrypto/internal"
 	"github.com/heaths/azcrypto/internal/mock"
 	"github.com/stretchr/testify/require"
 )
@@ -604,6 +607,70 @@ func TestClient_VerifyData(t *testing.T) {
 			require.True(t, gock.IsDone())
 		})
 	}
+}
+
+func TestClient_liveEncryptDecrypt(t *testing.T) {
+	internal.RequireLive(t)
+
+	err := internal.LoadEnv()
+	require.NoError(t, err, "failed to initialize environment")
+
+	vaultURL := os.Getenv("AZURE_KEYVAULT_URL")
+	require.NotEmpty(t, vaultURL, "AZURE_KEYVAULT_URL environment variable required")
+
+	// RSA
+	keyID, err := internal.URLJoinPath(vaultURL, "/keys/rsa2048")
+	require.NoError(t, err)
+
+	credential, err := azidentity.NewDefaultAzureCredential(nil)
+	require.NoError(t, err)
+
+	options := &ClientOptions{
+		remoteOnly: *internal.RemoteOnly,
+	}
+	client, err := NewClient(keyID, credential, options)
+	require.NoError(t, err)
+
+	var plaintext = []byte("plaintext")
+	encrypted, err := client.Encrypt(context.Background(), EncryptionAlgorithmRSAOAEP256, plaintext, nil)
+	require.NoError(t, err)
+
+	decrypted, err := client.Decrypt(context.Background(), EncryptionAlgorithmRSAOAEP256, encrypted.Ciphertext, nil)
+	require.NoError(t, err)
+
+	require.Equal(t, plaintext, decrypted.Plaintext)
+}
+
+func TestClient_liveSignVerify(t *testing.T) {
+	internal.RequireLive(t)
+
+	err := internal.LoadEnv()
+	require.NoError(t, err, "failed to initialize environment")
+
+	vaultURL := os.Getenv("AZURE_KEYVAULT_URL")
+	require.NotEmpty(t, vaultURL, "AZURE_KEYVAULT_URL environment variable required")
+
+	// ECDsa
+	keyID, err := internal.URLJoinPath(vaultURL, "/keys/ec256")
+	require.NoError(t, err)
+
+	credential, err := azidentity.NewDefaultAzureCredential(nil)
+	require.NoError(t, err)
+
+	options := &ClientOptions{
+		remoteOnly: *internal.RemoteOnly,
+	}
+	client, err := NewClient(keyID, credential, options)
+	require.NoError(t, err)
+
+	var plaintext = []byte("plaintext")
+	signed, err := client.SignData(context.Background(), SignatureAlgorithmES256, plaintext, nil)
+	require.NoError(t, err)
+
+	verified, err := client.VerifyData(context.Background(), SignatureAlgorithmES256, plaintext, signed.Signature, nil)
+	require.NoError(t, err)
+
+	require.True(t, verified.Valid)
 }
 
 func mockOptions() *ClientOptions {

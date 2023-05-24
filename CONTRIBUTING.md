@@ -32,15 +32,22 @@ To run all tests for the module, run the following in the repository root direct
 go test ./...
 ```
 
-### Provisioning live resources
+### Live
 
-To provision live resources for testing, you can use [azd] and run the following in the repository root directory:
+To provision resources and run live tests, you can use [azd] and run the following in the repository root directory:
 
 ```bash
 azd up # or `azd provision` to just provision resources
+go test ./... -args -live # (-env=<file>) (-remote)
 ```
 
-When you are finished, you can delete the resource group and all resources within it:
+By default, the live tests will load any _.env_ file `azd` created, falling back to any _.env_ file you have in the repository root
+as well as any environment variables already set. You can override this behavior by passing a the path to an environment file to
+`-env`.
+
+To run tests only against the Azure Key Vault or Managed HSM without trying to download the key, pass `-remote`.
+
+When you are finished with these resources, you can delete the resource group and all resources within it:
 
 ```bash
 azd down
