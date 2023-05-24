@@ -1,9 +1,10 @@
+// Copyright 2023 Heath Stewart.
+// Licensed under the MIT License. See LICENSE.txt in the project root for license information.
+
 package algorithm
 
 import (
-	"crypto/sha256"
-	"crypto/sha512"
-	"hash"
+	"crypto"
 	"testing"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
@@ -72,28 +73,28 @@ func TestGetHash(t *testing.T) {
 	tests := []struct {
 		name string
 		alg  SignatureAlgorithm
-		h    hash.Hash
+		h    crypto.Hash
 		err  error
 	}{
 		{
 			name: "es256",
 			alg:  azkeys.JSONWebKeySignatureAlgorithmES256,
-			h:    sha256.New(),
+			h:    crypto.SHA256,
 		},
 		{
 			name: "es256k",
 			alg:  azkeys.JSONWebKeySignatureAlgorithmES256K,
-			h:    sha256.New(),
+			h:    crypto.SHA256,
 		},
 		{
 			name: "es384",
 			alg:  azkeys.JSONWebKeySignatureAlgorithmES384,
-			h:    sha512.New384(),
+			h:    crypto.SHA384,
 		},
 		{
 			name: "es512",
 			alg:  azkeys.JSONWebKeySignatureAlgorithmES512,
-			h:    sha512.New(),
+			h:    crypto.SHA512,
 		},
 		{
 			name: "unsupported",

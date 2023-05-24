@@ -61,14 +61,12 @@ func fromCurve(crv azkeys.JSONWebKeyCurveName) (elliptic.Curve, error) {
 	}
 }
 
-func (c ECDsa) Sign(algorithm SignatureAlgorithm, digest []byte) (SignResult, error) {
-	// TODO: Consider removing operations requiring the private key entirely from interface, or implement to support JWTs passed to the Client.
-	return SignResult{}, internal.ErrUnsupported
+func (c ECDsa) Encrypt(algorithm EncryptionAlgorithm, plaintext []byte) (EncryptResult, error) {
+	return EncryptResult{}, internal.ErrUnsupported
 }
 
 func (c ECDsa) Verify(algorithm SignatureAlgorithm, digest, signature []byte) (VerifyResult, error) {
-	// Naive split of r, s.
-	// See https://github.com/schaabs/azure-keyvault-java/blob/e643aff088bb5cc60bef23ba4edb67b518301fa8/azure-keyvault-cryptography/src/main/java/com/microsoft/azure/keyvault/cryptography/SignatureEncoding.java#L130
+	// Key Vault and Managed HSM concatenate r and s components.
 	r := new(big.Int).SetBytes(signature[:len(signature)/2])
 	s := new(big.Int).SetBytes(signature[len(signature)/2:])
 
@@ -77,4 +75,8 @@ func (c ECDsa) Verify(algorithm SignatureAlgorithm, digest, signature []byte) (V
 		KeyID:     c.keyID,
 		Valid:     ecdsa.Verify(&c.pub, digest, r, s),
 	}, nil
+}
+
+func (c ECDsa) WrapKey(algorithm KeyWrapAlgorithm, key []byte) (WrapKeyResult, error) {
+	return WrapKeyResult{}, internal.ErrUnsupported
 }

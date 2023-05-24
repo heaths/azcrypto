@@ -12,6 +12,9 @@
     "GOVERSION",
     "JWT",
     "keyvault",
+    "OAEP",
+    "RSAHSM",
+    "RSASSA",
     "SECG",
     "SECP",
     "stretchr"
