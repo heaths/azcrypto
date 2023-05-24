@@ -40,6 +40,11 @@ type ClientOptions struct {
 
 // NewClient creates a Client for a specified key ID. If the caller has permission to download the specified public key,
 // supported cryptography operations are performed locally.
+//
+// The public key is fetched only once. If you use a key ID without a version (not generally recommended) and the key
+// is rotated in Azure Key Vault or Managed HSM, a new version is not retrieved. It is recommended that you always
+// specify a key ID with a version, however, or at least store the full key ID returned by the service with your data
+// so you always know which key to use to reverse the operation e.g., you can decrypt data you previously encrypted.
 func NewClient(keyID string, credential azcore.TokenCredential, options *ClientOptions) (*Client, error) {
 	if options == nil {
 		options = &ClientOptions{}
@@ -97,67 +102,103 @@ func (client *Client) init(ctx context.Context) {
 	})
 }
 
-// EncryptionAlgorithm defines the encryption algorithms supported by Azure Key Vault or MAnaged HSM.
-type EncryptionAlgorithm = alg.EncryptionAlgorithm
+// EncryptOptions defines options for the Encrypt method.
+type EncryptOptions struct {
+	azkeys.EncryptOptions
+}
 
-const (
-	// EncryptionAlgorithmRSA15 uses RSA 1.5.
-	EncryptionAlgorithmRSA15 EncryptionAlgorithm = azkeys.JSONWebKeyEncryptionAlgorithmRSA15
+// EncryptResult contains information returned by the Encrypt method.
+type EncryptResult = alg.EncryptResult
 
-	// EncryptionAlgorithmRSAOAEP uses RSA-OAEP.
-	EncryptionAlgorithmRSAOAEP EncryptionAlgorithm = azkeys.JSONWebKeyEncryptionAlgorithmRSAOAEP
+// Encrypt encrypts the plaintext using the specified algorithm.
+func (client *Client) Encrypt(ctx context.Context, algorithm EncryptionAlgorithm, plaintext []byte, options *EncryptOptions) (EncryptResult, error) {
+	client.init(ctx)
 
-	// EncryptionAlgorithmRSAOAEP256 uses RSA-OAEP-256.
-	EncryptionAlgorithmRSAOAEP256 EncryptionAlgorithm = azkeys.JSONWebKeyEncryptionAlgorithmRSAOAEP256
-)
+	if client.localClient != nil {
+		result, err := client.localClient.Encrypt(algorithm, plaintext)
+		if !errors.Is(err, internal.ErrUnsupported) {
+			return result, err
+		}
+	}
 
-// SignatureAlgorithm defines the signing algorithms supported by Azure Key Vault or Managed HSM.
-type SignatureAlgorithm = alg.SignatureAlgorithm
+	parameters := azkeys.KeyOperationsParameters{
+		Algorithm: &algorithm,
+		Value:     plaintext,
+	}
 
-const (
-	// SignatureAlgorithmES256 uses the P-256 curve requiring a SHA-256 hash.
-	SignatureAlgorithmES256 SignatureAlgorithm = azkeys.JSONWebKeySignatureAlgorithmES256
+	if options == nil {
+		options = &EncryptOptions{}
+	}
 
-	// SignatureAlgorithmES256K uses the P-256K curve requiring a SHA-256 hash.
-	SignatureAlgorithmES256K SignatureAlgorithm = azkeys.JSONWebKeySignatureAlgorithmES256K
+	response, err := client.remoteClient.Encrypt(
+		ctx,
+		client.keyName,
+		client.keyVersion,
+		parameters,
+		&options.EncryptOptions,
+	)
+	if err != nil {
+		return EncryptResult{}, nil
+	}
 
-	// SignatureAlgorithmES384 uses the P-384 curve requiring a SHA-384 hash.
-	SignatureAlgorithmES384 SignatureAlgorithm = azkeys.JSONWebKeySignatureAlgorithmES384
+	keyID := client.keyID
+	if response.KID != nil {
+		keyID = string(*response.KID)
+	}
 
-	// SignatureAlgorithmES512 uses the P-521 curve requiring a SHA-512 hash.
-	SignatureAlgorithmES512 SignatureAlgorithm = azkeys.JSONWebKeySignatureAlgorithmES512
+	result := EncryptResult{
+		Algorithm:  algorithm,
+		KeyID:      keyID,
+		Ciphertext: response.Result,
+	}
 
-	// SignatureAlgorithmPS256 uses RSASSA-PSS using a SHA-256 hash.
-	SignatureAlgorithmPS256 SignatureAlgorithm = azkeys.JSONWebKeySignatureAlgorithmPS256
+	return result, nil
+}
 
-	// SignatureAlgorithmPS384 uses RSASSA-PSS using a SHA-384 hash.
-	SignatureAlgorithmPS384 SignatureAlgorithm = azkeys.JSONWebKeySignatureAlgorithmPS384
+// DecryptOptions defines options for the Decrypt method.
+type DecryptOptions struct {
+	azkeys.DecryptOptions
+}
 
-	// SignatureAlgorithmPS512 uses RSASSA-PSS using a SHA-512 hash.
-	SignatureAlgorithmPS512 SignatureAlgorithm = azkeys.JSONWebKeySignatureAlgorithmPS512
+// DecryptResult contains information returned by the Decrypt method.
+type DecryptResult = alg.DecryptResult
 
-	// SignatureAlgorithmRS256 uses RSASSA-PKCS1-v1_5 using a SHA256 hash.
-	SignatureAlgorithmRS256 SignatureAlgorithm = azkeys.JSONWebKeySignatureAlgorithmRS256
+// Decrypt decrypts the ciphertext using the specified algorithm.
+func (client *Client) Decrypt(ctx context.Context, algorithm EncryptionAlgorithm, ciphertext []byte, options *DecryptOptions) (DecryptResult, error) {
+	// Decrypting requires access to a private key, which Key Vault does not provide by default.
+	parameters := azkeys.KeyOperationsParameters{
+		Algorithm: &algorithm,
+		Value:     ciphertext,
+	}
 
-	// SignatureAlgorithmRS384 uses RSASSA-PKCS1-v1_5 using a SHA384 hash.
-	SignatureAlgorithmRS384 SignatureAlgorithm = azkeys.JSONWebKeySignatureAlgorithmRS384
+	if options == nil {
+		options = &DecryptOptions{}
+	}
 
-	// SignatureAlgorithmRS512 uses RSASSA-PKCS1-v1_5 using a SHA512 hash.
-	SignatureAlgorithmRS512 SignatureAlgorithm = azkeys.JSONWebKeySignatureAlgorithmRS512
-)
+	response, err := client.remoteClient.Decrypt(
+		ctx,
+		client.keyName,
+		client.keyVersion,
+		parameters,
+		&options.DecryptOptions,
+	)
+	if err != nil {
+		return DecryptResult{}, err
+	}
 
-type KeyWrapAlgorithm = alg.KeyWrapAlgorithm
+	keyID := client.keyID
+	if response.KID != nil {
+		keyID = string(*response.KID)
+	}
 
-const (
-	// KeyWrapAlgorithmRSA15 uses RSA 1.5.
-	KeyWrapAlgorithmRSA15 KeyWrapAlgorithm = azkeys.JSONWebKeyEncryptionAlgorithmRSA15
+	result := DecryptResult{
+		Algorithm: algorithm,
+		KeyID:     keyID,
+		Plaintext: response.Result,
+	}
 
-	// KeyWrapAlgorithmRSAOAEP uses RSA-OAEP.
-	KeyWrapAlgorithmRSAOAEP KeyWrapAlgorithm = azkeys.JSONWebKeyEncryptionAlgorithmRSAOAEP
-
-	// KeyWrapAlgorithmRSAOAEP256 uses RSA-OAEP-256.
-	KeyWrapAlgorithmRSAOAEP256 KeyWrapAlgorithm = azkeys.JSONWebKeyEncryptionAlgorithmRSAOAEP256
-)
+	return result, nil
+}
 
 // SignOptions defines options for the Sign method.
 type SignOptions struct {
@@ -190,9 +231,14 @@ func (client *Client) Sign(ctx context.Context, algorithm SignatureAlgorithm, di
 		return SignResult{}, err
 	}
 
+	keyID := client.keyID
+	if response.KID != nil {
+		keyID = string(*response.KID)
+	}
+
 	result := SignResult{
 		Algorithm: algorithm,
-		KeyID:     string(*response.KID),
+		KeyID:     keyID,
 		Signature: response.Result,
 	}
 

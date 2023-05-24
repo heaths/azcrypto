@@ -30,9 +30,33 @@ func ExampleNewClient() {
 	_ = client
 }
 
+func ExampleClient_Encrypt() {
+	result, err := client.Encrypt(context.TODO(), azcrypto.EncryptionAlgorithmRSAOAEP256, []byte("plaintext"), nil)
+	if err != nil {
+		// TODO: handle error
+	}
+
+	fmt.Printf("Ciphertext: %x\n", result.Ciphertext)
+}
+
+func ExampleClient_Decrypt() {
+	decoder := base64.RawURLEncoding
+	ciphertext, err := decoder.DecodeString("{base64url ciphertext}")
+	if err != nil {
+		// TODO: handle error
+	}
+
+	result, err := client.Decrypt(context.TODO(), azcrypto.EncryptionAlgorithmRSAOAEP256, ciphertext, nil)
+	if err != nil {
+		// TODO: handle error
+	}
+
+	fmt.Printf("Plaintext: %s\n", result.Plaintext)
+}
+
 func ExampleClient_Sign() {
 	hash := sha256.New()
-	hash.Write([]byte("plaintext to sign"))
+	hash.Write([]byte("plaintext"))
 	digest := hash.Sum(nil)
 
 	result, err := client.Sign(context.TODO(), azcrypto.SignatureAlgorithmES256, digest, nil)
@@ -40,29 +64,29 @@ func ExampleClient_Sign() {
 		// TODO: handle error
 	}
 
-	fmt.Printf("%x\n", result.Signature)
+	fmt.Printf("Signature: %x\n", result.Signature)
 }
 
 func ExampleClient_SignData() {
-	result, err := client.SignData(context.TODO(), azcrypto.SignatureAlgorithmES256, []byte("plaintext to sign"), nil)
+	result, err := client.SignData(context.TODO(), azcrypto.SignatureAlgorithmES256, []byte("plaintext"), nil)
 	if err != nil {
 		// TODO: handle error
 	}
 
-	fmt.Printf("%x\n", result.Signature)
+	fmt.Printf("Signature: %x\n", result.Signature)
 }
 
 func ExampleClient_Verify() {
 	decoder := base64.RawURLEncoding
-	signature, err := decoder.DecodeString("{raw base64url signature}")
+	signature, err := decoder.DecodeString("{base64url signature}")
 	if err != nil {
 		// TODO: handle error
 	}
 
-	result, err := client.VerifyData(context.TODO(), azcrypto.SignatureAlgorithmES256, []byte("plaintext to sign"), signature, nil)
+	result, err := client.VerifyData(context.TODO(), azcrypto.SignatureAlgorithmES256, []byte("plaintext"), signature, nil)
 	if err != nil {
 		// TODO: handle error
 	}
 
-	fmt.Println(result.Valid)
+	fmt.Printf("Valid: %t\n", result.Valid)
 }

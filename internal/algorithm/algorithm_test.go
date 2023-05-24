@@ -5,6 +5,9 @@ package algorithm
 
 import (
 	"crypto"
+	"crypto/sha256"
+	"encoding/base64"
+	"math/big"
 	"testing"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
@@ -114,4 +117,18 @@ func TestGetHash(t *testing.T) {
 			require.Equal(t, tt.h, h)
 		})
 	}
+}
+
+func decode(s string) *big.Int {
+	b, err := base64.StdEncoding.DecodeString(s)
+	if err != nil {
+		panic(err)
+	}
+	return new(big.Int).SetBytes(b)
+}
+
+func hash(plaintext string) []byte {
+	h := sha256.New()
+	h.Write([]byte(plaintext))
+	return h.Sum(nil)
 }

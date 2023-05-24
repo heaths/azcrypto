@@ -4,7 +4,10 @@
 package algorithm
 
 import (
+	"crypto"
+	"crypto/rand"
 	"crypto/rsa"
+	_ "crypto/sha256"
 	"encoding/binary"
 	"fmt"
 	"math/big"
@@ -41,7 +44,42 @@ func newRSA(key azkeys.JSONWebKey) (RSA, error) {
 }
 
 func (r RSA) Encrypt(algorithm EncryptionAlgorithm, plaintext []byte) (EncryptResult, error) {
-	return EncryptResult{}, internal.ErrUnsupported
+	var ciphertext []byte
+	var err error
+
+	getHash := func() crypto.Hash {
+		switch algorithm {
+		case azkeys.JSONWebKeyEncryptionAlgorithmRSAOAEP:
+			return crypto.SHA1
+
+		case azkeys.JSONWebKeyEncryptionAlgorithmRSAOAEP256:
+			return crypto.SHA256
+
+		default:
+			panic("unexpected EncryptionAlgorithm")
+		}
+	}
+
+	switch algorithm {
+	case azkeys.JSONWebKeyEncryptionAlgorithmRSAOAEP:
+		fallthrough
+	case azkeys.JSONWebKeyEncryptionAlgorithmRSAOAEP256:
+		hash := getHash()
+		ciphertext, err = rsa.EncryptOAEP(hash.New(), rand.Reader, &r.pub, plaintext, nil)
+
+	case azkeys.JSONWebKeyEncryptionAlgorithmRSA15:
+		ciphertext, err = rsa.EncryptPKCS1v15(rand.Reader, &r.pub, plaintext)
+	}
+
+	if err != nil {
+		return EncryptResult{}, err
+	}
+
+	return EncryptResult{
+		Algorithm:  algorithm,
+		KeyID:      r.keyID,
+		Ciphertext: ciphertext,
+	}, nil
 }
 
 func (r RSA) Verify(algorithm SignatureAlgorithm, digest, signature []byte) (VerifyResult, error) {

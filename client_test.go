@@ -37,6 +37,255 @@ func TestNewClient(t *testing.T) {
 	require.Equal(t, "https://myvault.vault.azure.net/keys/mykey", client.KeyID())
 }
 
+func TestClient_Encrypt(t *testing.T) {
+	const (
+		host = "https://test.vault.azure.net"
+		path = "/keys/rsa204/ca393a58beae4589bcfbf8120d0e9671"
+
+		plaintext = "message"
+
+		rsa15base64url      = "TQfQEkYPWUMkeVcgXHcxB-6Odnvgd42e6YDVipRNUHjA_A8y-ejD17qXX7eV58B2kRikBF7VznGf44vEw7pTZ2a0QVVmZj0vWEiKc_eEhqPem16Tlz4iSlLMRmXf25pZd9kRApj__ofIBjWvfvci2UgWlO3HLrOU7q9qShZgxM2V2OcH8XIKdTq9BHMeJQ3OZSPG4dT5H84wd-r925Kyda_WCWihX-0ZvPU6mjm0O05OFm3Ojtdl2C1xGwByAIhhUvExEIsJSBLkTtL-peAaA4CrDg-foBrUMvrqO-YWg1tJQ_5mMjhVWtB3NQpPc-Soo4IhwFmfWdBK2PzMeG7xaw"
+		rsaOAEPbase64url    = "CxwLeizTKykT5f029SolpRgPP58I032lF7BysR4U2_MoeuGzFzdqdQc2Ad8p7tEIXRF5cnRoHZZqFQHmhwY41005x18sTOBVlP8XuNL_w-YSadjzlT_Dp_TDPahbTGHkwj6yFIDKfNpT11GaiUi6iDZ_b8dYebx2o3761agOTUZWK92b-nKcmedgh2q3w3AHCvibm2gBfgGNKGBy4pK1XbVJKNCiBNW5KA02GFov-fJgqEKlV7c9BHzZdER9m752bKN9bA43J-M-NK8zI9mSQrqS76JihMVeA4JcdM5pEbuLev7PEgexX0DjzAEMgvsYRGOtTUI9L91ElZNEsiUPNw"
+		rsaOAEP256base64url = "fu-UXk52z-mN1Ult7b6DS6xIrN8RPA61Zy1LRvbPps9UiomMDkHoq3yIq3ddkCqS6QGmqgUQtcWYt40WJubZ2Dw_Xc2W1yr_t2jSP_12JgxaUPWK9Ie1OLhMSI7-BMnKHN05X6KTfA5vSaZnMuOg6TU3ZK0E4Q1OF86n2HtDoQOB7lk3j0MiZgtWNdfyQ8jt5Na7rcFD9NbyoFJQ6dAS2kzhAdG9S4qVY7nWc5cnl8yUYPQYeqWUsTV8eV27s40hgvsh7qMCIaquLq4dAPrZM3ftm4qaQpv91jpwNk6McJiiSomhQflJ9H6oQC5BjvOz99KXNkX5sXQJuDhXD0JK0A"
+	)
+
+	type encryptResponse struct {
+		KID   string `json:"kid"`
+		Value string `json:"value"`
+	}
+
+	tests := []struct {
+		name  string
+		mocks func()
+		alg   EncryptionAlgorithm
+		err   error
+	}{
+		{
+			name: "no get permission",
+			mocks: func() {
+				gock.New(host).
+					Get(path).
+					BodyString("").
+					Reply(401).
+					AddHeader("WWW-Authenticate", `Bearer authorization="https://login.windows.net/tenantID", resource="https://vault.azure.net"`)
+				gock.New(host).
+					Get(path).
+					MatchHeader("Authorization", "Bearer "+mock.TokenBase64).
+					Reply(403)
+				gock.New(host).
+					Post(path+"/encrypt").
+					MatchHeader("Authorization", "Bearer "+mock.TokenBase64).
+					Reply(200).
+					JSON(encryptResponse{
+						KID:   host + path,
+						Value: rsaOAEP256base64url,
+					})
+			},
+			alg: EncryptionAlgorithmRSAOAEP256,
+		},
+		{
+			name: "rsa15",
+			mocks: func() {
+				gock.New(host).
+					Get(path).
+					BodyString("").
+					Reply(401).
+					AddHeader("WWW-Authenticate", `Bearer authorization="https://login.windows.net/tenantID", resource="https://vault.azure.net"`)
+				gock.New(host).
+					Get(path).
+					MatchHeader("Authorization", "Bearer "+mock.TokenBase64).
+					Reply(200).
+					JSON(mockRSA(host + path))
+				gock.New(host).
+					Post(path+"/encrypt").
+					MatchHeader("Authorization", "Bearer "+mock.TokenBase64).
+					Reply(200).
+					JSON(encryptResponse{
+						KID:   host + path,
+						Value: rsa15base64url,
+					})
+			},
+			alg: EncryptionAlgorithmRSA15,
+		},
+		{
+			name: "rsaOAEP",
+			mocks: func() {
+				gock.New(host).
+					Get(path).
+					BodyString("").
+					Reply(401).
+					AddHeader("WWW-Authenticate", `Bearer authorization="https://login.windows.net/tenantID", resource="https://vault.azure.net"`)
+				gock.New(host).
+					Get(path).
+					MatchHeader("Authorization", "Bearer "+mock.TokenBase64).
+					Reply(200).
+					JSON(mockRSA(host + path))
+				gock.New(host).
+					Post(path+"/encrypt").
+					MatchHeader("Authorization", "Bearer "+mock.TokenBase64).
+					Reply(200).
+					JSON(encryptResponse{
+						KID:   host + path,
+						Value: rsaOAEPbase64url,
+					})
+			},
+			alg: EncryptionAlgorithmRSAOAEP,
+		},
+		{
+			name: "rsaOAEP256",
+			mocks: func() {
+				gock.New(host).
+					Get(path).
+					BodyString("").
+					Reply(401).
+					AddHeader("WWW-Authenticate", `Bearer authorization="https://login.windows.net/tenantID", resource="https://vault.azure.net"`)
+				gock.New(host).
+					Get(path).
+					MatchHeader("Authorization", "Bearer "+mock.TokenBase64).
+					Reply(200).
+					JSON(mockRSA(host + path))
+				gock.New(host).
+					Post(path+"/encrypt").
+					MatchHeader("Authorization", "Bearer "+mock.TokenBase64).
+					Reply(200).
+					JSON(encryptResponse{
+						KID:   host + path,
+						Value: rsaOAEP256base64url,
+					})
+			},
+			alg: EncryptionAlgorithmRSAOAEP256,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Cleanup(gock.Off)
+
+			if tt.mocks != nil {
+				tt.mocks()
+			}
+
+			client, err := NewClient(host+path, &mock.TokenCredential{}, mockOptions())
+			require.NoError(t, err)
+
+			result, err := client.Encrypt(context.Background(), tt.alg, []byte(plaintext), nil)
+			if tt.err != nil {
+				require.ErrorIs(t, err, tt.err)
+				return
+			}
+			require.NoError(t, err)
+			require.Equal(t, tt.alg, result.Algorithm)
+			require.Equal(t, host+path, result.KeyID)
+			require.NotEmpty(t, result.Ciphertext)
+			require.True(t, gock.IsDone())
+		})
+	}
+}
+
+func TestClient_Decrypt(t *testing.T) {
+	const (
+		host = "https://test.vault.azure.net"
+		path = "/keys/rsa204/ca393a58beae4589bcfbf8120d0e9671"
+
+		plaintext          = "message"
+		plaintextbase64url = "bWVzc2FnZQ"
+	)
+
+	type decryptResponse struct {
+		KID   string `json:"kid"`
+		Value string `json:"value"`
+	}
+
+	tests := []struct {
+		name  string
+		mocks func()
+		alg   EncryptionAlgorithm
+		err   error
+	}{
+		{
+			name: "rsa15",
+			mocks: func() {
+				gock.New(host).
+					Post(path).
+					BodyString("").
+					Reply(401).
+					AddHeader("WWW-Authenticate", `Bearer authorization="https://login.windows.net/tenantID", resource="https://vault.azure.net"`)
+				gock.New(host).
+					Post(path+"/decrypt").
+					MatchHeader("Authorization", "Bearer "+mock.TokenBase64).
+					Reply(200).
+					JSON(decryptResponse{
+						KID:   host + path,
+						Value: plaintextbase64url,
+					})
+			},
+			alg: EncryptionAlgorithmRSA15,
+		},
+		{
+			name: "rsaOAEP",
+			mocks: func() {
+				gock.New(host).
+					Post(path).
+					BodyString("").
+					Reply(401).
+					AddHeader("WWW-Authenticate", `Bearer authorization="https://login.windows.net/tenantID", resource="https://vault.azure.net"`)
+				gock.New(host).
+					Post(path+"/decrypt").
+					MatchHeader("Authorization", "Bearer "+mock.TokenBase64).
+					Reply(200).
+					JSON(decryptResponse{
+						KID:   host + path,
+						Value: plaintextbase64url,
+					})
+			},
+			alg: EncryptionAlgorithmRSAOAEP,
+		},
+		{
+			name: "rsaOAEP256",
+			mocks: func() {
+				gock.New(host).
+					Post(path).
+					BodyString("").
+					Reply(401).
+					AddHeader("WWW-Authenticate", `Bearer authorization="https://login.windows.net/tenantID", resource="https://vault.azure.net"`)
+				gock.New(host).
+					Post(path+"/decrypt").
+					MatchHeader("Authorization", "Bearer "+mock.TokenBase64).
+					Reply(200).
+					JSON(decryptResponse{
+						KID:   host + path,
+						Value: plaintextbase64url,
+					})
+			},
+			alg: EncryptionAlgorithmRSAOAEP256,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Cleanup(gock.Off)
+
+			if tt.mocks != nil {
+				tt.mocks()
+			}
+
+			client, err := NewClient(host+path, &mock.TokenCredential{}, mockOptions())
+			require.NoError(t, err)
+
+			result, err := client.Decrypt(context.Background(), tt.alg, []byte("mocked"), nil)
+			if tt.err != nil {
+				require.ErrorIs(t, err, tt.err)
+				return
+			}
+			require.NoError(t, err)
+			require.Equal(t, tt.alg, result.Algorithm)
+			require.Equal(t, host+path, result.KeyID)
+			require.Equal(t, plaintext, string(result.Plaintext))
+			require.True(t, gock.IsDone())
+		})
+	}
+}
+
 func TestClient_SignData(t *testing.T) {
 	const (
 		host      = "https://test.vault.azure.net"
@@ -76,6 +325,11 @@ func TestClient_SignData(t *testing.T) {
 	}
 
 	var tests []test
+
+	type signResponse struct {
+		KID   string `json:"kid"`
+		Value string `json:"value"`
+	}
 
 	// ECDsa
 	ecparams := []struct {
@@ -213,6 +467,10 @@ func TestClient_VerifyData(t *testing.T) {
 		err   error
 	}
 
+	type verifyResponse struct {
+		Value bool `json:"value"`
+	}
+
 	tests := []test{
 		{
 			name: "no get permission",
@@ -239,6 +497,10 @@ func TestClient_VerifyData(t *testing.T) {
 			sig:   ecsig256,
 			valid: true,
 		},
+	}
+
+	type getResponse struct {
+		Key *azkeys.JSONWebKey `json:"key"`
 	}
 
 	// ECDsa
@@ -342,19 +604,6 @@ func TestClient_VerifyData(t *testing.T) {
 			require.True(t, gock.IsDone())
 		})
 	}
-}
-
-type getResponse struct {
-	Key *azkeys.JSONWebKey `json:"key"`
-}
-
-type signResponse struct {
-	KID   string `json:"kid"`
-	Value string `json:"value"`
-}
-
-type verifyResponse struct {
-	Value bool `json:"value"`
 }
 
 func mockOptions() *ClientOptions {
