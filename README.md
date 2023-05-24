@@ -74,15 +74,11 @@ import (
 )
 
 func signAndVerify(client *azcrypto.Client, plaintext string) (bool, error) {
-    hash := sha256.New()
-    hash.Write([]byte(plaintext))
-    digest := hash.Sum(nil)
-
     // Performed remotely by Azure Key Vault or Managed HSM.
-    signResult, err := client.Sign(
+    signResult, err := client.SignData(
         context.TODO(),
         azcrypto.SignatureAlgorithmES256,
-        digest,
+        []byte(plaintext),
         nil,
     )
     if err != nil {
@@ -90,10 +86,10 @@ func signAndVerify(client *azcrypto.Client, plaintext string) (bool, error) {
     }
 
     // Performed locally if the public key could be retrieved.
-    verifyResult, err := client.Verify(
+    verifyResult, err := client.VerifyData(
         context.TODO(),
         signResult.Algorithm,
-        digest,
+        []byte(plaintext),
         signResult.Signature,
         nil,
     )

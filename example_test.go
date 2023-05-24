@@ -43,18 +43,23 @@ func ExampleClient_Sign() {
 	fmt.Printf("%x\n", result.Signature)
 }
 
-func ExampleClient_Verify() {
-	hash := sha256.New()
-	hash.Write([]byte("plaintext to verify"))
-	digest := hash.Sum(nil)
+func ExampleClient_SignData() {
+	result, err := client.SignData(context.TODO(), azcrypto.SignatureAlgorithmES256, []byte("plaintext to sign"), nil)
+	if err != nil {
+		// TODO: handle error
+	}
 
+	fmt.Printf("%x\n", result.Signature)
+}
+
+func ExampleClient_Verify() {
 	decoder := base64.RawURLEncoding
 	signature, err := decoder.DecodeString("{raw base64url signature}")
 	if err != nil {
 		// TODO: handle error
 	}
 
-	result, err := client.Verify(context.TODO(), azcrypto.SignatureAlgorithmES256, digest, signature, nil)
+	result, err := client.VerifyData(context.TODO(), azcrypto.SignatureAlgorithmES256, []byte("plaintext to sign"), signature, nil)
 	if err != nil {
 		// TODO: handle error
 	}
