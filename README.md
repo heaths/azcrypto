@@ -61,6 +61,43 @@ func main() {
 
 The `Client` will attempt to download the specified public key when first used. This will improve throughput while reducing the risk of getting throttled by Key Vault's [rate limits].
 
+### Encrypt and decrypt
+
+You can encrypt with a public key, but decryption requires a private key to which Azure Key Vault or Managed HSM does not provide access.
+The following encryption operation will be performed locally if the caller has the `keys/get` data action permission, and decrypted remotely.
+
+```go
+import (
+    "context"
+
+    "github.com/heaths/azcrypto"
+)
+
+func encryptAndDecrypt(client *azcrypto.Client, plaintext string) (string, error) {
+    encryptResult, err := client.Encrypt(
+        context.TODO(),
+        azcrypto.EncryptionAlgorithmRSAOAEP256,
+        []byte(plaintext),
+        nil,
+    )
+    if err != nil {
+        return "", nil
+    }
+
+    decryptResult, err := client.Decrypt(
+        context.TODO(),
+        azcrypto.EncryptionAlgorithmRSAOAEP256,
+        encryptResult.Ciphertext,
+        nil,
+    )
+    if err != nil {
+        return "", nil
+    }
+
+    return string(decryptResult.Plaintext), nil
+}
+```
+
 ### Sign and verify
 
 Because signing requires a private key and Azure Key Vault or Managed HSM does not provide access, by default, to the private key, the following signing operation will be performed remotely while the verifying operation will be performed locally, assuming the caller has the `keys/get` data action permission.

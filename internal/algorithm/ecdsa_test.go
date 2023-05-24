@@ -4,7 +4,9 @@
 package algorithm
 
 import (
+	"crypto/ecdsa"
 	"crypto/elliptic"
+	"encoding/hex"
 	"testing"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
@@ -102,4 +104,32 @@ func TestFromCurve(t *testing.T) {
 			require.Equal(t, tt.want, curve)
 		})
 	}
+}
+
+func TestECDsa_Encrypt(t *testing.T) {
+	_, err := testECDsa.Encrypt(azkeys.JSONWebKeyEncryptionAlgorithmRSAOAEP, []byte("plaintext"))
+	require.ErrorIs(t, err, internal.ErrUnsupported)
+}
+
+func TestECDsa_Verify(t *testing.T) {
+	digest := hash("message")
+	signature, err := hex.DecodeString("6f1ebd371ccae1a455bb709c5bb2c3e999ede7ed34b8e5e3d3994508f238c33c48f979c986182f6b8f7bd3fb277cc3a6c10f42ee906d18420d6ee7895720fca8")
+	require.NoError(t, err)
+
+	result, err := testECDsa.Verify(azkeys.JSONWebKeySignatureAlgorithmES256, digest, signature)
+	require.NoError(t, err)
+	require.True(t, result.Valid)
+}
+
+func TestECDsa_WrapKey(t *testing.T) {
+	_, err := testECDsa.WrapKey(azkeys.JSONWebKeyEncryptionAlgorithmRSAOAEP, []byte("key"))
+	require.ErrorIs(t, err, internal.ErrUnsupported)
+}
+
+var testECDsa = ECDsa{
+	pub: ecdsa.PublicKey{
+		Curve: elliptic.P256(),
+		X:     decode("7WxNBlctcTGSin66Wagm+TjuJNkakZ66/kBWbrEXH7A="),
+		Y:     decode("eezcbUP083FjPhwp+uTTXiJVKI7/j+IMYMl4uYrF95Y="),
+	},
 }

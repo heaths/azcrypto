@@ -159,6 +159,104 @@ const (
 	KeyWrapAlgorithmRSAOAEP256 KeyWrapAlgorithm = azkeys.JSONWebKeyEncryptionAlgorithmRSAOAEP256
 )
 
+// EncryptOptions defines options for the Encrypt method.
+type EncryptOptions struct {
+	azkeys.EncryptOptions
+}
+
+// EncryptResult contains information returned by the Encrypt method.
+type EncryptResult = alg.EncryptResult
+
+// Encrypt encrypts the plaintext using the specified algorithm.
+func (client *Client) Encrypt(ctx context.Context, algorithm EncryptionAlgorithm, plaintext []byte, options *EncryptOptions) (EncryptResult, error) {
+	client.init(ctx)
+
+	if client.localClient != nil {
+		result, err := client.localClient.Encrypt(algorithm, plaintext)
+		if !errors.Is(err, internal.ErrUnsupported) {
+			return result, err
+		}
+	}
+
+	parameters := azkeys.KeyOperationsParameters{
+		Algorithm: &algorithm,
+		Value:     plaintext,
+	}
+
+	if options == nil {
+		options = &EncryptOptions{}
+	}
+
+	response, err := client.remoteClient.Encrypt(
+		ctx,
+		client.keyName,
+		client.keyVersion,
+		parameters,
+		&options.EncryptOptions,
+	)
+	if err != nil {
+		return EncryptResult{}, nil
+	}
+
+	keyID := client.keyID
+	if response.KID != nil {
+		keyID = string(*response.KID)
+	}
+
+	result := EncryptResult{
+		Algorithm:  algorithm,
+		KeyID:      keyID,
+		Ciphertext: response.Result,
+	}
+
+	return result, nil
+}
+
+// DecryptOptions defines options for the Decrypt method.
+type DecryptOptions struct {
+	azkeys.DecryptOptions
+}
+
+// DecryptResult contains information returned by the Decrypt method.
+type DecryptResult = alg.DecryptResult
+
+// Decrypt decrypts the ciphertext using the specified algorithm.
+func (client *Client) Decrypt(ctx context.Context, algorithm EncryptionAlgorithm, ciphertext []byte, options *DecryptOptions) (DecryptResult, error) {
+	// Decrypting requires access to a private key, which Key Vault does not provide by default.
+	parameters := azkeys.KeyOperationsParameters{
+		Algorithm: &algorithm,
+		Value:     ciphertext,
+	}
+
+	if options == nil {
+		options = &DecryptOptions{}
+	}
+
+	response, err := client.remoteClient.Decrypt(
+		ctx,
+		client.keyName,
+		client.keyVersion,
+		parameters,
+		&options.DecryptOptions,
+	)
+	if err != nil {
+		return DecryptResult{}, err
+	}
+
+	keyID := client.keyID
+	if response.KID != nil {
+		keyID = string(*response.KID)
+	}
+
+	result := DecryptResult{
+		Algorithm: algorithm,
+		KeyID:     keyID,
+		Plaintext: response.Result,
+	}
+
+	return result, nil
+}
+
 // SignOptions defines options for the Sign method.
 type SignOptions struct {
 	azkeys.SignOptions
@@ -190,9 +288,14 @@ func (client *Client) Sign(ctx context.Context, algorithm SignatureAlgorithm, di
 		return SignResult{}, err
 	}
 
+	keyID := client.keyID
+	if response.KID != nil {
+		keyID = string(*response.KID)
+	}
+
 	result := SignResult{
 		Algorithm: algorithm,
-		KeyID:     string(*response.KID),
+		KeyID:     keyID,
 		Signature: response.Result,
 	}
 
