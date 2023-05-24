@@ -59,7 +59,6 @@ func main() {
 	log.Printf("Plaintext: %s\n", *message)
 	log.Printf("Key ID: %s\n", encrypted.KeyID)
 	log.Printf("Ciphertext: %x\n", encrypted.Ciphertext)
-
 	if *base64 {
 		ciphertext := b64.StdEncoding.EncodeToString(encrypted.Ciphertext)
 		log.Printf("Ciphertext (base64): %s\n", ciphertext)
@@ -75,4 +74,12 @@ func main() {
 	}
 
 	log.Println("Decrypted:", string(decrypted.Plaintext))
+	if *base64 {
+		plaintext := b64.StdEncoding.EncodeToString(decrypted.Plaintext)
+		log.Printf("Decrypted (base64): %s\n", plaintext)
+	}
+	if *base64url {
+		plaintext := b64.RawURLEncoding.EncodeToString(decrypted.Plaintext)
+		log.Printf("Decrypted (base64url): %s\n", plaintext)
+	}
 }
