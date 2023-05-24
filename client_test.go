@@ -10,7 +10,6 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"fmt"
-	"net/url"
 	"os"
 	"testing"
 
@@ -620,7 +619,7 @@ func TestClient_liveEncryptDecrypt(t *testing.T) {
 	require.NotEmpty(t, vaultURL, "AZURE_KEYVAULT_URL environment variable required")
 
 	// RSA
-	keyID, err := url.JoinPath(vaultURL, "/keys/rsa2048")
+	keyID, err := internal.URLJoinPath(vaultURL, "/keys/rsa2048")
 	require.NoError(t, err)
 
 	credential, err := azidentity.NewDefaultAzureCredential(nil)
@@ -652,7 +651,7 @@ func TestClient_liveSignVerify(t *testing.T) {
 	require.NotEmpty(t, vaultURL, "AZURE_KEYVAULT_URL environment variable required")
 
 	// ECDsa
-	keyID, err := url.JoinPath(vaultURL, "/keys/ec256")
+	keyID, err := internal.URLJoinPath(vaultURL, "/keys/ec256")
 	require.NoError(t, err)
 
 	credential, err := azidentity.NewDefaultAzureCredential(nil)

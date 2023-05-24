@@ -9,8 +9,10 @@ import (
 	"flag"
 	"fmt"
 	"io/fs"
+	"net/url"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/joho/godotenv"
@@ -54,4 +56,25 @@ func LoadEnv() error {
 	// Fall back to root .env for additional vars.
 	_ = godotenv.Load()
 	return nil
+}
+
+func URLJoinPath(base string, elem ...string) (string, error) {
+	// TODO: Use url.JoinPath after upgrading to Go 1.19 or newer.
+	if base == "" {
+		return "", fmt.Errorf("base required")
+	}
+
+	url, err := url.Parse(base)
+	if err != nil {
+		return "", err
+	}
+
+	res := make([]string, 0, len(elem)+1)
+	res = append(res, strings.TrimSuffix(url.String(), "/"))
+
+	for _, s := range elem {
+		res = append(res, strings.Trim(s, "/"))
+	}
+
+	return strings.Join(res, "/"), nil
 }
