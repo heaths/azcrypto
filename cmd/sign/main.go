@@ -8,10 +8,11 @@ import (
 	"crypto"
 	_ "crypto/sha256"
 	_ "crypto/sha512"
+	b64 "encoding/base64"
 	"flag"
 	"log"
-	"os"
 
+	azlog "github.com/Azure/azure-sdk-for-go/sdk/azcore/log"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/heaths/azcrypto"
 )
@@ -20,13 +21,21 @@ var (
 	keyID     = flag.String("id", "", "Key ID used to sign.")
 	message   = flag.String("m", "message", "The message to sign.")
 	algorithm = flag.String("alg", string(azcrypto.SignatureAlgorithmES256), "The signing algorithm.")
+	debug     = flag.Bool("debug", false, "show debug information")
+	base64    = flag.Bool("base64", false, "show base64-encoded signature")
+	base64url = flag.Bool("base64url", false, "sow base64url-encoded signature")
 )
 
 func main() {
-	log.SetFlags(0)
-	log.SetOutput(os.Stderr)
-
 	flag.Parse()
+
+	if *debug {
+		azlog.SetListener(func(evt azlog.Event, message string) {
+			log.Printf("(%s) %s", evt, message)
+		})
+	} else {
+		log.SetFlags(0)
+	}
 
 	if keyID == nil {
 		log.Fatal("id is required")
@@ -61,6 +70,15 @@ func main() {
 	log.Printf("Digest: %x\n", digest)
 	log.Printf("Key ID: %s\n", signed.KeyID)
 	log.Printf("Signature: %x\n", signed.Signature)
+
+	if *base64 {
+		sig := b64.StdEncoding.EncodeToString(signed.Signature)
+		log.Printf("Signature (base64): %s\n", sig)
+	}
+	if *base64url {
+		sig := b64.RawURLEncoding.EncodeToString(signed.Signature)
+		log.Printf("Signature (base64url): %s\n", sig)
+	}
 
 	verified, err := client.Verify(ctx, signed.Algorithm, digest, signed.Signature, nil)
 	if err != nil {
