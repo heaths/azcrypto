@@ -5,6 +5,7 @@ package azcrypto_test
 
 import (
 	"context"
+	"crypto/rand"
 	"crypto/sha256"
 	"encoding/base64"
 	"fmt"
@@ -74,6 +75,39 @@ func ExampleClient_SignData() {
 	}
 
 	fmt.Printf("Signature: %x\n", result.Signature)
+}
+
+func ExampleClient_WrapKey() {
+	// Generate AES-256 key using a cryptographically secure RNG.
+	key := make([]byte, 32)
+	_, err := rand.Read(key)
+	if err != nil {
+		// TODO: handle error
+	}
+
+	// Encrypt the key using RSA-OAEP-256 to be stored securely.
+	result, err := client.WrapKey(context.TODO(), azcrypto.KeyWrapAlgorithmRSAOAEP256, key, nil)
+	if err != nil {
+		// TODO: handle error
+	}
+
+	fmt.Printf("Encrypted key: %x\n", result.EncryptedKey)
+}
+
+func ExampleClient_UnwrapKey() {
+	decoder := base64.RawURLEncoding
+	encryptedKey, err := decoder.DecodeString("{base64url key}")
+	if err != nil {
+		// TODO: handle error
+	}
+
+	// Decrypt the key for use as a block cipher for e.g., streaming data.
+	result, err := client.UnwrapKey(context.TODO(), azcrypto.KeyWrapAlgorithmRSAOAEP256, encryptedKey, nil)
+	if err != nil {
+		// TODO: handle error
+	}
+
+	fmt.Printf("Decrypted key: %s\n", result.Key)
 }
 
 func ExampleClient_Verify() {

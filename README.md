@@ -81,7 +81,7 @@ func encryptAndDecrypt(client *azcrypto.Client, plaintext string) (string, error
         nil,
     )
     if err != nil {
-        return "", nil
+        return "", err
     }
 
     decryptResult, err := client.Decrypt(
@@ -91,7 +91,7 @@ func encryptAndDecrypt(client *azcrypto.Client, plaintext string) (string, error
         nil,
     )
     if err != nil {
-        return "", nil
+        return "", err
     }
 
     return string(decryptResult.Plaintext), nil
@@ -100,7 +100,9 @@ func encryptAndDecrypt(client *azcrypto.Client, plaintext string) (string, error
 
 ### Sign and verify
 
-Because signing requires a private key and Azure Key Vault or Managed HSM does not provide access, by default, to the private key, the following signing operation will be performed remotely while the verifying operation will be performed locally, assuming the caller has the `keys/get` data action permission.
+You can verify a signature with a public key, but signing requires a private key to which Azure Key Vault or Managed HSM does not provide access.
+The following signing operation will be performed on Key Vault or Managed HSM, but verification will be performed locally if the caller
+has the `keys/get` data action permission.
 
 ```go
 import (
@@ -135,6 +137,47 @@ func signAndVerify(client *azcrypto.Client, plaintext string) (bool, error) {
     }
 
     return verifyResult.Valid, nil
+}
+```
+
+### Key wrap and unwrap
+
+You can wrap a key - typically a key used for symmetric algorithms such as AES - with a public key,
+but unwrapping the key requires a private key to which Azure Key Vault or Managed HSM does not provide access.
+The following wrapping operation will be performed locally if the caller has the `keys/get` data action permission,
+and unwrapped remotely on Key Vault or Managed HSM.
+
+This is useful for keeping symmetric algorithm keys such as AES secure while taking advantage of symmetric keys' speed for use in block ciphers.
+
+```go
+import (
+    "context"
+
+    "github.com/heaths/azcrypto"
+)
+
+func wrapAndUnwrapKey(client *azcrypto.Client, key []byte) ([]byte, error) {
+    wrappedKey, err := client.WrapKey(
+        context.TODO(),
+        azcrypto.KeyWrapAlgorithmRSAOAEP256,
+        key,
+        nil,
+    )
+    if err != nil {
+        return nil, err
+    }
+
+    unwrappedKey, err := client.Decrypt(
+        context.TODO(),
+        azcrypto.KeyWrapAlgorithmRSAOAEP256,
+        wrappedKey.EncryptedKey,
+        nil,
+    )
+    if err != nil {
+        return nil, err
+    }
+
+    return unwrappedKey.Key, nil
 }
 ```
 

@@ -12,7 +12,6 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azkeys"
-	"github.com/heaths/azcrypto/internal"
 	"github.com/stretchr/testify/require"
 )
 
@@ -85,8 +84,11 @@ func TestRSA_Verify(t *testing.T) {
 }
 
 func TestRSA_WrapKey(t *testing.T) {
-	_, err := testRSA.WrapKey(azkeys.JSONWebKeyEncryptionAlgorithmRSAOAEP, []byte("key"))
-	require.ErrorIs(t, err, internal.ErrUnsupported)
+	key := []byte{0x6d, 0x6f, 0x63, 0x6b, 0x20, 0x61, 0x65, 0x73, 0x2d, 0x31, 0x32, 0x38, 0x20, 0x6b, 0x65, 0x79}
+
+	result, err := testRSA.WrapKey(azkeys.JSONWebKeyEncryptionAlgorithmRSAOAEP, key)
+	require.NoError(t, err)
+	require.Greater(t, len(result.EncryptedKey), 0)
 }
 
 var testRSA = RSA{

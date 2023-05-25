@@ -7,6 +7,7 @@ package azcrypto
 
 import (
 	"context"
+	"crypto/rand"
 	"encoding/base64"
 	"encoding/hex"
 	"fmt"
@@ -43,7 +44,7 @@ func TestNewClient(t *testing.T) {
 func TestClient_Encrypt(t *testing.T) {
 	const (
 		host = "https://test.vault.azure.net"
-		path = "/keys/rsa204/ca393a58beae4589bcfbf8120d0e9671"
+		path = "/keys/rsa2048/ca393a58beae4589bcfbf8120d0e9671"
 
 		plaintext = "message"
 
@@ -188,7 +189,7 @@ func TestClient_Encrypt(t *testing.T) {
 func TestClient_Decrypt(t *testing.T) {
 	const (
 		host = "https://test.vault.azure.net"
-		path = "/keys/rsa204/ca393a58beae4589bcfbf8120d0e9671"
+		path = "/keys/rsa2048/ca393a58beae4589bcfbf8120d0e9671"
 
 		plaintext          = "message"
 		plaintextbase64url = "bWVzc2FnZQ"
@@ -306,7 +307,7 @@ func TestClient_SignData(t *testing.T) {
 		ecsig521base64url = "AaZsoVz1dt-1wYiQ1VwIpD_08puGyvRII5tW0JumWLa8g87pJlWYJXihb10t_UAT-_ECEBncj82CVoRTeSjptMpWAb9F8mXKSuk_iJyDuOBIcKtFlfk1d7sgEDMxtoB34inrPXGg6eqvSgJ3k3xbPL29U54fIa82C6wwvtNopSpp5QTr"
 		ecsig521          = "01a66ca15cf576dfb5c18890d55c08a43ff4f29b86caf448239b56d09ba658b6bc83cee92655982578a16f5d2dfd4013fbf1021019dc8fcd825684537928e9b4ca5601bf45f265ca4ae93f889c83b8e04870ab4595f93577bb20103331b68077e229eb3d71a0e9eaaf4a0277937c5b3cbdbd539e1f21af360bac30bed368a52a69e504eb"
 
-		rsapath = "/keys/rsa204/ca393a58beae4589bcfbf8120d0e9671"
+		rsapath = "/keys/rsa2048/ca393a58beae4589bcfbf8120d0e9671"
 
 		ps256base64url = "JwsvM7T86LqjFmdMZAxc-Klm7qN8XPTL6ukpOieMF0o_hhZ2E-6feT8YLiQbl2FOzlajZFQvwgDxGKlouzZTggRTI4w1qmdUJvo6BGoiixL8eGULfCPZCWs_17GhJEhr8GSANhrrgtn0JStUrulQp6WWvRMCSqzAUm1gGXBYNNrV8IHu7L9M56z4WGuv6ghz-1f-5TMP9ZVmMxBSdwuB-DggY037cHcLB8RZSfqXAz8ZxiblUEHSeC7bLcS2KmCbWfn2c1r45OsPlKmouXf5Mvr1O-7ZFezJbTJ6BwqgKkK0ogOCcuDsEUtwzDQDj4_FO_3slBdvAqgynf7pn3tyWg"
 		ps256sig       = "270b2f33b4fce8baa316674c640c5cf8a966eea37c5cf4cbeae9293a278c174a3f86167613ee9f793f182e241b97614ece56a364542fc200f118a968bb3653820453238c35aa675426fa3a046a228b12fc78650b7c23d9096b3fd7b1a124486bf06480361aeb82d9f4252b54aee950a7a596bd13024aacc0526d6019705834dad5f081eeecbf4ce7acf8586bafea0873fb57fee5330ff59566331052770b81f83820634dfb70770b07c45949fa97033f19c626e55041d2782edb2dc4b62a609b59f9f6735af8e4eb0f94a9a8b977f932faf53beed915ecc96d327a070aa02a42b4a2038272e0ec114b70cc34038f8fc53bfdec94176f02a8329dfee99f7b725a"
@@ -447,7 +448,7 @@ func TestClient_VerifyData(t *testing.T) {
 		ecpath256 = "/keys/ec256/d66bce8f4df64a9a9e172239d9f62572"
 		ecpath384 = "/keys/ec384/7e82704e15b049d1b5f3e9953ad5403c"
 		ecpath521 = "/keys/ec521/781a62b96fea441095edf3a115c94c5f"
-		rsapath   = "/keys/rsa204/ca393a58beae4589bcfbf8120d0e9671"
+		rsapath   = "/keys/rsa2048/ca393a58beae4589bcfbf8120d0e9671"
 
 		plaintext = "message"
 
@@ -609,6 +610,256 @@ func TestClient_VerifyData(t *testing.T) {
 	}
 }
 
+func TestClient_WrapKey(t *testing.T) {
+	const (
+		host = "https://test.vault.azure.net"
+		path = "/keys/rsa2048/ca393a58beae4589bcfbf8120d0e9671"
+
+		rsa15base64url      = "7dD5EIrMcC6E12JyFMx25uqbMmK8D3oIGmhPeLLpC1PeAEODMutKlInoY5GGETHkuqzdO95ZVcBHGZkSlo2vpBwH8aLfHvxf6PRa4Poz4RvC-bY-Qnv5h_YcyvxoUSFtuueGfq9k2OkczinstoK4YCAvqm45UZUBZq4xLfTJY_RQte6jfewjeFnrtswqGPTr4FRP6iZ8C6mPFmFDpzyAwAtntrx4OlyS9dMVWo5lc08MTafI0xFBvIqeXO5vSGVIpQDi4qXT_MYOAcNnX-546oxP2Y8YVft1-CoCxokoSpFre4G9ViyDhj-nFYCgusBHMyo6TTZIj31TRvE98DMtZQ"
+		rsaOAEPbase64url    = "rYAaKheTEBtA5LKXCZNbn1j7Dn3OvF8Jb-ohFr-p_eZn4b-lJBsnZWlk3Xs6V1r31JmUNmWy3vLoSH5lxWul_DRx5aB6dMENIwh9PaxAz91j92qWtwB3F5Jqe3Ac36OGWCRpDJ4N3tdXxpIb_JRf8r0aV6p6BfL5JRzYa5n_gedbfvr_AaYfThUEk0nAdZP2NZ4SA35Zrjr-qsuUtYMYW2fai1NuyQnOD9dmVNWfJ_wPu8LQGtjzq0_5bA0924bLokl7sjLySCLYChzKiLCivH1bBs9f27QvptYJKquWv4V4dQUIoHLlki7K7KeZYoVJqx6helmBEqJ4CaKbBTwETQ"
+		rsaOAEP256base64url = "fyReAuC1V507hZ-9wSu95yyNUF5W3x8i2AXturO0txhFXMtEYRVR_stkTMjvLqzycnsLImhZoboKRsbqqQnmd9PGxM5e5sImysLqOOzptSZwrfhq7Mm4F9XlzEoUQp84tjbErpcI8BbaM2XzaOwU2BdppuCszhoTerIWAlCMK1OUx2KLGn_Kjg0vj8BubZZaco-hJLWFkCGAbFQbK0LuJ3qfNeXwYJWCkFRh-K4KqqbQu-CCg2FEe7v-Lg8sKj7Efgn1FBflCWo_6ky4g1-eqW5vbnQY-M6-0CTPg3XhCvB1NJCCAprmppHvb_YQcPTfjuYDkjQWeRL9oyRJecS2eg"
+	)
+
+	key := []byte{0x6d, 0x6f, 0x63, 0x6b, 0x20, 0x61, 0x65, 0x73, 0x2d, 0x31, 0x32, 0x38, 0x20, 0x6b, 0x65, 0x79}
+
+	type wrapKeyResponse struct {
+		KID   string `json:"kid"`
+		Value string `json:"value"`
+	}
+
+	tests := []struct {
+		name  string
+		mocks func()
+		alg   KeyWrapAlgorithm
+		err   error
+	}{
+		{
+			name: "no get permission",
+			mocks: func() {
+				gock.New(host).
+					Get(path).
+					BodyString("").
+					Reply(401).
+					AddHeader("WWW-Authenticate", `Bearer authorization="https://login.windows.net/tenantID", resource="https://vault.azure.net"`)
+				gock.New(host).
+					Get(path).
+					MatchHeader("Authorization", "Bearer "+mock.TokenBase64).
+					Reply(403)
+				gock.New(host).
+					Post(path+"/wrapkey").
+					MatchHeader("Authorization", "Bearer "+mock.TokenBase64).
+					Reply(200).
+					JSON(wrapKeyResponse{
+						KID:   host + path,
+						Value: rsaOAEP256base64url,
+					})
+			},
+			alg: KeyWrapAlgorithmRSAOAEP256,
+		},
+		{
+			name: "rsa15",
+			mocks: func() {
+				gock.New(host).
+					Get(path).
+					BodyString("").
+					Reply(401).
+					AddHeader("WWW-Authenticate", `Bearer authorization="https://login.windows.net/tenantID", resource="https://vault.azure.net"`)
+				gock.New(host).
+					Get(path).
+					MatchHeader("Authorization", "Bearer "+mock.TokenBase64).
+					Reply(200).
+					JSON(mockRSA(host + path))
+				gock.New(host).
+					Post(path+"/wrapkey").
+					MatchHeader("Authorization", "Bearer "+mock.TokenBase64).
+					Reply(200).
+					JSON(wrapKeyResponse{
+						KID:   host + path,
+						Value: rsa15base64url,
+					})
+			},
+			alg: KeyWrapAlgorithmRSA15,
+		},
+		{
+			name: "rsaOAEP",
+			mocks: func() {
+				gock.New(host).
+					Get(path).
+					BodyString("").
+					Reply(401).
+					AddHeader("WWW-Authenticate", `Bearer authorization="https://login.windows.net/tenantID", resource="https://vault.azure.net"`)
+				gock.New(host).
+					Get(path).
+					MatchHeader("Authorization", "Bearer "+mock.TokenBase64).
+					Reply(200).
+					JSON(mockRSA(host + path))
+				gock.New(host).
+					Post(path+"/wrapkey").
+					MatchHeader("Authorization", "Bearer "+mock.TokenBase64).
+					Reply(200).
+					JSON(wrapKeyResponse{
+						KID:   host + path,
+						Value: rsaOAEPbase64url,
+					})
+			},
+			alg: KeyWrapAlgorithmRSAOAEP,
+		},
+		{
+			name: "rsaOAEP256",
+			mocks: func() {
+				gock.New(host).
+					Get(path).
+					BodyString("").
+					Reply(401).
+					AddHeader("WWW-Authenticate", `Bearer authorization="https://login.windows.net/tenantID", resource="https://vault.azure.net"`)
+				gock.New(host).
+					Get(path).
+					MatchHeader("Authorization", "Bearer "+mock.TokenBase64).
+					Reply(200).
+					JSON(mockRSA(host + path))
+				gock.New(host).
+					Post(path+"/wrapkey").
+					MatchHeader("Authorization", "Bearer "+mock.TokenBase64).
+					Reply(200).
+					JSON(wrapKeyResponse{
+						KID:   host + path,
+						Value: rsaOAEP256base64url,
+					})
+			},
+			alg: KeyWrapAlgorithmRSAOAEP256,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Cleanup(gock.Off)
+
+			if tt.mocks != nil {
+				tt.mocks()
+			}
+
+			client, err := NewClient(host+path, &mock.TokenCredential{}, mockOptions())
+			require.NoError(t, err)
+
+			result, err := client.WrapKey(context.Background(), tt.alg, key, nil)
+			if tt.err != nil {
+				require.ErrorIs(t, err, tt.err)
+				return
+			}
+			require.NoError(t, err)
+			require.Equal(t, tt.alg, result.Algorithm)
+			require.Equal(t, host+path, result.KeyID)
+			require.NotEmpty(t, result.EncryptedKey)
+			require.True(t, gock.IsDone())
+		})
+	}
+}
+
+func TestClient_UnwrapKey(t *testing.T) {
+	const (
+		host = "https://test.vault.azure.net"
+		path = "/keys/rsa2048/ca393a58beae4589bcfbf8120d0e9671"
+
+		keybase64url = "bW9jayBhZXMtMTI4IGtleQ"
+	)
+
+	key := []byte{0x6d, 0x6f, 0x63, 0x6b, 0x20, 0x61, 0x65, 0x73, 0x2d, 0x31, 0x32, 0x38, 0x20, 0x6b, 0x65, 0x79}
+
+	type unwrapKeyResponse struct {
+		KID   string `json:"kid"`
+		Value string `json:"value"`
+	}
+
+	tests := []struct {
+		name  string
+		mocks func()
+		alg   KeyWrapAlgorithm
+		err   error
+	}{
+		{
+			name: "rsa15",
+			mocks: func() {
+				gock.New(host).
+					Post(path).
+					BodyString("").
+					Reply(401).
+					AddHeader("WWW-Authenticate", `Bearer authorization="https://login.windows.net/tenantID", resource="https://vault.azure.net"`)
+				gock.New(host).
+					Post(path+"/unwrapkey").
+					MatchHeader("Authorization", "Bearer "+mock.TokenBase64).
+					Reply(200).
+					JSON(unwrapKeyResponse{
+						KID:   host + path,
+						Value: keybase64url,
+					})
+			},
+			alg: KeyWrapAlgorithmRSA15,
+		},
+		{
+			name: "rsaOAEP",
+			mocks: func() {
+				gock.New(host).
+					Post(path).
+					BodyString("").
+					Reply(401).
+					AddHeader("WWW-Authenticate", `Bearer authorization="https://login.windows.net/tenantID", resource="https://vault.azure.net"`)
+				gock.New(host).
+					Post(path+"/unwrapkey").
+					MatchHeader("Authorization", "Bearer "+mock.TokenBase64).
+					Reply(200).
+					JSON(unwrapKeyResponse{
+						KID:   host + path,
+						Value: keybase64url,
+					})
+			},
+			alg: KeyWrapAlgorithmRSAOAEP,
+		},
+		{
+			name: "rsaOAEP256",
+			mocks: func() {
+				gock.New(host).
+					Post(path).
+					BodyString("").
+					Reply(401).
+					AddHeader("WWW-Authenticate", `Bearer authorization="https://login.windows.net/tenantID", resource="https://vault.azure.net"`)
+				gock.New(host).
+					Post(path+"/unwrapkey").
+					MatchHeader("Authorization", "Bearer "+mock.TokenBase64).
+					Reply(200).
+					JSON(unwrapKeyResponse{
+						KID:   host + path,
+						Value: keybase64url,
+					})
+			},
+			alg: KeyWrapAlgorithmRSAOAEP256,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Cleanup(gock.Off)
+
+			if tt.mocks != nil {
+				tt.mocks()
+			}
+
+			client, err := NewClient(host+path, &mock.TokenCredential{}, mockOptions())
+			require.NoError(t, err)
+
+			result, err := client.UnwrapKey(context.Background(), tt.alg, []byte("mocked"), nil)
+			if tt.err != nil {
+				require.ErrorIs(t, err, tt.err)
+				return
+			}
+			require.NoError(t, err)
+			require.Equal(t, tt.alg, result.Algorithm)
+			require.Equal(t, host+path, result.KeyID)
+			require.Equal(t, key, result.Key)
+			require.True(t, gock.IsDone())
+		})
+	}
+}
+
 func TestClient_liveEncryptDecrypt(t *testing.T) {
 	internal.RequireLive(t)
 
@@ -671,6 +922,42 @@ func TestClient_liveSignVerify(t *testing.T) {
 	require.NoError(t, err)
 
 	require.True(t, verified.Valid)
+}
+
+func TestClient_liveWrapUnwrapKey(t *testing.T) {
+	internal.RequireLive(t)
+
+	err := internal.LoadEnv()
+	require.NoError(t, err, "failed to initialize environment")
+
+	vaultURL := os.Getenv("AZURE_KEYVAULT_URL")
+	require.NotEmpty(t, vaultURL, "AZURE_KEYVAULT_URL environment variable required")
+
+	// RSA
+	keyID, err := internal.URLJoinPath(vaultURL, "/keys/rsa2048")
+	require.NoError(t, err)
+
+	credential, err := azidentity.NewDefaultAzureCredential(nil)
+	require.NoError(t, err)
+
+	options := &ClientOptions{
+		remoteOnly: *internal.RemoteOnly,
+	}
+	client, err := NewClient(keyID, credential, options)
+	require.NoError(t, err)
+
+	// Generate a key suitable for AES-128.
+	key := make([]byte, 16)
+	_, err = rand.Read(key)
+	require.NoError(t, err)
+
+	wrapped, err := client.WrapKey(context.Background(), EncryptionAlgorithmRSAOAEP256, key, nil)
+	require.NoError(t, err)
+
+	unwrapped, err := client.UnwrapKey(context.Background(), EncryptionAlgorithmRSAOAEP256, wrapped.EncryptedKey, nil)
+	require.NoError(t, err)
+
+	require.Equal(t, key, unwrapped.Key)
 }
 
 func mockOptions() *ClientOptions {

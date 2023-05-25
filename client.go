@@ -339,3 +339,101 @@ func (client *Client) VerifyData(ctx context.Context, algorithm SignatureAlgorit
 
 	return client.Verify(ctx, algorithm, digest, signature, &options.VerifyOptions)
 }
+
+// WrapKeyOptions defines options for the WrapKey method.
+type WrapKeyOptions struct {
+	azkeys.WrapKeyOptions
+}
+
+// WrapKeyResult contains information returned by the WrapKey method.
+type WrapKeyResult = alg.WrapKeyResult
+
+// WrapKey encrypts the specified key using the specified algorithm. Asymmetric encryption is typically used to wrap a symmetric key used for streaming ciphers.
+func (client *Client) WrapKey(ctx context.Context, algorithm KeyWrapAlgorithm, key []byte, options *WrapKeyOptions) (WrapKeyResult, error) {
+	client.init(ctx)
+
+	if client.localClient != nil {
+		result, err := client.localClient.WrapKey(algorithm, key)
+		if !errors.Is(err, internal.ErrUnsupported) {
+			return result, err
+		}
+	}
+
+	parameters := azkeys.KeyOperationsParameters{
+		Algorithm: &algorithm,
+		Value:     key,
+	}
+
+	if options == nil {
+		options = &WrapKeyOptions{}
+	}
+
+	response, err := client.remoteClient.WrapKey(
+		ctx,
+		client.keyName,
+		client.keyVersion,
+		parameters,
+		&options.WrapKeyOptions,
+	)
+	if err != nil {
+		return WrapKeyResult{}, nil
+	}
+
+	keyID := client.keyID
+	if response.KID != nil {
+		keyID = string(*response.KID)
+	}
+
+	result := WrapKeyResult{
+		Algorithm:    algorithm,
+		KeyID:        keyID,
+		EncryptedKey: response.Result,
+	}
+
+	return result, nil
+}
+
+// UnwrapKeyOptions defines options for the UnwrapKey method.
+type UnwrapKeyOptions struct {
+	azkeys.UnwrapKeyOptions
+}
+
+// UnwrapKeyResult contains information returned by the UnwrapKey method.
+type UnwrapKeyResult = alg.UnwrapKeyResult
+
+// UnwrapKey decrypts the specified key using the specified algorithm. Asymmetric decryption is typically used to unwrap a symmetric key used for streaming ciphers.
+func (client *Client) UnwrapKey(ctx context.Context, algorithm KeyWrapAlgorithm, encryptedKey []byte, options *UnwrapKeyOptions) (UnwrapKeyResult, error) {
+	// Unwrapping a key requires access to a private key, which Key Vault does not provide by default.
+	parameters := azkeys.KeyOperationsParameters{
+		Algorithm: &algorithm,
+		Value:     encryptedKey,
+	}
+
+	if options == nil {
+		options = &UnwrapKeyOptions{}
+	}
+
+	response, err := client.remoteClient.UnwrapKey(
+		ctx,
+		client.keyName,
+		client.keyVersion,
+		parameters,
+		&options.UnwrapKeyOptions,
+	)
+	if err != nil {
+		return UnwrapKeyResult{}, err
+	}
+
+	keyID := client.keyID
+	if response.KID != nil {
+		keyID = string(*response.KID)
+	}
+
+	result := UnwrapKeyResult{
+		Algorithm: algorithm,
+		KeyID:     keyID,
+		Key:       response.Result,
+	}
+
+	return result, nil
+}
