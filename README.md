@@ -2,6 +2,7 @@
 
 [![reference](https://pkg.go.dev/badge/github.com/heaths/azcrypto.svg)](https://pkg.go.dev/github.com/heaths/azcrypto)
 [![ci](https://github.com/heaths/azcrypto/actions/workflows/ci.yml/badge.svg?event=push)](https://github.com/heaths/azcrypto/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/heaths/azcrypto/branch/main/graph/badge.svg?token=uL62c7z0zO)](https://codecov.io/gh/heaths/azcrypto)
 
 This module provides a cryptography client for the [Azure Key Vault Keys client module for Go][azkeys].
 This project is **not** supported by the Azure SDK team, but does align with the cryptography clients in other supported languages like the [CryptographyClient] I wrote for the Azure SDK for .NET.
