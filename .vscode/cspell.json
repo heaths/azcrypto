@@ -6,6 +6,8 @@
     "azcrypto",
     "azidentity",
     "azkeys",
+    "codecov",
+    "coverprofile",
     "devcontainer",
     "ECHSM",
     "gock",

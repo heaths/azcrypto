@@ -50,7 +50,9 @@ jobs:
         go-version: ${{ env.GOVERSION }}
         cache: false # Set to `true` when dependencies are added.
     - name: Test
-      run: GOOS=${{ matrix.goos }} go test ./... -cover -v
+      run: GOOS=${{ matrix.goos }} go test ./... -cover -coverprofile=coverage.txt -race -v
+    - name: Report coverage
+      uses: codecov/codecov-action@v3
     - name: Lint
       if: ${{ !cancelled() && matrix.lint }}
       # cspell:ignore golangci
