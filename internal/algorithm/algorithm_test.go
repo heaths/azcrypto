@@ -119,6 +119,7 @@ func TestGetHash(t *testing.T) {
 	}
 }
 
+// decode a base64 string.
 func decode(s string) *big.Int {
 	b, err := base64.StdEncoding.DecodeString(s)
 	if err != nil {
@@ -127,6 +128,7 @@ func decode(s string) *big.Int {
 	return new(big.Int).SetBytes(b)
 }
 
+// hash a plaintext string using SHA256.
 func hash(plaintext string) []byte {
 	h := sha256.New()
 	h.Write([]byte(plaintext))

@@ -13,7 +13,6 @@ import (
 	"math/big"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azkeys"
-	"github.com/heaths/azcrypto/internal"
 )
 
 type RSA struct {
@@ -97,7 +96,42 @@ func (r RSA) Verify(algorithm SignatureAlgorithm, digest, signature []byte) (Ver
 }
 
 func (r RSA) WrapKey(algorithm KeyWrapAlgorithm, key []byte) (WrapKeyResult, error) {
-	return WrapKeyResult{}, internal.ErrUnsupported
+	var encryptedKey []byte
+	var err error
+
+	getHash := func() crypto.Hash {
+		switch algorithm {
+		case azkeys.JSONWebKeyEncryptionAlgorithmRSAOAEP:
+			return crypto.SHA1
+
+		case azkeys.JSONWebKeyEncryptionAlgorithmRSAOAEP256:
+			return crypto.SHA256
+
+		default:
+			panic("unexpected KeyWrapAlgorithm")
+		}
+	}
+
+	switch algorithm {
+	case azkeys.JSONWebKeyEncryptionAlgorithmRSAOAEP:
+		fallthrough
+	case azkeys.JSONWebKeyEncryptionAlgorithmRSAOAEP256:
+		hash := getHash()
+		encryptedKey, err = rsa.EncryptOAEP(hash.New(), rand.Reader, &r.pub, key, nil)
+
+	case azkeys.JSONWebKeyEncryptionAlgorithmRSA15:
+		encryptedKey, err = rsa.EncryptPKCS1v15(rand.Reader, &r.pub, key)
+	}
+
+	if err != nil {
+		return WrapKeyResult{}, err
+	}
+
+	return WrapKeyResult{
+		Algorithm:    algorithm,
+		KeyID:        r.keyID,
+		EncryptedKey: encryptedKey,
+	}, nil
 }
 
 func ensure(src []byte, size int) []byte {
