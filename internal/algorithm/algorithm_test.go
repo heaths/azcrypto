@@ -57,6 +57,24 @@ func TestNewAlgorithm(t *testing.T) {
 			},
 			alg: ECDsa{},
 		},
+		{
+			name: "rsa",
+			key: azkeys.JSONWebKey{
+				Kty: to.Ptr(azkeys.JSONWebKeyTypeRSA),
+				N:   []byte{0},
+				E:   []byte{1},
+			},
+			alg: RSA{},
+		},
+		{
+			name: "rsa-hsm",
+			key: azkeys.JSONWebKey{
+				Kty: to.Ptr(azkeys.JSONWebKeyTypeRSAHSM),
+				N:   []byte{0},
+				E:   []byte{1},
+			},
+			alg: RSA{},
+		},
 	}
 
 	for _, tt := range tests {
@@ -97,6 +115,36 @@ func TestGetHash(t *testing.T) {
 		{
 			name: "es512",
 			alg:  azkeys.JSONWebKeySignatureAlgorithmES512,
+			h:    crypto.SHA512,
+		},
+		{
+			name: "ps256",
+			alg:  azkeys.JSONWebKeySignatureAlgorithmPS256,
+			h:    crypto.SHA256,
+		},
+		{
+			name: "ps384",
+			alg:  azkeys.JSONWebKeySignatureAlgorithmPS384,
+			h:    crypto.SHA384,
+		},
+		{
+			name: "ps512",
+			alg:  azkeys.JSONWebKeySignatureAlgorithmPS512,
+			h:    crypto.SHA512,
+		},
+		{
+			name: "RS256",
+			alg:  azkeys.JSONWebKeySignatureAlgorithmRS256,
+			h:    crypto.SHA256,
+		},
+		{
+			name: "RS384",
+			alg:  azkeys.JSONWebKeySignatureAlgorithmRS384,
+			h:    crypto.SHA384,
+		},
+		{
+			name: "RS256",
+			alg:  azkeys.JSONWebKeySignatureAlgorithmRS512,
 			h:    crypto.SHA512,
 		},
 		{

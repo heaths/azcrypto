@@ -34,7 +34,7 @@ func NewAlgorithm(key azkeys.JSONWebKey) (Algorithm, error) {
 	case azkeys.JSONWebKeyTypeECHSM:
 		return newECDsa(key)
 
-		// RSA
+	// RSA
 	case azkeys.JSONWebKeyTypeRSA:
 		fallthrough
 	case azkeys.JSONWebKeyTypeRSAHSM:
