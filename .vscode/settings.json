@@ -1,7 +1,0 @@
-{
-  "gopls": {
-    "build.buildFlags": [
-      "-tags=live"
-    ]
-  }
-}
