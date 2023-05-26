@@ -10,6 +10,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azkeys"
 	"github.com/heaths/azcrypto/internal"
+	_ "github.com/heaths/azcrypto/internal/test"
 )
 
 type EncryptionAlgorithm = azkeys.JSONWebKeyEncryptionAlgorithm
