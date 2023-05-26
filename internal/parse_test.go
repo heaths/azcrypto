@@ -42,4 +42,15 @@ func TestParseID(t *testing.T) {
 			require.Equal(t, *expected.version, *version)
 		}
 	}
+
+	// [heaths]: Improve code coverage.
+	url, name, version := ParseID(nil)
+	require.Nil(t, url)
+	require.Nil(t, name)
+	require.Nil(t, version)
+
+	url, name, version = ParseID(to.Ptr(string([]byte{0x0a})))
+	require.Nil(t, url)
+	require.Nil(t, name)
+	require.Nil(t, version)
 }

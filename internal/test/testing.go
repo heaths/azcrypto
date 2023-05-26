@@ -3,7 +3,7 @@
 
 // cspell:ignore joho godotenv
 
-package internal
+package test
 
 import (
 	"flag"
