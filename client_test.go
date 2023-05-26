@@ -861,13 +861,10 @@ func TestClient_UnwrapKey(t *testing.T) {
 }
 
 func TestClient_liveEncryptDecrypt(t *testing.T) {
-	internal.RequireLive(t)
-
-	err := internal.LoadEnv()
-	require.NoError(t, err, "failed to initialize environment")
+	internal.Live(t)
 
 	vaultURL := os.Getenv("AZURE_KEYVAULT_URL")
-	require.NotEmpty(t, vaultURL, "AZURE_KEYVAULT_URL environment variable required")
+	require.NotEmpty(t, vaultURL)
 
 	// RSA
 	keyID, err := internal.URLJoinPath(vaultURL, "/keys/rsa2048")
@@ -893,13 +890,10 @@ func TestClient_liveEncryptDecrypt(t *testing.T) {
 }
 
 func TestClient_liveSignVerify(t *testing.T) {
-	internal.RequireLive(t)
-
-	err := internal.LoadEnv()
-	require.NoError(t, err, "failed to initialize environment")
+	internal.Live(t)
 
 	vaultURL := os.Getenv("AZURE_KEYVAULT_URL")
-	require.NotEmpty(t, vaultURL, "AZURE_KEYVAULT_URL environment variable required")
+	require.NotEmpty(t, vaultURL)
 
 	// ECDsa
 	keyID, err := internal.URLJoinPath(vaultURL, "/keys/ec256")
@@ -925,13 +919,10 @@ func TestClient_liveSignVerify(t *testing.T) {
 }
 
 func TestClient_liveWrapUnwrapKey(t *testing.T) {
-	internal.RequireLive(t)
-
-	err := internal.LoadEnv()
-	require.NoError(t, err, "failed to initialize environment")
+	internal.Live(t)
 
 	vaultURL := os.Getenv("AZURE_KEYVAULT_URL")
-	require.NotEmpty(t, vaultURL, "AZURE_KEYVAULT_URL environment variable required")
+	require.NotEmpty(t, vaultURL)
 
 	// RSA
 	keyID, err := internal.URLJoinPath(vaultURL, "/keys/rsa2048")

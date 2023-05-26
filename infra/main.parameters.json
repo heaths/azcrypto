@@ -11,6 +11,9 @@
     "principalId": {
       "value": "${AZURE_PRINCIPAL_ID}"
     },
+    "vaultName": {
+      "value": "${AZURE_KEYVAULT_URL}"
+    },
     "sku": {
       "value": "${AZURE_KEYVAULT_SKU=standard}"
     }
