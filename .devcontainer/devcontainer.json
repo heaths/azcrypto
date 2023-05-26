@@ -1,7 +1,18 @@
 {
   "name": "Go",
-  "image": "mcr.microsoft.com/devcontainers/go:1-buster",
+  "image": "mcr.microsoft.com/devcontainers/go:1.18-buster",
+  "features": {
+    "ghcr.io/devcontainers/features/azure-cli:1": {
+      "installBicep": true
+    }
+  },
+  "postCreateCommand": "curl -fsSL https://aka.ms/install-azd.sh | bash",
   "customizations": {
+    "codespaces": {
+      "openFiles": [
+        "CONTRIBUTING.md"
+      ]
+    },
     "vscode": {
       "extensions": [
         "editorconfig.editorconfig",

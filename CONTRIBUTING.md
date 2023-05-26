@@ -53,6 +53,15 @@ When you are finished with these resources, you can delete the resource group an
 azd down
 ```
 
+#### Authentication
+
+Running `azd` will prompt you to first log in; however, if you are running in a [devcontainer],
+you may need to use a device code and follow the prompts:
+
+```bash
+azd auth login --use-device-code
+```
+
 [azd]: https://aka.ms/azd
 [Go]: https://go.dev
 [devcontainer]: https://code.visualstudio.com/docs/devcontainers/containers

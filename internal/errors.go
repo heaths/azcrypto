@@ -3,7 +3,11 @@
 
 package internal
 
-import "errors"
+import (
+	"errors"
+
+	_ "github.com/heaths/azcrypto/internal/test"
+)
 
 var (
 	ErrUnsupported = errors.New("operation not supported")

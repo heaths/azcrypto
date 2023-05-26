@@ -43,4 +43,5 @@ module resources 'resources.bicep' = {
   }
 }
 
-output AZURE_KEYVAULT_URL string = resources.outputs.vaultUri
+output AZURE_KEYVAULT_URL string = resources.outputs.AZURE_KEYVAULT_URL
+output AZURE_KEYVAULT_SKU string = resources.outputs.AZURE_KEYVAULT_SKU

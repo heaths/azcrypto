@@ -93,4 +93,5 @@ resource vault 'Microsoft.KeyVault/vaults@2023-02-01' = {
   }
 }
 
-output vaultUri string = vault.properties.vaultUri
+output AZURE_KEYVAULT_URL string = vault.properties.vaultUri
+output AZURE_KEYVAULT_SKU string = vault.properties.sku.name

@@ -6,13 +6,15 @@ indent_style = space
 insert_final_newline = true
 trim_trailing_whitespace = true
 
-[*.bicep]
-indent_size = 2
-
 [*.go]
 end_of_line = lf
 indent_style = tab
 
-[*{.json, .yml}]
+[*.bicep]
 indent_size = 2
-indent_style = space
+
+[*.json]
+indent_size = 2
+
+[*.{yml, yaml}]
+indent_size = 2
