@@ -23,9 +23,6 @@ defaults:
   run:
     shell: bash
 
-env:
-  GOVERSION: "1.18"
-
 jobs:
   test:
     runs-on: ${{ matrix.os }}
@@ -35,26 +32,32 @@ jobs:
         include:
         - os: windows-latest
           goos: windows
-          lint: true
         - os: ubuntu-latest
           goos: linux
-          lint: true
         - os: macos-latest
           goos: darwin
     steps:
     - name: Checkout
       uses: actions/checkout@v3
-    - name: Set up Go ${{ env.GOVERSION }}
-      uses: actions/setup-go@v3
+    - name: Set up Go
+      uses: actions/setup-go@v4
       with:
-        go-version: ${{ env.GOVERSION }}
-        cache: false # Set to `true` when dependencies are added.
+        go-version-file: go.mod
     - name: Test
       run: GOOS=${{ matrix.goos }} go test ./... -cover -coverprofile=coverage.txt -race -v
     - name: Report coverage
       uses: codecov/codecov-action@v3
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version-file: go.mod
     - name: Lint
-      if: ${{ !cancelled() && matrix.lint }}
       # cspell:ignore golangci
       uses: golangci/golangci-lint-action@v3
       with:
@@ -65,13 +68,9 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ !cancelled() }}
     needs:
+    - lint
     - test
     steps:
-    - name: Check
-      run: |
-        if [[ "${{ needs.test.result }}" == "success" ]]; then
-          echo -e "\e[32mSuccess\e[0m"
-        else
-          echo -e "\e[31mFailed\e[0m"
-          exit 1
-        fi
+    - name: Fail
+      if: needs.lint.result != 'success' || needs.test.result != 'success'
+      run: exit 1
