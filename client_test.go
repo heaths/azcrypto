@@ -19,13 +19,12 @@ import (
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azkeys"
 	"github.com/h2non/gock"
-	"github.com/heaths/azcrypto/internal"
-	"github.com/heaths/azcrypto/internal/mock"
+	"github.com/heaths/azcrypto/internal/test"
 	"github.com/stretchr/testify/require"
 )
 
 func TestNewClient(t *testing.T) {
-	credential := &mock.TokenCredential{}
+	credential := &test.TokenCredential{}
 
 	client, err := NewClient("", credential, nil)
 	require.Nil(t, client)
@@ -74,11 +73,11 @@ func TestClient_Encrypt(t *testing.T) {
 					AddHeader("WWW-Authenticate", `Bearer authorization="https://login.windows.net/tenantID", resource="https://vault.azure.net"`)
 				gock.New(host).
 					Get(path).
-					MatchHeader("Authorization", "Bearer "+mock.TokenBase64).
+					MatchHeader("Authorization", "Bearer "+test.TokenBase64).
 					Reply(403)
 				gock.New(host).
 					Post(path+"/encrypt").
-					MatchHeader("Authorization", "Bearer "+mock.TokenBase64).
+					MatchHeader("Authorization", "Bearer "+test.TokenBase64).
 					Reply(200).
 					JSON(encryptResponse{
 						KID:   host + path,
@@ -97,12 +96,12 @@ func TestClient_Encrypt(t *testing.T) {
 					AddHeader("WWW-Authenticate", `Bearer authorization="https://login.windows.net/tenantID", resource="https://vault.azure.net"`)
 				gock.New(host).
 					Get(path).
-					MatchHeader("Authorization", "Bearer "+mock.TokenBase64).
+					MatchHeader("Authorization", "Bearer "+test.TokenBase64).
 					Reply(200).
 					JSON(mockRSA(host + path))
 				gock.New(host).
 					Post(path+"/encrypt").
-					MatchHeader("Authorization", "Bearer "+mock.TokenBase64).
+					MatchHeader("Authorization", "Bearer "+test.TokenBase64).
 					Reply(200).
 					JSON(encryptResponse{
 						KID:   host + path,
@@ -121,12 +120,12 @@ func TestClient_Encrypt(t *testing.T) {
 					AddHeader("WWW-Authenticate", `Bearer authorization="https://login.windows.net/tenantID", resource="https://vault.azure.net"`)
 				gock.New(host).
 					Get(path).
-					MatchHeader("Authorization", "Bearer "+mock.TokenBase64).
+					MatchHeader("Authorization", "Bearer "+test.TokenBase64).
 					Reply(200).
 					JSON(mockRSA(host + path))
 				gock.New(host).
 					Post(path+"/encrypt").
-					MatchHeader("Authorization", "Bearer "+mock.TokenBase64).
+					MatchHeader("Authorization", "Bearer "+test.TokenBase64).
 					Reply(200).
 					JSON(encryptResponse{
 						KID:   host + path,
@@ -145,12 +144,12 @@ func TestClient_Encrypt(t *testing.T) {
 					AddHeader("WWW-Authenticate", `Bearer authorization="https://login.windows.net/tenantID", resource="https://vault.azure.net"`)
 				gock.New(host).
 					Get(path).
-					MatchHeader("Authorization", "Bearer "+mock.TokenBase64).
+					MatchHeader("Authorization", "Bearer "+test.TokenBase64).
 					Reply(200).
 					JSON(mockRSA(host + path))
 				gock.New(host).
 					Post(path+"/encrypt").
-					MatchHeader("Authorization", "Bearer "+mock.TokenBase64).
+					MatchHeader("Authorization", "Bearer "+test.TokenBase64).
 					Reply(200).
 					JSON(encryptResponse{
 						KID:   host + path,
@@ -169,7 +168,7 @@ func TestClient_Encrypt(t *testing.T) {
 				tt.mocks()
 			}
 
-			client, err := NewClient(host+path, &mock.TokenCredential{}, mockOptions())
+			client, err := NewClient(host+path, &test.TokenCredential{}, mockOptions())
 			require.NoError(t, err)
 
 			result, err := client.Encrypt(context.Background(), tt.alg, []byte(plaintext), nil)
@@ -216,7 +215,7 @@ func TestClient_Decrypt(t *testing.T) {
 					AddHeader("WWW-Authenticate", `Bearer authorization="https://login.windows.net/tenantID", resource="https://vault.azure.net"`)
 				gock.New(host).
 					Post(path+"/decrypt").
-					MatchHeader("Authorization", "Bearer "+mock.TokenBase64).
+					MatchHeader("Authorization", "Bearer "+test.TokenBase64).
 					Reply(200).
 					JSON(decryptResponse{
 						KID:   host + path,
@@ -235,7 +234,7 @@ func TestClient_Decrypt(t *testing.T) {
 					AddHeader("WWW-Authenticate", `Bearer authorization="https://login.windows.net/tenantID", resource="https://vault.azure.net"`)
 				gock.New(host).
 					Post(path+"/decrypt").
-					MatchHeader("Authorization", "Bearer "+mock.TokenBase64).
+					MatchHeader("Authorization", "Bearer "+test.TokenBase64).
 					Reply(200).
 					JSON(decryptResponse{
 						KID:   host + path,
@@ -254,7 +253,7 @@ func TestClient_Decrypt(t *testing.T) {
 					AddHeader("WWW-Authenticate", `Bearer authorization="https://login.windows.net/tenantID", resource="https://vault.azure.net"`)
 				gock.New(host).
 					Post(path+"/decrypt").
-					MatchHeader("Authorization", "Bearer "+mock.TokenBase64).
+					MatchHeader("Authorization", "Bearer "+test.TokenBase64).
 					Reply(200).
 					JSON(decryptResponse{
 						KID:   host + path,
@@ -273,7 +272,7 @@ func TestClient_Decrypt(t *testing.T) {
 				tt.mocks()
 			}
 
-			client, err := NewClient(host+path, &mock.TokenCredential{}, mockOptions())
+			client, err := NewClient(host+path, &test.TokenCredential{}, mockOptions())
 			require.NoError(t, err)
 
 			result, err := client.Decrypt(context.Background(), tt.alg, []byte("mocked"), nil)
@@ -319,7 +318,7 @@ func TestClient_SignData(t *testing.T) {
 		ps512sig       = "5871115b244d2d796e5ddbda20f37ceb192c3ffd02a3ffdc5d0196bc4d062c53ffcf72c4cf6cb3f25e6a10310a3e416ff8b1978cf036218d24602ba1c2c55f99282f6c3c95bebc1b4dd009ecfb629d6f922e02c3b52fc0b943673579fdbaf1f69d36e2bc8344a1c2714752078aa922d1e1fcd4408120bf09103e812f0ef28eb5abe10d9c4b270988ded9668bb59d31bd8aaacadc0a2c290c3ce90affdad70ede7beaefae4b14337b01a56365574794f243ac0598a42bcce01f48b38dbe12885c650db069858a5bd2533c6e2b1553cf9f85e348bd0eb0b15d238142acf3f60e76adf150d9b0d8ffd87e5b99fa7f496b2f8552b0a24e1e1134ff584817642093b0"
 	)
 
-	type test struct {
+	type testData struct {
 		name  string
 		mocks func()
 		kid   string
@@ -328,7 +327,7 @@ func TestClient_SignData(t *testing.T) {
 		err   error
 	}
 
-	var tests []test
+	var tests []testData
 
 	type signResponse struct {
 		KID   string `json:"kid"`
@@ -357,7 +356,7 @@ func TestClient_SignData(t *testing.T) {
 				AddHeader("WWW-Authenticate", `Bearer authorization="https://login.windows.net/tenantID", resource="https://vault.azure.net"`)
 			gock.New(host).
 				Post(path).
-				MatchHeader("Authorization", "Bearer "+mock.TokenBase64).
+				MatchHeader("Authorization", "Bearer "+test.TokenBase64).
 				Reply(200).
 				JSON(signResponse{
 					KID:   host + path,
@@ -367,7 +366,7 @@ func TestClient_SignData(t *testing.T) {
 	}
 
 	for _, param := range ecparams {
-		tests = append(tests, test{
+		tests = append(tests, testData{
 			name:  param.name,
 			mocks: ecmocks(param.path, param.val),
 			kid:   host + param.path,
@@ -397,7 +396,7 @@ func TestClient_SignData(t *testing.T) {
 				AddHeader("WWW-Authenticate", `Bearer authorization="https://login.windows.net/tenantID", resource="https://vault.azure.net"`)
 			gock.New(host).
 				Post(rsapath).
-				MatchHeader("Authorization", "Bearer "+mock.TokenBase64).
+				MatchHeader("Authorization", "Bearer "+test.TokenBase64).
 				Reply(200).
 				JSON(signResponse{
 					KID:   host + rsapath,
@@ -407,7 +406,7 @@ func TestClient_SignData(t *testing.T) {
 	}
 
 	for _, param := range rsaparams {
-		tests = append(tests, test{
+		tests = append(tests, testData{
 			name:  param.name,
 			mocks: rsamocks(param.val),
 			kid:   host + rsapath,
@@ -424,7 +423,7 @@ func TestClient_SignData(t *testing.T) {
 				tt.mocks()
 			}
 
-			client, err := NewClient(tt.kid, &mock.TokenCredential{}, mockOptions())
+			client, err := NewClient(tt.kid, &test.TokenCredential{}, mockOptions())
 			require.NoError(t, err)
 
 			result, err := client.SignData(context.Background(), tt.alg, []byte(plaintext), nil)
@@ -461,7 +460,7 @@ func TestClient_VerifyData(t *testing.T) {
 		ps512sig = "5871115b244d2d796e5ddbda20f37ceb192c3ffd02a3ffdc5d0196bc4d062c53ffcf72c4cf6cb3f25e6a10310a3e416ff8b1978cf036218d24602ba1c2c55f99282f6c3c95bebc1b4dd009ecfb629d6f922e02c3b52fc0b943673579fdbaf1f69d36e2bc8344a1c2714752078aa922d1e1fcd4408120bf09103e812f0ef28eb5abe10d9c4b270988ded9668bb59d31bd8aaacadc0a2c290c3ce90affdad70ede7beaefae4b14337b01a56365574794f243ac0598a42bcce01f48b38dbe12885c650db069858a5bd2533c6e2b1553cf9f85e348bd0eb0b15d238142acf3f60e76adf150d9b0d8ffd87e5b99fa7f496b2f8552b0a24e1e1134ff584817642093b0"
 	)
 
-	type test struct {
+	type testData struct {
 		name  string
 		mocks func()
 		kid   string
@@ -475,7 +474,7 @@ func TestClient_VerifyData(t *testing.T) {
 		Value bool `json:"value"`
 	}
 
-	tests := []test{
+	tests := []testData{
 		{
 			name: "no get permission",
 			mocks: func() {
@@ -486,11 +485,11 @@ func TestClient_VerifyData(t *testing.T) {
 					AddHeader("WWW-Authenticate", `Bearer authorization="https://login.windows.net/tenantID", resource="https://vault.azure.net"`)
 				gock.New(host).
 					Get(ecpath256).
-					MatchHeader("Authorization", "Bearer "+mock.TokenBase64).
+					MatchHeader("Authorization", "Bearer "+test.TokenBase64).
 					Reply(403)
 				gock.New(host).
 					Post(ecpath256+"/verify").
-					MatchHeader("Authorization", "Bearer "+mock.TokenBase64).
+					MatchHeader("Authorization", "Bearer "+test.TokenBase64).
 					Reply(200).
 					JSON(verifyResponse{
 						Value: true,
@@ -529,7 +528,7 @@ func TestClient_VerifyData(t *testing.T) {
 				AddHeader("WWW-Authenticate", `Bearer authorization="https://login.windows.net/tenantID", resource="https://vault.azure.net"`)
 			gock.New(host).
 				Get(path).
-				MatchHeader("Authorization", "Bearer "+mock.TokenBase64).
+				MatchHeader("Authorization", "Bearer "+test.TokenBase64).
 				Reply(200).
 				JSON(getResponse{
 					Key: mockECKey(crv, host+path),
@@ -538,7 +537,7 @@ func TestClient_VerifyData(t *testing.T) {
 	}
 
 	for _, param := range ecparams {
-		tests = append(tests, test{
+		tests = append(tests, testData{
 			name:  param.name,
 			mocks: ecmocks(param.path, param.crv),
 			kid:   host + param.path,
@@ -560,7 +559,7 @@ func TestClient_VerifyData(t *testing.T) {
 	}
 
 	for _, param := range rsaparams {
-		tests = append(tests, test{
+		tests = append(tests, testData{
 			name: param.name,
 			mocks: func() {
 				gock.New(host).
@@ -570,7 +569,7 @@ func TestClient_VerifyData(t *testing.T) {
 					AddHeader("WWW-Authenticate", `Bearer authorization="https://login.windows.net/tenantID", resource="https://vault.azure.net"`)
 				gock.New(host).
 					Get(rsapath).
-					MatchHeader("Authorization", "Bearer "+mock.TokenBase64).
+					MatchHeader("Authorization", "Bearer "+test.TokenBase64).
 					Reply(200).
 					JSON(getResponse{
 						Key: mockRSA(host + rsapath),
@@ -591,7 +590,7 @@ func TestClient_VerifyData(t *testing.T) {
 				tt.mocks()
 			}
 
-			client, err := NewClient(tt.kid, &mock.TokenCredential{}, mockOptions())
+			client, err := NewClient(tt.kid, &test.TokenCredential{}, mockOptions())
 			require.NoError(t, err)
 
 			sig, err := hex.DecodeString(tt.sig)
@@ -643,11 +642,11 @@ func TestClient_WrapKey(t *testing.T) {
 					AddHeader("WWW-Authenticate", `Bearer authorization="https://login.windows.net/tenantID", resource="https://vault.azure.net"`)
 				gock.New(host).
 					Get(path).
-					MatchHeader("Authorization", "Bearer "+mock.TokenBase64).
+					MatchHeader("Authorization", "Bearer "+test.TokenBase64).
 					Reply(403)
 				gock.New(host).
 					Post(path+"/wrapkey").
-					MatchHeader("Authorization", "Bearer "+mock.TokenBase64).
+					MatchHeader("Authorization", "Bearer "+test.TokenBase64).
 					Reply(200).
 					JSON(wrapKeyResponse{
 						KID:   host + path,
@@ -666,12 +665,12 @@ func TestClient_WrapKey(t *testing.T) {
 					AddHeader("WWW-Authenticate", `Bearer authorization="https://login.windows.net/tenantID", resource="https://vault.azure.net"`)
 				gock.New(host).
 					Get(path).
-					MatchHeader("Authorization", "Bearer "+mock.TokenBase64).
+					MatchHeader("Authorization", "Bearer "+test.TokenBase64).
 					Reply(200).
 					JSON(mockRSA(host + path))
 				gock.New(host).
 					Post(path+"/wrapkey").
-					MatchHeader("Authorization", "Bearer "+mock.TokenBase64).
+					MatchHeader("Authorization", "Bearer "+test.TokenBase64).
 					Reply(200).
 					JSON(wrapKeyResponse{
 						KID:   host + path,
@@ -690,12 +689,12 @@ func TestClient_WrapKey(t *testing.T) {
 					AddHeader("WWW-Authenticate", `Bearer authorization="https://login.windows.net/tenantID", resource="https://vault.azure.net"`)
 				gock.New(host).
 					Get(path).
-					MatchHeader("Authorization", "Bearer "+mock.TokenBase64).
+					MatchHeader("Authorization", "Bearer "+test.TokenBase64).
 					Reply(200).
 					JSON(mockRSA(host + path))
 				gock.New(host).
 					Post(path+"/wrapkey").
-					MatchHeader("Authorization", "Bearer "+mock.TokenBase64).
+					MatchHeader("Authorization", "Bearer "+test.TokenBase64).
 					Reply(200).
 					JSON(wrapKeyResponse{
 						KID:   host + path,
@@ -714,12 +713,12 @@ func TestClient_WrapKey(t *testing.T) {
 					AddHeader("WWW-Authenticate", `Bearer authorization="https://login.windows.net/tenantID", resource="https://vault.azure.net"`)
 				gock.New(host).
 					Get(path).
-					MatchHeader("Authorization", "Bearer "+mock.TokenBase64).
+					MatchHeader("Authorization", "Bearer "+test.TokenBase64).
 					Reply(200).
 					JSON(mockRSA(host + path))
 				gock.New(host).
 					Post(path+"/wrapkey").
-					MatchHeader("Authorization", "Bearer "+mock.TokenBase64).
+					MatchHeader("Authorization", "Bearer "+test.TokenBase64).
 					Reply(200).
 					JSON(wrapKeyResponse{
 						KID:   host + path,
@@ -738,7 +737,7 @@ func TestClient_WrapKey(t *testing.T) {
 				tt.mocks()
 			}
 
-			client, err := NewClient(host+path, &mock.TokenCredential{}, mockOptions())
+			client, err := NewClient(host+path, &test.TokenCredential{}, mockOptions())
 			require.NoError(t, err)
 
 			result, err := client.WrapKey(context.Background(), tt.alg, key, nil)
@@ -786,7 +785,7 @@ func TestClient_UnwrapKey(t *testing.T) {
 					AddHeader("WWW-Authenticate", `Bearer authorization="https://login.windows.net/tenantID", resource="https://vault.azure.net"`)
 				gock.New(host).
 					Post(path+"/unwrapkey").
-					MatchHeader("Authorization", "Bearer "+mock.TokenBase64).
+					MatchHeader("Authorization", "Bearer "+test.TokenBase64).
 					Reply(200).
 					JSON(unwrapKeyResponse{
 						KID:   host + path,
@@ -805,7 +804,7 @@ func TestClient_UnwrapKey(t *testing.T) {
 					AddHeader("WWW-Authenticate", `Bearer authorization="https://login.windows.net/tenantID", resource="https://vault.azure.net"`)
 				gock.New(host).
 					Post(path+"/unwrapkey").
-					MatchHeader("Authorization", "Bearer "+mock.TokenBase64).
+					MatchHeader("Authorization", "Bearer "+test.TokenBase64).
 					Reply(200).
 					JSON(unwrapKeyResponse{
 						KID:   host + path,
@@ -824,7 +823,7 @@ func TestClient_UnwrapKey(t *testing.T) {
 					AddHeader("WWW-Authenticate", `Bearer authorization="https://login.windows.net/tenantID", resource="https://vault.azure.net"`)
 				gock.New(host).
 					Post(path+"/unwrapkey").
-					MatchHeader("Authorization", "Bearer "+mock.TokenBase64).
+					MatchHeader("Authorization", "Bearer "+test.TokenBase64).
 					Reply(200).
 					JSON(unwrapKeyResponse{
 						KID:   host + path,
@@ -843,7 +842,7 @@ func TestClient_UnwrapKey(t *testing.T) {
 				tt.mocks()
 			}
 
-			client, err := NewClient(host+path, &mock.TokenCredential{}, mockOptions())
+			client, err := NewClient(host+path, &test.TokenCredential{}, mockOptions())
 			require.NoError(t, err)
 
 			result, err := client.UnwrapKey(context.Background(), tt.alg, []byte("mocked"), nil)
@@ -861,20 +860,20 @@ func TestClient_UnwrapKey(t *testing.T) {
 }
 
 func TestClient_liveEncryptDecrypt(t *testing.T) {
-	internal.Live(t)
+	test.Live(t)
 
 	vaultURL := os.Getenv("AZURE_KEYVAULT_URL")
 	require.NotEmpty(t, vaultURL)
 
 	// RSA
-	keyID, err := internal.URLJoinPath(vaultURL, "/keys/rsa2048")
+	keyID, err := test.URLJoinPath(vaultURL, "/keys/rsa2048")
 	require.NoError(t, err)
 
 	credential, err := azidentity.NewDefaultAzureCredential(nil)
 	require.NoError(t, err)
 
 	options := &ClientOptions{
-		remoteOnly: *internal.RemoteOnly,
+		remoteOnly: *test.RemoteOnly,
 	}
 	client, err := NewClient(keyID, credential, options)
 	require.NoError(t, err)
@@ -890,20 +889,20 @@ func TestClient_liveEncryptDecrypt(t *testing.T) {
 }
 
 func TestClient_liveSignVerify(t *testing.T) {
-	internal.Live(t)
+	test.Live(t)
 
 	vaultURL := os.Getenv("AZURE_KEYVAULT_URL")
 	require.NotEmpty(t, vaultURL)
 
 	// ECDsa
-	keyID, err := internal.URLJoinPath(vaultURL, "/keys/ec256")
+	keyID, err := test.URLJoinPath(vaultURL, "/keys/ec256")
 	require.NoError(t, err)
 
 	credential, err := azidentity.NewDefaultAzureCredential(nil)
 	require.NoError(t, err)
 
 	options := &ClientOptions{
-		remoteOnly: *internal.RemoteOnly,
+		remoteOnly: *test.RemoteOnly,
 	}
 	client, err := NewClient(keyID, credential, options)
 	require.NoError(t, err)
@@ -919,20 +918,20 @@ func TestClient_liveSignVerify(t *testing.T) {
 }
 
 func TestClient_liveWrapUnwrapKey(t *testing.T) {
-	internal.Live(t)
+	test.Live(t)
 
 	vaultURL := os.Getenv("AZURE_KEYVAULT_URL")
 	require.NotEmpty(t, vaultURL)
 
 	// RSA
-	keyID, err := internal.URLJoinPath(vaultURL, "/keys/rsa2048")
+	keyID, err := test.URLJoinPath(vaultURL, "/keys/rsa2048")
 	require.NoError(t, err)
 
 	credential, err := azidentity.NewDefaultAzureCredential(nil)
 	require.NoError(t, err)
 
 	options := &ClientOptions{
-		remoteOnly: *internal.RemoteOnly,
+		remoteOnly: *test.RemoteOnly,
 	}
 	client, err := NewClient(keyID, credential, options)
 	require.NoError(t, err)
@@ -955,7 +954,7 @@ func mockOptions() *ClientOptions {
 	return &ClientOptions{
 		ClientOptions: azkeys.ClientOptions{
 			ClientOptions: azcore.ClientOptions{
-				Transport: mock.Transport,
+				Transport: test.Transport,
 			},
 		},
 	}
