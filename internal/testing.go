@@ -13,6 +13,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"testing"
 
 	"github.com/joho/godotenv"
@@ -24,16 +25,38 @@ var (
 
 	envFile = flag.String("env", "", "path to .env file to load")
 	live    = flag.Bool("live", false, "run live tests; use `azd up` to provision")
+
+	loader sync.Once
 )
 
-func RequireLive(t *testing.T) {
+func Live(t *testing.T) {
+	t.Helper()
+
 	if !*live {
 		t.Skip("skipping live tests")
 	}
+
+	required := map[string]string{
+		"AZURE_KEYVAULT_URL": os.Getenv("AZURE_KEYVAULT_URL"),
+	}
+	for k, v := range required {
+		if v == "" {
+			loader.Do(func() {
+				if err := loadEnv(); err != nil {
+					t.Fatal(err)
+				}
+			})
+		}
+
+		v = os.Getenv(k)
+		if v == "" {
+			t.Fatalf("environment variable %s must be defined for live tests", k)
+		}
+	}
 }
 
-func LoadEnv() error {
-	// Use specified .env file only.
+func loadEnv() error {
+	// Use only the specified .env file.
 	if *envFile != "" {
 		return godotenv.Load(*envFile)
 	}
