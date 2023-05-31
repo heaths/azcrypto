@@ -13,9 +13,6 @@
     },
     "vaultName": {
       "value": "${AZURE_KEYVAULT_NAME}"
-    },
-    "sku": {
-      "value": "${AZURE_KEYVAULT_SKU=standard}"
     }
   }
 }
