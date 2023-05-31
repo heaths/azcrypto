@@ -15,10 +15,6 @@ param principalId string
 @description('The vault name; default is a unique string based on the resource group ID')
 param vaultName string = ''
 
-@allowed([ 'standard', 'premium' ])
-@description('SKU name; default is standard')
-param sku string = 'standard'
-
 @description('Override the name of the resource group')
 param resourceGroupName string = 'rg-${environmentName}'
 
@@ -36,13 +32,12 @@ module resources 'resources.bicep' = {
   name: 'resources'
   scope: rg
   params: {
+    environmentName: environmentName
     location: location
     principalId: principalId
-    sku: sku
     vaultName: vaultName
   }
 }
 
 output AZURE_KEYVAULT_NAME string = resources.outputs.AZURE_KEYVAULT_NAME
-output AZURE_KEYVAULT_SKU string = resources.outputs.AZURE_KEYVAULT_SKU
 output AZURE_KEYVAULT_URL string = resources.outputs.AZURE_KEYVAULT_URL
