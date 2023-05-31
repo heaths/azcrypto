@@ -12,7 +12,7 @@
       "value": "${AZURE_PRINCIPAL_ID}"
     },
     "vaultName": {
-      "value": "${AZURE_KEYVAULT_URL}"
+      "value": "${AZURE_KEYVAULT_NAME}"
     },
     "sku": {
       "value": "${AZURE_KEYVAULT_SKU=standard}"

@@ -6,7 +6,8 @@ param location string = resourceGroup().location
 param principalId string
 
 @description('The vault name; default is a unique string based on the resource group ID')
-param vaultName string = 't${uniqueString(resourceGroup().id, 'vault')}'
+param vaultName string = ''
+var actualVaultName = !empty(vaultName) ? vaultName : 't${uniqueString(resourceGroup().id, 'vault')}'
 
 @allowed([ 'standard', 'premium' ])
 @description('SKU name; default is standard')
@@ -29,7 +30,7 @@ var ecKeys = [
 ]
 
 resource vault 'Microsoft.KeyVault/vaults@2023-02-01' = {
-  name: vaultName
+  name: actualVaultName
   location: location
   properties: {
     tenantId: tenantId
@@ -93,5 +94,7 @@ resource vault 'Microsoft.KeyVault/vaults@2023-02-01' = {
   }
 }
 
-output AZURE_KEYVAULT_URL string = vault.properties.vaultUri
+output AZURE_KEYVAULT_NAME string = vault.name
 output AZURE_KEYVAULT_SKU string = vault.properties.sku.name
+output AZURE_KEYVAULT_URL string = vault.properties.vaultUri
+

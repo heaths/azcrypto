@@ -13,7 +13,7 @@ param location string
 param principalId string
 
 @description('The vault name; default is a unique string based on the resource group ID')
-param vaultName string = 't${uniqueString(environmentName, 'vault')}'
+param vaultName string = ''
 
 @allowed([ 'standard', 'premium' ])
 @description('SKU name; default is standard')
@@ -43,5 +43,6 @@ module resources 'resources.bicep' = {
   }
 }
 
-output AZURE_KEYVAULT_URL string = resources.outputs.AZURE_KEYVAULT_URL
+output AZURE_KEYVAULT_NAME string = resources.outputs.AZURE_KEYVAULT_NAME
 output AZURE_KEYVAULT_SKU string = resources.outputs.AZURE_KEYVAULT_SKU
+output AZURE_KEYVAULT_URL string = resources.outputs.AZURE_KEYVAULT_URL
