@@ -138,7 +138,7 @@ func (client *Client) Encrypt(ctx context.Context, algorithm EncryptionAlgorithm
 		&options.EncryptOptions,
 	)
 	if err != nil {
-		return EncryptResult{}, nil
+		return EncryptResult{}, err
 	}
 
 	keyID := client.keyID
@@ -305,7 +305,7 @@ func (client *Client) Verify(ctx context.Context, algorithm SignatureAlgorithm, 
 		&options.VerifyOptions,
 	)
 	if err != nil {
-		return VerifyResult{}, nil
+		return VerifyResult{}, err
 	}
 
 	result := VerifyResult{
@@ -376,7 +376,7 @@ func (client *Client) WrapKey(ctx context.Context, algorithm KeyWrapAlgorithm, k
 		&options.WrapKeyOptions,
 	)
 	if err != nil {
-		return WrapKeyResult{}, nil
+		return WrapKeyResult{}, err
 	}
 
 	keyID := client.keyID

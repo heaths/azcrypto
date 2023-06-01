@@ -16,14 +16,6 @@ To build the module, run the following in the repository root directory:
 go build
 ```
 
-### Samples
-
-To build and run sample applications under _./cmd_ e.g., _./cmd/sign_, specify the subdirectory and any command line arguments required:
-
-```bash
-go run ./cmd/sign {keyID} {plaintext}
-```
-
 ## Test
 
 To run all tests for the module, run the following in the repository root directory:
@@ -32,18 +24,22 @@ To run all tests for the module, run the following in the repository root direct
 go test ./...
 ```
 
+If recorded tests were added or modified, you'll need to provision live resources.
+
 ### Live
 
-To provision resources and run live tests, you can use [azd] and run the following in the repository root directory:
+To provision resources, and run or record live tests, you can use [azd] and run the following in the repository root directory:
 
 ```bash
-azd up # or `azd provision` to just provision resources
-go test ./... -args -live # (-env=<file>) (-remote)
+azd up
+go test ./... # -args (-live) (-env=<file>) (-remote)
 ```
 
 By default, the live tests will load any _.env_ file `azd` created, falling back to any _.env_ file you have in the repository root
 as well as any environment variables already set. You can override this behavior by passing a the path to an environment file to
 `-env`.
+
+To run tests without reading or updating recordings, pass `--live`.
 
 To run tests only against the Azure Key Vault or Managed HSM without trying to download the key, pass `-remote`.
 

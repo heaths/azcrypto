@@ -12,15 +12,24 @@ import (
 )
 
 const (
-	Token       = "mock"
-	TokenBase64 = "bW9jaw=="
+	token       = "mock"
+	tokenBase64 = "bW9jaw=="
 )
 
-type TokenCredential struct{}
+var MockCredential azcore.TokenCredential = &testCredential{}
 
-func (c *TokenCredential) GetToken(ctx context.Context, options policy.TokenRequestOptions) (azcore.AccessToken, error) {
+type testCredential struct {
+	credential  azcore.TokenCredential
+	passthrough bool
+}
+
+func (c *testCredential) GetToken(ctx context.Context, options policy.TokenRequestOptions) (azcore.AccessToken, error) {
+	if c.passthrough {
+		return c.credential.GetToken(ctx, options)
+	}
+
 	return azcore.AccessToken{
-		Token:     TokenBase64,
+		Token:     tokenBase64,
 		ExpiresOn: time.Now().Add(2 * time.Hour),
 	}, nil
 }

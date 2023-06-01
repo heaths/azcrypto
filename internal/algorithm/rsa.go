@@ -87,7 +87,25 @@ func (r RSA) Verify(algorithm SignatureAlgorithm, digest, signature []byte) (Ver
 		return VerifyResult{}, err
 	}
 
-	err = rsa.VerifyPSS(&r.pub, hash, digest, signature, nil)
+	switch algorithm {
+	case azkeys.JSONWebKeySignatureAlgorithmPS256:
+		fallthrough
+	case azkeys.JSONWebKeySignatureAlgorithmPS384:
+		fallthrough
+	case azkeys.JSONWebKeySignatureAlgorithmPS512:
+		err = rsa.VerifyPSS(&r.pub, hash, digest, signature, nil)
+
+	case azkeys.JSONWebKeySignatureAlgorithmRS256:
+		fallthrough
+	case azkeys.JSONWebKeySignatureAlgorithmRS384:
+		fallthrough
+	case azkeys.JSONWebKeySignatureAlgorithmRS512:
+		err = rsa.VerifyPKCS1v15(&r.pub, hash, digest, signature)
+
+	default:
+		panic("unexpected SignatureAlgorithm")
+	}
+
 	return VerifyResult{
 		Algorithm: algorithm,
 		KeyID:     r.keyID,
