@@ -1,0 +1,186 @@
+---
+version: 2
+interactions:
+    - id: 0
+      request:
+        proto: HTTP/1.1
+        proto_major: 1
+        proto_minor: 1
+        content_length: 0
+        transfer_encoding: []
+        trailer: {}
+        host: tlxbprqlwess6y.vault.azure.net
+        remote_addr: ""
+        request_uri: ""
+        body: ""
+        form: {}
+        headers:
+            Accept:
+                - application/json
+            Authorization:
+                - sanitized
+            User-Agent:
+                - azsdk-go-azkeys/v0.11.0 (go1.20.4; linux)
+        url: https://tlxbprqlwess6y.vault.azure.net/keys/rsa2048/?api-version=7.4
+        method: GET
+      response:
+        proto: HTTP/2.0
+        proto_major: 2
+        proto_minor: 0
+        transfer_encoding: []
+        trailer: {}
+        content_length: 97
+        uncompressed: false
+        body: '{"error":{"code":"Unauthorized","message":"AKV10000: Request is missing a Bearer or PoP token."}}'
+        headers:
+            Cache-Control:
+                - no-cache
+            Content-Length:
+                - "97"
+            Content-Type:
+                - application/json; charset=utf-8
+            Date:
+                - Thu, 01 Jun 2023 08:03:49 GMT
+            Expires:
+                - "-1"
+            Pragma:
+                - no-cache
+            Strict-Transport-Security:
+                - max-age=31536000;includeSubDomains
+            Www-Authenticate:
+                - Bearer authorization="https://login.microsoftonline.com/72f988bf-86f1-41af-91ab-2d7cd011db47", resource="https://vault.azure.net"
+            X-Content-Type-Options:
+                - nosniff
+            X-Ms-Keyvault-Network-Info:
+                - conn_type=Ipv4;addr=24.16.18.89;act_addr_fam=InterNetwork;
+            X-Ms-Keyvault-Region:
+                - westus
+            X-Ms-Keyvault-Service-Version:
+                - 1.9.804.1
+            X-Ms-Request-Id:
+                - fabfc3bd-8172-4613-bfc4-ed67071883b3
+        status: 401 Unauthorized
+        code: 401
+        duration: 46.428527ms
+    - id: 1
+      request:
+        proto: HTTP/1.1
+        proto_major: 1
+        proto_minor: 1
+        content_length: 0
+        transfer_encoding: []
+        trailer: {}
+        host: tlxbprqlwess6y.vault.azure.net
+        remote_addr: ""
+        request_uri: ""
+        body: ""
+        form: {}
+        headers:
+            Accept:
+                - application/json
+            Authorization:
+                - sanitized
+            User-Agent:
+                - azsdk-go-azkeys/v0.11.0 (go1.20.4; linux)
+        url: https://tlxbprqlwess6y.vault.azure.net/keys/rsa2048/?api-version=7.4
+        method: GET
+      response:
+        proto: HTTP/2.0
+        proto_major: 2
+        proto_minor: 0
+        transfer_encoding: []
+        trailer: {}
+        content_length: 696
+        uncompressed: false
+        body: '{"key":{"kid":"https://tlxbprqlwess6y.vault.azure.net/keys/rsa2048/2a2225c34b1142289cb1b96adfd9fa63","kty":"RSA","key_ops":["encrypt","decrypt","sign","verify","wrapKey","unwrapKey"],"n":"oTmc-1zwqueM0A94ppeGJOFfwU3Z3NcwD61c_f2rqojOkt41uxwv3Mg0ys-bmlhkITQgU5yJcAIxkPgVi8e50W4W2XlI1uhDuGKz6xgWOuf1NoD-p0L_Zl-ZqhVVbNyLZYc0DtH8iUrRmXTsV1kjIHNR8ht7bLC5wtARL5d31ZWYLB4dcIAaacEC8mvhw5ZRZQ16Wbzj8K_IeDmttVTzwkQTYRhEFzpzwyqYG2I2Z7Puc3gJPUpL18GjyeqdJ1QLt0aHdWkA5UYrL7WEnMWrpNeHhslgym0SfacM4AZMeoKtVadKcuholdo8VQdPFbawRn39-pMWFNHjasYKGsLDvQ","e":"AQAB"},"attributes":{"enabled":true,"created":1685587027,"updated":1685587027,"recoveryLevel":"Recoverable+Purgeable","recoverableDays":90,"exportable":false}}'
+        headers:
+            Cache-Control:
+                - no-cache
+            Content-Length:
+                - "696"
+            Content-Type:
+                - application/json; charset=utf-8
+            Date:
+                - Thu, 01 Jun 2023 08:03:51 GMT
+            Expires:
+                - "-1"
+            Pragma:
+                - no-cache
+            Strict-Transport-Security:
+                - max-age=31536000;includeSubDomains
+            X-Content-Type-Options:
+                - nosniff
+            X-Ms-Keyvault-Network-Info:
+                - conn_type=Ipv4;addr=24.16.18.89;act_addr_fam=InterNetwork;
+            X-Ms-Keyvault-Region:
+                - westus
+            X-Ms-Keyvault-Service-Version:
+                - 1.9.804.1
+            X-Ms-Request-Id:
+                - d0773c99-aafe-4834-8901-4c333847f32a
+        status: 200 OK
+        code: 200
+        duration: 48.445242ms
+    - id: 2
+      request:
+        proto: HTTP/1.1
+        proto_major: 1
+        proto_minor: 1
+        content_length: 375
+        transfer_encoding: []
+        trailer: {}
+        host: tlxbprqlwess6y.vault.azure.net
+        remote_addr: ""
+        request_uri: ""
+        body: '{"alg":"RSA-OAEP-256","value":"Qwq60fE0M131X9_o6sm5YBwkXM1pbkoJ4y74HrftqakVOOnP7S89d_RWLriTct53H-ZSbE8IAsudBonTgLxNAuZ7GShGnEd9tQ8IjykPGmlB1iGRb-dZcZ0I8Al1smpX3BSA6Armb68YNvtTXasdo47tVrL7bJOb2zMlYkS6AGgFZZNW57Q7HnzxaZtsYmUQyP8mr2U70CCHhm0H8Pw6xNRAZXmNYfQrsTYoSOJ81gILtSdqu-Bc-V7fYkVapuQq0KHNHhCPC8NXWaw_7Sba1OK3sLQhkbA1QljYz5Yqdr9HOT4vqWoYehwtdwj6A5Z43IKL2nv5TjodcSujbVc1eg"}'
+        form: {}
+        headers:
+            Accept:
+                - application/json
+            Authorization:
+                - sanitized
+            Content-Length:
+                - "375"
+            Content-Type:
+                - application/json
+            User-Agent:
+                - azsdk-go-azkeys/v0.11.0 (go1.20.4; linux)
+        url: https://tlxbprqlwess6y.vault.azure.net/keys/rsa2048/decrypt?api-version=7.4
+        method: POST
+      response:
+        proto: HTTP/2.0
+        proto_major: 2
+        proto_minor: 0
+        transfer_encoding: []
+        trailer: {}
+        content_length: 117
+        uncompressed: false
+        body: '{"kid":"https://tlxbprqlwess6y.vault.azure.net/keys/rsa2048/2a2225c34b1142289cb1b96adfd9fa63","value":"cGxhaW50ZXh0"}'
+        headers:
+            Cache-Control:
+                - no-cache
+            Content-Length:
+                - "117"
+            Content-Type:
+                - application/json; charset=utf-8
+            Date:
+                - Thu, 01 Jun 2023 08:03:51 GMT
+            Expires:
+                - "-1"
+            Pragma:
+                - no-cache
+            Strict-Transport-Security:
+                - max-age=31536000;includeSubDomains
+            X-Content-Type-Options:
+                - nosniff
+            X-Ms-Keyvault-Network-Info:
+                - conn_type=Ipv4;addr=24.16.18.89;act_addr_fam=InterNetwork;
+            X-Ms-Keyvault-Region:
+                - westus
+            X-Ms-Keyvault-Service-Version:
+                - 1.9.804.1
+            X-Ms-Request-Id:
+                - a2da1af3-35a4-4110-b4c8-acaa7214240f
+        status: 200 OK
+        code: 200
+        duration: 51.535897ms

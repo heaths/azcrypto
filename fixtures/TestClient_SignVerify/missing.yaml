@@ -1,0 +1,131 @@
+---
+version: 2
+interactions:
+    - id: 0
+      request:
+        proto: HTTP/1.1
+        proto_major: 1
+        proto_minor: 1
+        content_length: 0
+        transfer_encoding: []
+        trailer: {}
+        host: tlxbprqlwess6y.vault.azure.net
+        remote_addr: ""
+        request_uri: ""
+        body: ""
+        form: {}
+        headers:
+            Accept:
+                - application/json
+            Authorization:
+                - sanitized
+            Content-Length:
+                - "69"
+            Content-Type:
+                - application/json
+            User-Agent:
+                - azsdk-go-azkeys/v0.11.0 (go1.20.4; linux)
+        url: https://tlxbprqlwess6y.vault.azure.net/keys/missing/sign?api-version=7.4
+        method: POST
+      response:
+        proto: HTTP/2.0
+        proto_major: 2
+        proto_minor: 0
+        transfer_encoding: []
+        trailer: {}
+        content_length: 97
+        uncompressed: false
+        body: '{"error":{"code":"Unauthorized","message":"AKV10000: Request is missing a Bearer or PoP token."}}'
+        headers:
+            Cache-Control:
+                - no-cache
+            Content-Length:
+                - "97"
+            Content-Type:
+                - application/json; charset=utf-8
+            Date:
+                - Thu, 01 Jun 2023 08:03:54 GMT
+            Expires:
+                - "-1"
+            Pragma:
+                - no-cache
+            Strict-Transport-Security:
+                - max-age=31536000;includeSubDomains
+            Www-Authenticate:
+                - Bearer authorization="https://login.microsoftonline.com/72f988bf-86f1-41af-91ab-2d7cd011db47", resource="https://vault.azure.net"
+            X-Content-Type-Options:
+                - nosniff
+            X-Ms-Keyvault-Network-Info:
+                - conn_type=Ipv4;addr=24.16.18.89;act_addr_fam=InterNetwork;
+            X-Ms-Keyvault-Region:
+                - westus
+            X-Ms-Keyvault-Service-Version:
+                - 1.9.804.1
+            X-Ms-Request-Id:
+                - bb8dd060-f5ff-4c1c-b304-eb0823f8a283
+        status: 401 Unauthorized
+        code: 401
+        duration: 46.078512ms
+    - id: 1
+      request:
+        proto: HTTP/1.1
+        proto_major: 1
+        proto_minor: 1
+        content_length: 69
+        transfer_encoding: []
+        trailer: {}
+        host: tlxbprqlwess6y.vault.azure.net
+        remote_addr: ""
+        request_uri: ""
+        body: '{"alg":"ES256","value":"ltYuKr0-Qt5fUDMPuO_ExVmYNSeAd7IemqCzPB3wehw"}'
+        form: {}
+        headers:
+            Accept:
+                - application/json
+            Authorization:
+                - sanitized
+            Content-Length:
+                - "69"
+            Content-Type:
+                - application/json
+            User-Agent:
+                - azsdk-go-azkeys/v0.11.0 (go1.20.4; linux)
+        url: https://tlxbprqlwess6y.vault.azure.net/keys/missing/sign?api-version=7.4
+        method: POST
+      response:
+        proto: HTTP/2.0
+        proto_major: 2
+        proto_minor: 0
+        transfer_encoding: []
+        trailer: {}
+        content_length: 295
+        uncompressed: false
+        body: '{"error":{"code":"KeyNotFound","message":"A key with (name/id) missing was not found in this key vault. If you recently deleted this key you may be able to recover it using the correct recovery command. For help resolving this issue, please see https://go.microsoft.com/fwlink/?linkid=2125182"}}'
+        headers:
+            Cache-Control:
+                - no-cache
+            Content-Length:
+                - "295"
+            Content-Type:
+                - application/json; charset=utf-8
+            Date:
+                - Thu, 01 Jun 2023 08:03:56 GMT
+            Expires:
+                - "-1"
+            Pragma:
+                - no-cache
+            Strict-Transport-Security:
+                - max-age=31536000;includeSubDomains
+            X-Content-Type-Options:
+                - nosniff
+            X-Ms-Keyvault-Network-Info:
+                - conn_type=Ipv4;addr=24.16.18.89;act_addr_fam=InterNetwork;
+            X-Ms-Keyvault-Region:
+                - westus
+            X-Ms-Keyvault-Service-Version:
+                - 1.9.804.1
+            X-Ms-Request-Id:
+                - 00d90037-d8b0-413c-91f2-bcee0c5b9a0c
+        status: 404 Not Found
+        code: 404
+        duration: 52.017457ms
