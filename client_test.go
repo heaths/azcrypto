@@ -106,6 +106,7 @@ func TestClient_EncryptDecrypt(t *testing.T) {
 			require.NoError(t, err)
 
 			require.Equal(t, plaintext, decrypted.Plaintext)
+			require.Equal(t, tt.permission, client.localClient != nil)
 		})
 	}
 }
@@ -134,31 +135,11 @@ func TestClient_SignVerify(t *testing.T) {
 		key  string
 		alg  SignatureAlgorithm
 	}{
-		{
-			name: "ES256",
-			key:  "ec256",
-			alg:  SignatureAlgorithmES256,
-		},
-		{
-			name: "ES384",
-			key:  "ec384",
-			alg:  SignatureAlgorithmES384,
-		},
-		{
-			name: "ES512",
-			key:  "ec521",
-			alg:  SignatureAlgorithmES512,
-		},
-		{
-			name: "PS256",
-			key:  "rsa2048",
-			alg:  SignatureAlgorithmPS256,
-		},
-		{
-			name: "RS512",
-			key:  "rsa2048",
-			alg:  SignatureAlgorithmRS512,
-		},
+		{name: "ES256", key: "ec256", alg: SignatureAlgorithmES256},
+		{name: "ES384", key: "ec384", alg: SignatureAlgorithmES384},
+		{name: "ES512", key: "ec521", alg: SignatureAlgorithmES512},
+		{name: "PS256", key: "rsa2048", alg: SignatureAlgorithmPS256},
+		{name: "RS512", key: "rsa2048", alg: SignatureAlgorithmRS512},
 	}
 
 	for _, key := range keys {
@@ -193,6 +174,7 @@ func TestClient_SignVerify(t *testing.T) {
 			require.NoError(t, err)
 
 			require.True(t, verified.Valid)
+			require.Equal(t, tt.permission, client.localClient != nil)
 		})
 	}
 }
@@ -268,6 +250,7 @@ func TestClient_WrapUnwrapKey(t *testing.T) {
 			require.NoError(t, err)
 
 			require.Equal(t, key, unwrapped.Key)
+			require.Equal(t, tt.permission, client.localClient != nil)
 		})
 	}
 }
