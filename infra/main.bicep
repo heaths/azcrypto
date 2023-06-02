@@ -18,8 +18,12 @@ param vaultName string = ''
 @description('Override the name of the resource group')
 param resourceGroupName string = 'rg-${environmentName}'
 
+@description('How long until the resource group is cleaned up by automated processes.')
+param deleteAfterTime string = dateTimeAdd(utcNow('o'), 'P1D')
+
 var tags = {
   'azd-env-name': environmentName
+  DeleteAfter: deleteAfterTime
 }
 
 resource rg 'Microsoft.Resources/resourceGroups@2022-09-01' = {
