@@ -52,7 +52,7 @@ func TestClient_EncryptDecrypt(t *testing.T) {
 			permission: true,
 		},
 		{
-			name: "RSA1_5 (no permission)",
+			name: "RSA1_5 local",
 			key:  "rsa2048",
 			alg:  EncryptionAlgorithmRSA15,
 		},
@@ -63,7 +63,7 @@ func TestClient_EncryptDecrypt(t *testing.T) {
 			permission: true,
 		},
 		{
-			name: "RSA-OAEP (no permission)",
+			name: "RSA-OAEP local",
 			key:  "rsa2048",
 			alg:  EncryptionAlgorithmRSAOAEP,
 		},
@@ -74,7 +74,7 @@ func TestClient_EncryptDecrypt(t *testing.T) {
 			permission: true,
 		},
 		{
-			name: "RSA-OAEP-256 (no permission)",
+			name: "RSA-OAEP-256 local",
 			key:  "rsa2048",
 			alg:  EncryptionAlgorithmRSAOAEP256,
 		},
@@ -150,7 +150,7 @@ func TestClient_SignVerify(t *testing.T) {
 			permission: true,
 		})
 		tests = append(tests, testData{
-			name: fmt.Sprintf("%s (no permission)", key.name),
+			name: fmt.Sprintf("%s local", key.name),
 			key:  key.key,
 			alg:  key.alg,
 		})
@@ -194,7 +194,7 @@ func TestClient_WrapUnwrapKey(t *testing.T) {
 			permission: true,
 		},
 		{
-			name: "RSA1_5 (no permission)",
+			name: "RSA1_5 local",
 			key:  "rsa2048",
 			alg:  KeyWrapAlgorithmRSA15,
 		},
@@ -205,7 +205,7 @@ func TestClient_WrapUnwrapKey(t *testing.T) {
 			permission: true,
 		},
 		{
-			name: "RSA-OAEP (no permission)",
+			name: "RSA-OAEP local",
 			key:  "rsa2048",
 			alg:  EncryptionAlgorithmRSAOAEP,
 		},
@@ -216,7 +216,7 @@ func TestClient_WrapUnwrapKey(t *testing.T) {
 			permission: true,
 		},
 		{
-			name: "RSA-OAEP-256 (no permission)",
+			name: "RSA-OAEP-256 local",
 			key:  "rsa2048",
 			alg:  KeyWrapAlgorithmRSAOAEP256,
 		},
@@ -283,6 +283,7 @@ func testClient(t *testing.T, keyName string, permission bool) test.ClientFactor
 					Transport: recording.GetTransport(),
 				},
 			},
+			remoteOnly: test.IsRemoteOnly(),
 		})
 	}
 }

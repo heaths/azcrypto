@@ -32,12 +32,11 @@ To provision resources, and run or record live tests, you can use [azd] and run 
 
 ```bash
 azd up
-go test ./... # -args (-live) (-env=<file>) (-remote)
+go test ./... # -args (-live) (-env=<name>) (-remote)
 ```
 
-By default, the live tests will load any _.env_ file `azd` created, falling back to any _.env_ file you have in the repository root
-as well as any environment variables already set. You can override this behavior by passing a the path to an environment file to
-`-env`.
+Live and recording tests will load the default [azd] environment's _.env_ as environment variables.
+You can pass a specific environment name to `-env` to use a different environment.
 
 To run tests without reading or updating recordings, pass `--live`.
 
