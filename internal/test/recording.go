@@ -63,7 +63,7 @@ func IsRemoteOnly() bool {
 
 type Recording struct {
 	passthrough bool
-	transport   policy.Transporter
+	transport   *testTransport
 	credential  azcore.TokenCredential
 	recorder    *recorder.Recorder
 }
@@ -83,24 +83,8 @@ func (r *Recording) GetCredential() azcore.TokenCredential {
 type RecordingOverride func(req *http.Request, resp *http.Response) (code int, body string)
 
 func (r *Recording) OverrideResponse(override RecordingOverride) {
-	r.recorder.AddHook(func(i *cassette.Interaction) error {
-		req, err := i.GetHTTPRequest()
-		if err != nil {
-			panic(err)
-		}
-		resp, err := i.GetHTTPResponse()
-		if err != nil {
-			panic(err)
-		}
-		code, body := override(req, resp)
-		if code != 0 {
-			i.Response.Code = code
-			i.Response.Status = http.StatusText(code)
-			i.Response.Body = body
-			i.Response.ContentLength = int64(len(body))
-		}
-		return nil
-	}, recorder.AfterCaptureHook)
+	// Override response in testTransport since any recorder.HookFunc is bypassed in ModePassthrough.
+	r.transport.addOverride(override)
 }
 
 type ClientFactory[T any] func(*Recording) (*T, error)
