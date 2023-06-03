@@ -43,6 +43,7 @@ resource vault 'Microsoft.KeyVault/vaults@2023-02-01' = if (!managedHsm) {
       family: 'A'
     }
     enableRbacAuthorization: true
+    softDeleteRetentionInDays: 7
   }
 
   resource ecKey 'keys' = [for key in ecKeys: {
@@ -85,6 +86,7 @@ resource hsm 'Microsoft.KeyVault/managedHSMs@2023-02-01' = if (managedHsm) {
     initialAdminObjectIds: [
       principalId
     ]
+    softDeleteRetentionInDays: 7
   }
 
   // Key management operations require AllowKeyManagementOperationsThroughARM.
