@@ -13,6 +13,9 @@
     },
     "vaultName": {
       "value": "${AZURE_KEYVAULT_NAME}"
+    },
+    "managedHsm": {
+      "value": "${AZURE_MANAGEDHSM=false}"
     }
   }
 }

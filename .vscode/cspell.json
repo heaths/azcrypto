@@ -16,6 +16,7 @@
     "GOVERSION",
     "JWT",
     "keyvault",
+    "MANAGEDHSM",
     "OAEP",
     "RSAHSM",
     "RSASSA",

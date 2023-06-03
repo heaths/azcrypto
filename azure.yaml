@@ -1,1 +1,33 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/Azure/azure-dev/azure-dev-cli_1.0.1/schemas/v1.0/azure.yaml.json
 name: azcrypto
+requiredVersions:
+  azd: '>= 1.0.1'
+hooks:
+  # cspell:ignore postprovision,newkey,keyout
+  postprovision:
+    shell: sh
+    run: |
+      if [ "${AZURE_MANAGEDHSM}" = true ] && ! [ -e "./infra/out/${AZURE_ENV_NAME}/${AZURE_KEYVAULT_NAME}.json" ]; then
+        # Activate Managed HSM.
+        mkdir -p "./infra/out/${AZURE_ENV_NAME}/"
+
+        openssl req -newkey rsa:2048 -subj "/CN=${AZURE_KEYVAULT_NAME}/" -nodes -keyout "./infra/out/${AZURE_ENV_NAME}/cert_0.key" -x509 -days 30 -out "./infra/out/${AZURE_ENV_NAME}/cert_0.cer"
+        openssl req -newkey rsa:2048 -subj "/CN=${AZURE_KEYVAULT_NAME}/" -nodes -keyout "./infra/out/${AZURE_ENV_NAME}/cert_1.key" -x509 -days 30 -out "./infra/out/${AZURE_ENV_NAME}/cert_1.cer"
+        openssl req -newkey rsa:2048 -subj "/CN=${AZURE_KEYVAULT_NAME}/" -nodes -keyout "./infra/out/${AZURE_ENV_NAME}/cert_2.key" -x509 -days 30 -out "./infra/out/${AZURE_ENV_NAME}/cert_2.cer"
+        az keyvault security-domain download --hsm-name "${AZURE_KEYVAULT_NAME}" --sd-wrapping-keys "./infra/out/${AZURE_ENV_NAME}/cert_0.cer" "./infra/out/${AZURE_ENV_NAME}/cert_1.cer" "./infra/out/${AZURE_ENV_NAME}/cert_2.cer" --sd-quorum 2 --security-domain-file "./infra/out/${AZURE_ENV_NAME}/${AZURE_KEYVAULT_NAME}.json"
+
+        # Add principal as Managed HSM Crypto User.
+        az keyvault role assignment create --hsm-name "${AZURE_KEYVAULT_NAME}" --role "21dbd100-6940-42c2-9190-5d6cb909625b" --scope "/" --assignee-object-id "${AZURE_PRINCIPAL_ID}"
+
+        # Wait 30s and create keys via data plane operations.
+        sleep 30s
+
+        # TODO: Consider re-invoking `azd provision` with an env var / param to provision with keys.
+        az keyvault key create --hsm-name "${AZURE_KEYVAULT_NAME}" --name ec256 --kty ec --curve "P-256"
+        az keyvault key create --hsm-name "${AZURE_KEYVAULT_NAME}" --name ec384 --kty ec --curve "P-384"
+        az keyvault key create --hsm-name "${AZURE_KEYVAULT_NAME}" --name ec521 --kty ec --curve "P-521"
+        az keyvault key create --hsm-name "${AZURE_KEYVAULT_NAME}" --name rsa2048 --kty rsa --size 2048
+        az keyvault key create --hsm-name "${AZURE_KEYVAULT_NAME}" --name aes128 --kty oct --size 128
+        az keyvault key create --hsm-name "${AZURE_KEYVAULT_NAME}" --name aes192 --kty oct --size 192
+        az keyvault key create --hsm-name "${AZURE_KEYVAULT_NAME}" --name aes256 --kty oct --size 256
+      fi
