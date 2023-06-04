@@ -91,6 +91,8 @@ func TestNewAlgorithm(t *testing.T) {
 }
 
 func TestGetHash(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name string
 		alg  SignatureAlgorithm

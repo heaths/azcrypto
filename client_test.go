@@ -21,6 +21,8 @@ import (
 )
 
 func TestNewClient(t *testing.T) {
+	t.Parallel()
+
 	credential := test.MockCredential
 
 	client, err := NewClient("", credential, nil)
@@ -38,6 +40,8 @@ func TestNewClient(t *testing.T) {
 }
 
 func TestClient_EncryptDecrypt(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name       string
 		key        string
@@ -89,7 +93,10 @@ func TestClient_EncryptDecrypt(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			client := test.Recorded(t, testClient(t, tt.key, tt.permission))
 
 			var plaintext = []byte("plaintext")
@@ -112,6 +119,8 @@ func TestClient_EncryptDecrypt(t *testing.T) {
 }
 
 func TestClient_SignVerify(t *testing.T) {
+	t.Parallel()
+
 	type testData struct {
 		name       string
 		key        string
@@ -157,7 +166,10 @@ func TestClient_SignVerify(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			client := test.Recorded(t, testClient(t, tt.key, tt.permission))
 
 			var plaintext = []byte("plaintext")
@@ -180,6 +192,8 @@ func TestClient_SignVerify(t *testing.T) {
 }
 
 func TestClient_WrapUnwrapKey(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name       string
 		key        string
@@ -231,7 +245,10 @@ func TestClient_WrapUnwrapKey(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			client := test.Recorded(t, testClient(t, tt.key, tt.permission))
 
 			key, err := base64.StdEncoding.DecodeString("XuzMCMA534jyOTYaJ+rYvw==")
