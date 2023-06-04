@@ -1,1 +1,38 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/Azure/azure-dev/azure-dev-cli_1.0.1/schemas/v1.0/azure.yaml.json
 name: azcrypto
+requiredVersions:
+  azd: '>= 1.0.1'
+hooks:
+  # cspell:ignore postdown,postprovision,newkey,keyout
+  postprovision:
+    shell: sh
+    run: |
+      if [ "${AZURE_MANAGEDHSM}" = true ]; then
+        if ! [ -e "./infra/out/${AZURE_ENV_NAME}/${AZURE_KEYVAULT_NAME}.json" ]; then
+            # Activate Managed HSM.
+            mkdir -p "./infra/out/${AZURE_ENV_NAME}/"
+
+            openssl req -newkey rsa:2048 -subj "/CN=${AZURE_KEYVAULT_NAME}/" -nodes -keyout "./infra/out/${AZURE_ENV_NAME}/cert_0.key" -x509 -days 30 -out "./infra/out/${AZURE_ENV_NAME}/cert_0.cer"
+            openssl req -newkey rsa:2048 -subj "/CN=${AZURE_KEYVAULT_NAME}/" -nodes -keyout "./infra/out/${AZURE_ENV_NAME}/cert_1.key" -x509 -days 30 -out "./infra/out/${AZURE_ENV_NAME}/cert_1.cer"
+            openssl req -newkey rsa:2048 -subj "/CN=${AZURE_KEYVAULT_NAME}/" -nodes -keyout "./infra/out/${AZURE_ENV_NAME}/cert_2.key" -x509 -days 30 -out "./infra/out/${AZURE_ENV_NAME}/cert_2.cer"
+            az keyvault security-domain download --hsm-name "${AZURE_KEYVAULT_NAME}" --sd-wrapping-keys "./infra/out/${AZURE_ENV_NAME}/cert_0.cer" "./infra/out/${AZURE_ENV_NAME}/cert_1.cer" "./infra/out/${AZURE_ENV_NAME}/cert_2.cer" --sd-quorum 2 --security-domain-file "./infra/out/${AZURE_ENV_NAME}/${AZURE_KEYVAULT_NAME}.json"
+
+            # Enable data plane key management via ARM.
+            az keyvault setting update --hsm-name "${AZURE_KEYVAULT_NAME}" --name AllowKeyManagementOperationsThroughARM --value true
+
+            # Add principal as Managed HSM Crypto User.
+            az keyvault role assignment create --hsm-name "${AZURE_KEYVAULT_NAME}" --role "21dbd100-6940-42c2-9190-5d6cb909625b" --scope "/" --assignee-object-id "${AZURE_PRINCIPAL_ID}"
+
+            # Wait 30s to propagate role assignment.
+            sleep 30s
+        fi
+
+        # Provision keys for Managed HSM after activation.
+        az deployment group create --resource-group "${AZURE_RESOURCEGROUP_NAME}" --template-file ./infra/keys.bicep --parameters vaultName="${AZURE_KEYVAULT_NAME}" managedHsm=true
+      fi
+  postdown:
+    shell: sh
+    run: |
+      if [ "${AZURE_MANAGEDHSM}" = true ]; then
+        rm -rf "./infra/out/${AZURE_ENV_NAME}/"
+      fi

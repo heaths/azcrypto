@@ -63,6 +63,11 @@ jobs:
       with:
         only-new-issues: true
         skip-pkg-cache: true
+    - name: Check spelling
+      if: ${{ !cancelled() }}
+      uses: streetsidesoftware/cspell-action@v2
+      with:
+        config: .vscode/cspell.json
 
   check:
     runs-on: ubuntu-latest

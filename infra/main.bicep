@@ -15,6 +15,9 @@ param principalId string
 @description('The vault name; default is a unique string based on the resource group ID')
 param vaultName string = ''
 
+@description('Whether to provision a Key Vault (per-call billing) or Managed HSM (lifetime billing).')
+param managedHsm bool = false
+
 @description('Override the name of the resource group')
 param resourceGroupName string = 'rg-${environmentName}'
 
@@ -40,8 +43,12 @@ module resources 'resources.bicep' = {
     location: location
     principalId: principalId
     vaultName: vaultName
+    managedHsm: managedHsm
   }
 }
 
+output AZURE_PRINCIPAL_ID string = resources.outputs.AZURE_PRINCIPAL_ID
+output AZURE_RESOURCEGROUP_NAME string = resourceGroupName
 output AZURE_KEYVAULT_NAME string = resources.outputs.AZURE_KEYVAULT_NAME
 output AZURE_KEYVAULT_URL string = resources.outputs.AZURE_KEYVAULT_URL
+output AZURE_MANAGEDHSM bool = resources.outputs.AZURE_MANAGEDHSM
