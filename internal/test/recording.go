@@ -30,7 +30,7 @@ const (
 // Make sure these flags for testing are imported in every package containing tests.
 var (
 	remoteFlag = flag.Bool("remote", false, "remote operations only; do not download key")
-	liveFlag   = flag.Bool("live", false, "run live tests; use `azd up` to provision")
+	liveFlag   = flag.Bool("live", false, `run live tests; use "azd up" to provision`)
 
 	loader sync.Once
 
