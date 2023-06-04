@@ -4,6 +4,8 @@
 // Copied from https://github.com/Azure/azure-sdk-for-go/blob/1faa82f32a87a2e49bc5336beb1e4c14aa97c4b7/sdk/keyvault/internal/parse_test.go
 package internal
 
+// cspell:ignore notnilf
+
 import (
 	"testing"
 

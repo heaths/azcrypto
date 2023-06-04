@@ -18,20 +18,6 @@ param managedHsm bool = false
 
 var finalVaultName = empty(vaultName) ? 't${uniqueString(resourceGroup().id, environmentName)}' : vaultName
 var tenantId = subscription().tenantId
-var ecKeys = [
-  {
-    name: 'ec256'
-    curve: 'P-256'
-  }
-  {
-    name: 'ec384'
-    curve: 'P-384'
-  }
-  {
-    name: 'ec521'
-    curve: 'P-521'
-  }
-]
 
 resource vault 'Microsoft.KeyVault/vaults@2023-02-01' = if (!managedHsm) {
   name: finalVaultName
@@ -45,21 +31,14 @@ resource vault 'Microsoft.KeyVault/vaults@2023-02-01' = if (!managedHsm) {
     enableRbacAuthorization: true
     softDeleteRetentionInDays: 7
   }
+}
 
-  resource ecKey 'keys' = [for key in ecKeys: {
-    name: key.name
-    properties: {
-      kty: 'EC'
-      curveName: key.curve
-    }
-  }]
-
-  resource rsaKey 'keys' = {
-    name: 'rsa2048'
-    properties: {
-      kty: 'RSA'
-      keySize: 2048
-    }
+// Keys will only be provisioned via ARM for Key Vault. Managed HSM requires activation first.
+module keys 'keys.bicep' = if (!managedHsm) {
+  name: 'keys'
+  params: {
+    vaultName: vault.name
+    managedHsm: false
   }
 }
 
@@ -89,7 +68,7 @@ resource hsm 'Microsoft.KeyVault/managedHSMs@2023-02-01' = if (managedHsm) {
     softDeleteRetentionInDays: 7
   }
 
-  // Key management operations require AllowKeyManagementOperationsThroughARM.
+  // Key management operations require activation and setting AllowKeyManagementOperationsThroughARM.
 }
 
 output AZURE_PRINCIPAL_ID string = principalId
