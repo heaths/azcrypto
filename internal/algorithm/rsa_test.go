@@ -55,6 +55,8 @@ func TestNewRSA(t *testing.T) {
 }
 
 func TestEnsure(t *testing.T) {
+	t.Parallel()
+
 	sut := func(src []byte) []byte {
 		return ensure(src, 4)
 	}
@@ -68,12 +70,16 @@ func TestEnsure(t *testing.T) {
 }
 
 func TestRSA_Encrypt(t *testing.T) {
+	t.Parallel()
+
 	result, err := testRSA.Encrypt(azkeys.JSONWebKeyEncryptionAlgorithmRSAOAEP, []byte("plaintext"))
 	require.NoError(t, err)
 	require.Greater(t, len(result.Ciphertext), 0)
 }
 
 func TestRSA_Verify(t *testing.T) {
+	t.Parallel()
+
 	digest := hash("message")
 	signature, err := hex.DecodeString("270b2f33b4fce8baa316674c640c5cf8a966eea37c5cf4cbeae9293a278c174a3f86167613ee9f793f182e241b97614ece56a364542fc200f118a968bb3653820453238c35aa675426fa3a046a228b12fc78650b7c23d9096b3fd7b1a124486bf06480361aeb82d9f4252b54aee950a7a596bd13024aacc0526d6019705834dad5f081eeecbf4ce7acf8586bafea0873fb57fee5330ff59566331052770b81f83820634dfb70770b07c45949fa97033f19c626e55041d2782edb2dc4b62a609b59f9f6735af8e4eb0f94a9a8b977f932faf53beed915ecc96d327a070aa02a42b4a2038272e0ec114b70cc34038f8fc53bfdec94176f02a8329dfee99f7b725a")
 	require.NoError(t, err)
@@ -84,6 +90,8 @@ func TestRSA_Verify(t *testing.T) {
 }
 
 func TestRSA_WrapKey(t *testing.T) {
+	t.Parallel()
+
 	key := []byte{0x6d, 0x6f, 0x63, 0x6b, 0x20, 0x61, 0x65, 0x73, 0x2d, 0x31, 0x32, 0x38, 0x20, 0x6b, 0x65, 0x79}
 
 	result, err := testRSA.WrapKey(azkeys.JSONWebKeyEncryptionAlgorithmRSAOAEP, key)

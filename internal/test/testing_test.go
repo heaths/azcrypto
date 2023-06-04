@@ -11,6 +11,8 @@ import (
 )
 
 func TestURLJoinPath(t *testing.T) {
+	t.Parallel()
+
 	const want = "https://test.vault.azure.net/keys/key-name/key-version"
 	tests := []struct {
 		base    string
