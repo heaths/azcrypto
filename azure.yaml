@@ -28,7 +28,7 @@ hooks:
         fi
 
         # Provision keys for Managed HSM after activation.
-        az deployment group create --resource-group "${AZURE_RESOURCEGROUP_NAME}" --template-file ./infra/keys.bicep --parameters vaultName="${AZURE_KEYVAULT_NAME}" managedHsm=true
+        az deployment group create --resource-group "${AZURE_RESOURCE_GROUP}" --template-file ./infra/keys.bicep --parameters vaultName="${AZURE_KEYVAULT_NAME}" managedHsm=true
       fi
   postdown:
     shell: sh
