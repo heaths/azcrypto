@@ -7,7 +7,7 @@ otherwise, please installed the required software below.
 
 * [Go] 1.18 or newer.
 * (Recommended) [Azure CLI][az] 2.49.0 or newer.
-* (Recommended) [Azure Developer CLI][azd] 1.0.1 or newer.
+* (Recommended) [Azure Developer CLI][azd] 1.0.2 or newer.
 
 ## Build
 
