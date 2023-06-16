@@ -51,4 +51,3 @@ output AZURE_PRINCIPAL_ID string = resources.outputs.AZURE_PRINCIPAL_ID
 output AZURE_RESOURCE_GROUP string = resourceGroupName
 output AZURE_KEYVAULT_NAME string = resources.outputs.AZURE_KEYVAULT_NAME
 output AZURE_KEYVAULT_URL string = resources.outputs.AZURE_KEYVAULT_URL
-output AZURE_MANAGEDHSM bool = resources.outputs.AZURE_MANAGEDHSM

@@ -74,4 +74,3 @@ resource hsm 'Microsoft.KeyVault/managedHSMs@2023-02-01' = if (managedHsm) {
 output AZURE_PRINCIPAL_ID string = principalId
 output AZURE_KEYVAULT_NAME string = managedHsm ? hsm.name : vault.name
 output AZURE_KEYVAULT_URL string = managedHsm ? hsm.properties.hsmUri : vault.properties.vaultUri
-output AZURE_MANAGEDHSM bool = managedHsm
