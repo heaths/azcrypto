@@ -65,7 +65,37 @@ the first time it is run; however, if you are running in a [devcontainer] you ma
 azd auth login --use-device-code
 ```
 
+#### Environments
+
+You can run live tests against either Azure [Key Vault] or [Managed HSM]. A Key Vault and keys needed for testing will
+be provisioned by default considering [pricing], so if you merely run `az up` you will be prompted for a couple of
+parameters and then a Key Vault is provisioned; however, you can pre-create environments to easily switch between the two.
+
+##### Key Vault
+
+To pre-create, provision, and test an environment for Azure [Key Vault], substituting "keyvault" with any name you'd prefer:
+
+```bash
+azd env new keyvault # --location {location} --subscription {subscription}
+azd up -e keyvault
+go test ./... -args -env keyvault -live
+```
+
+##### Managed HSM
+
+To pre-create, provision, and test an environment for Azure [Managed HSM], substituting "managedhsm" with any name you'd prefer:
+
+```bash
+azd env new managedhsm # --location {location} --subscription {subscription}
+azd env set -e managedhsm AZURE_MANAGEDHSM true
+azd up -e managedhsm
+go test ./... -args -env managedhsm -live
+```
+
 [az]: https://aka.ms/azcli
 [azd]: https://aka.ms/azd
 [Go]: https://go.dev
 [devcontainer]: https://code.visualstudio.com/docs/devcontainers/containers
+[Key Vault]: https://learn.microsoft.com/azure/key-vault/general/
+[Managed HSM]: https://learn.microsoft.com/azure/key-vault/managed-hsm/
+[pricing]: https://azure.microsoft.com/pricing/details/key-vault/
