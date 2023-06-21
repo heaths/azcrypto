@@ -8,64 +8,65 @@ import (
 	alg "github.com/heaths/azcrypto/internal/algorithm"
 )
 
-// EncryptionAlgorithm defines the encryption algorithms supported by Azure Key Vault or MAnaged HSM.
-type EncryptionAlgorithm = alg.EncryptionAlgorithm
+// EncryptAlgorithm defines the encryption algorithms supported by Azure Key Vault or MAnaged HSM.
+type EncryptAlgorithm = alg.EncryptAlgorithm
 
 const (
-	// EncryptionAlgorithmRSA15 uses RSA 1.5.
-	EncryptionAlgorithmRSA15 EncryptionAlgorithm = azkeys.JSONWebKeyEncryptionAlgorithmRSA15
+	// EncryptAlgorithmRSA15 uses RSA 1.5.
+	EncryptAlgorithmRSA15 EncryptAlgorithm = azkeys.JSONWebKeyEncryptionAlgorithmRSA15
 
-	// EncryptionAlgorithmRSAOAEP uses RSA-OAEP.
-	EncryptionAlgorithmRSAOAEP EncryptionAlgorithm = azkeys.JSONWebKeyEncryptionAlgorithmRSAOAEP
+	// EncryptAlgorithmRSAOAEP uses RSA-OAEP.
+	EncryptAlgorithmRSAOAEP EncryptAlgorithm = azkeys.JSONWebKeyEncryptionAlgorithmRSAOAEP
 
-	// EncryptionAlgorithmRSAOAEP256 uses RSA-OAEP-256.
-	EncryptionAlgorithmRSAOAEP256 EncryptionAlgorithm = azkeys.JSONWebKeyEncryptionAlgorithmRSAOAEP256
+	// EncryptAlgorithmRSAOAEP256 uses RSA-OAEP-256.
+	EncryptAlgorithmRSAOAEP256 EncryptAlgorithm = azkeys.JSONWebKeyEncryptionAlgorithmRSAOAEP256
 )
 
-// SignatureAlgorithm defines the signing algorithms supported by Azure Key Vault or Managed HSM.
-type SignatureAlgorithm = alg.SignatureAlgorithm
+// SignAlgorithm defines the signing algorithms supported by Azure Key Vault or Managed HSM.
+type SignAlgorithm = alg.SignAlgorithm
 
 const (
-	// SignatureAlgorithmES256 uses the P-256 curve requiring a SHA-256 hash.
-	SignatureAlgorithmES256 SignatureAlgorithm = azkeys.JSONWebKeySignatureAlgorithmES256
+	// SignAlgorithmES256 uses the P-256 curve requiring a SHA-256 hash.
+	SignAlgorithmES256 SignAlgorithm = azkeys.JSONWebKeySignatureAlgorithmES256
 
-	// SignatureAlgorithmES256K uses the P-256K curve requiring a SHA-256 hash.
-	SignatureAlgorithmES256K SignatureAlgorithm = azkeys.JSONWebKeySignatureAlgorithmES256K
+	// SignAlgorithmES256K uses the P-256K curve requiring a SHA-256 hash.
+	SignAlgorithmES256K SignAlgorithm = azkeys.JSONWebKeySignatureAlgorithmES256K
 
-	// SignatureAlgorithmES384 uses the P-384 curve requiring a SHA-384 hash.
-	SignatureAlgorithmES384 SignatureAlgorithm = azkeys.JSONWebKeySignatureAlgorithmES384
+	// SignAlgorithmES384 uses the P-384 curve requiring a SHA-384 hash.
+	SignAlgorithmES384 SignAlgorithm = azkeys.JSONWebKeySignatureAlgorithmES384
 
-	// SignatureAlgorithmES512 uses the P-521 curve requiring a SHA-512 hash.
-	SignatureAlgorithmES512 SignatureAlgorithm = azkeys.JSONWebKeySignatureAlgorithmES512
+	// SignAlgorithmES512 uses the P-521 curve requiring a SHA-512 hash.
+	SignAlgorithmES512 SignAlgorithm = azkeys.JSONWebKeySignatureAlgorithmES512
 
-	// SignatureAlgorithmPS256 uses RSASSA-PSS using a SHA-256 hash.
-	SignatureAlgorithmPS256 SignatureAlgorithm = azkeys.JSONWebKeySignatureAlgorithmPS256
+	// SignAlgorithmPS256 uses RSASSA-PSS using a SHA-256 hash.
+	SignAlgorithmPS256 SignAlgorithm = azkeys.JSONWebKeySignatureAlgorithmPS256
 
-	// SignatureAlgorithmPS384 uses RSASSA-PSS using a SHA-384 hash.
-	SignatureAlgorithmPS384 SignatureAlgorithm = azkeys.JSONWebKeySignatureAlgorithmPS384
+	// SignAlgorithmPS384 uses RSASSA-PSS using a SHA-384 hash.
+	SignAlgorithmPS384 SignAlgorithm = azkeys.JSONWebKeySignatureAlgorithmPS384
 
-	// SignatureAlgorithmPS512 uses RSASSA-PSS using a SHA-512 hash.
-	SignatureAlgorithmPS512 SignatureAlgorithm = azkeys.JSONWebKeySignatureAlgorithmPS512
+	// SignAlgorithmPS512 uses RSASSA-PSS using a SHA-512 hash.
+	SignAlgorithmPS512 SignAlgorithm = azkeys.JSONWebKeySignatureAlgorithmPS512
 
-	// SignatureAlgorithmRS256 uses RSASSA-PKCS1-v1_5 using a SHA256 hash.
-	SignatureAlgorithmRS256 SignatureAlgorithm = azkeys.JSONWebKeySignatureAlgorithmRS256
+	// SignAlgorithmRS256 uses RSASSA-PKCS1-v1_5 using a SHA256 hash.
+	SignAlgorithmRS256 SignAlgorithm = azkeys.JSONWebKeySignatureAlgorithmRS256
 
-	// SignatureAlgorithmRS384 uses RSASSA-PKCS1-v1_5 using a SHA384 hash.
-	SignatureAlgorithmRS384 SignatureAlgorithm = azkeys.JSONWebKeySignatureAlgorithmRS384
+	// SignAlgorithmRS384 uses RSASSA-PKCS1-v1_5 using a SHA384 hash.
+	SignAlgorithmRS384 SignAlgorithm = azkeys.JSONWebKeySignatureAlgorithmRS384
 
-	// SignatureAlgorithmRS512 uses RSASSA-PKCS1-v1_5 using a SHA512 hash.
-	SignatureAlgorithmRS512 SignatureAlgorithm = azkeys.JSONWebKeySignatureAlgorithmRS512
+	// SignAlgorithmRS512 uses RSASSA-PKCS1-v1_5 using a SHA512 hash.
+	SignAlgorithmRS512 SignAlgorithm = azkeys.JSONWebKeySignatureAlgorithmRS512
 )
 
-type KeyWrapAlgorithm = alg.KeyWrapAlgorithm
+// WrapKeyAlgorithm defines the key wrap algorithms supported by Azure Key Vault or Managed HSM.
+type WrapKeyAlgorithm = alg.WrapKeyAlgorithm
 
 const (
-	// KeyWrapAlgorithmRSA15 uses RSA 1.5.
-	KeyWrapAlgorithmRSA15 KeyWrapAlgorithm = azkeys.JSONWebKeyEncryptionAlgorithmRSA15
+	// WrapKeyAlgorithmRSA15 uses RSA 1.5.
+	WrapKeyAlgorithmRSA15 WrapKeyAlgorithm = azkeys.JSONWebKeyEncryptionAlgorithmRSA15
 
-	// KeyWrapAlgorithmRSAOAEP uses RSA-OAEP.
-	KeyWrapAlgorithmRSAOAEP KeyWrapAlgorithm = azkeys.JSONWebKeyEncryptionAlgorithmRSAOAEP
+	// WrapKeyAlgorithmRSAOAEP uses RSA-OAEP.
+	WrapKeyAlgorithmRSAOAEP WrapKeyAlgorithm = azkeys.JSONWebKeyEncryptionAlgorithmRSAOAEP
 
-	// KeyWrapAlgorithmRSAOAEP256 uses RSA-OAEP-256.
-	KeyWrapAlgorithmRSAOAEP256 KeyWrapAlgorithm = azkeys.JSONWebKeyEncryptionAlgorithmRSAOAEP256
+	// WrapKeyAlgorithmRSAOAEP256 uses RSA-OAEP-256.
+	WrapKeyAlgorithmRSAOAEP256 WrapKeyAlgorithm = azkeys.JSONWebKeyEncryptionAlgorithmRSAOAEP256
 )

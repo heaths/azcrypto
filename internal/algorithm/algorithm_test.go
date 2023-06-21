@@ -95,7 +95,7 @@ func TestGetHash(t *testing.T) {
 
 	tests := []struct {
 		name string
-		alg  SignatureAlgorithm
+		alg  SignAlgorithm
 		h    crypto.Hash
 		err  error
 	}{

@@ -61,11 +61,11 @@ func fromCurve(crv azkeys.JSONWebKeyCurveName) (elliptic.Curve, error) {
 	}
 }
 
-func (c ECDsa) Encrypt(algorithm EncryptionAlgorithm, plaintext []byte) (EncryptResult, error) {
+func (c ECDsa) Encrypt(algorithm EncryptAlgorithm, plaintext []byte) (EncryptResult, error) {
 	return EncryptResult{}, internal.ErrUnsupported
 }
 
-func (c ECDsa) Verify(algorithm SignatureAlgorithm, digest, signature []byte) (VerifyResult, error) {
+func (c ECDsa) Verify(algorithm SignAlgorithm, digest, signature []byte) (VerifyResult, error) {
 	// Key Vault and Managed HSM concatenate r and s components.
 	r := new(big.Int).SetBytes(signature[:len(signature)/2])
 	s := new(big.Int).SetBytes(signature[len(signature)/2:])
@@ -77,6 +77,6 @@ func (c ECDsa) Verify(algorithm SignatureAlgorithm, digest, signature []byte) (V
 	}, nil
 }
 
-func (c ECDsa) WrapKey(algorithm KeyWrapAlgorithm, key []byte) (WrapKeyResult, error) {
+func (c ECDsa) WrapKey(algorithm WrapKeyAlgorithm, key []byte) (WrapKeyResult, error) {
 	return WrapKeyResult{}, internal.ErrUnsupported
 }

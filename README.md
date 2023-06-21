@@ -77,7 +77,7 @@ import (
 func encryptAndDecrypt(client *azcrypto.Client, plaintext string) (string, error) {
     encryptResult, err := client.Encrypt(
         context.TODO(),
-        azcrypto.EncryptionAlgorithmRSAOAEP256,
+        azcrypto.EncryptAlgorithmRSAOAEP256,
         []byte(plaintext),
         nil,
     )
@@ -87,7 +87,7 @@ func encryptAndDecrypt(client *azcrypto.Client, plaintext string) (string, error
 
     decryptResult, err := client.Decrypt(
         context.TODO(),
-        azcrypto.EncryptionAlgorithmRSAOAEP256,
+        azcrypto.EncryptAlgorithmRSAOAEP256,
         encryptResult.Ciphertext,
         nil,
     )
@@ -117,7 +117,7 @@ func signAndVerify(client *azcrypto.Client, plaintext string) (bool, error) {
     // Performed remotely by Azure Key Vault or Managed HSM.
     signResult, err := client.SignData(
         context.TODO(),
-        azcrypto.SignatureAlgorithmES256,
+        azcrypto.SignAlgorithmES256,
         []byte(plaintext),
         nil,
     )
@@ -160,7 +160,7 @@ import (
 func wrapAndUnwrapKey(client *azcrypto.Client, key []byte) ([]byte, error) {
     wrappedKey, err := client.WrapKey(
         context.TODO(),
-        azcrypto.KeyWrapAlgorithmRSAOAEP256,
+        azcrypto.WrapKeyAlgorithmRSAOAEP256,
         key,
         nil,
     )
@@ -170,7 +170,7 @@ func wrapAndUnwrapKey(client *azcrypto.Client, key []byte) ([]byte, error) {
 
     unwrappedKey, err := client.Decrypt(
         context.TODO(),
-        azcrypto.KeyWrapAlgorithmRSAOAEP256,
+        azcrypto.WrapKeyAlgorithmRSAOAEP256,
         wrappedKey.EncryptedKey,
         nil,
     )
