@@ -111,7 +111,7 @@ type EncryptOptions struct {
 type EncryptResult = alg.EncryptResult
 
 // Encrypt encrypts the plaintext using the specified algorithm.
-func (client *Client) Encrypt(ctx context.Context, algorithm EncryptionAlgorithm, plaintext []byte, options *EncryptOptions) (EncryptResult, error) {
+func (client *Client) Encrypt(ctx context.Context, algorithm EncryptAlgorithm, plaintext []byte, options *EncryptOptions) (EncryptResult, error) {
 	client.init(ctx)
 
 	if client.localClient != nil {
@@ -164,7 +164,7 @@ type DecryptOptions struct {
 type DecryptResult = alg.DecryptResult
 
 // Decrypt decrypts the ciphertext using the specified algorithm.
-func (client *Client) Decrypt(ctx context.Context, algorithm EncryptionAlgorithm, ciphertext []byte, options *DecryptOptions) (DecryptResult, error) {
+func (client *Client) Decrypt(ctx context.Context, algorithm EncryptAlgorithm, ciphertext []byte, options *DecryptOptions) (DecryptResult, error) {
 	// Decrypting requires access to a private key, which Key Vault does not provide by default.
 	parameters := azkeys.KeyOperationsParameters{
 		Algorithm: &algorithm,
@@ -209,7 +209,7 @@ type SignOptions struct {
 type SignResult = alg.SignResult
 
 // Sign signs the specified digest using the specified algorithm.
-func (client *Client) Sign(ctx context.Context, algorithm SignatureAlgorithm, digest []byte, options *SignOptions) (SignResult, error) {
+func (client *Client) Sign(ctx context.Context, algorithm SignAlgorithm, digest []byte, options *SignOptions) (SignResult, error) {
 	// Signing requires access to a private key, which Key Vault does not provide by default.
 	parameters := azkeys.SignParameters{
 		Algorithm: &algorithm,
@@ -251,7 +251,7 @@ type SignDataOptions struct {
 }
 
 // SignData hashes the data using a suitable hash based on the specified algorithm.
-func (client *Client) SignData(ctx context.Context, algorithm SignatureAlgorithm, data []byte, options *SignDataOptions) (SignResult, error) {
+func (client *Client) SignData(ctx context.Context, algorithm SignAlgorithm, data []byte, options *SignDataOptions) (SignResult, error) {
 	hash, err := alg.GetHash(algorithm)
 	if err != nil {
 		return SignResult{}, err
@@ -277,7 +277,7 @@ type VerifyOptions struct {
 type VerifyResult = alg.VerifyResult
 
 // Verify verifies that the specified digest is valid using the specified signature and algorithm.
-func (client *Client) Verify(ctx context.Context, algorithm SignatureAlgorithm, digest, signature []byte, options *VerifyOptions) (VerifyResult, error) {
+func (client *Client) Verify(ctx context.Context, algorithm SignAlgorithm, digest, signature []byte, options *VerifyOptions) (VerifyResult, error) {
 	client.init(ctx)
 
 	if client.localClient != nil {
@@ -323,7 +323,7 @@ type VerifyDataOptions struct {
 }
 
 // VerifyData verifies the digest of the data is valid using a suitable hash based on the specified algorithm.
-func (client *Client) VerifyData(ctx context.Context, algorithm SignatureAlgorithm, data, signature []byte, options *VerifyDataOptions) (VerifyResult, error) {
+func (client *Client) VerifyData(ctx context.Context, algorithm SignAlgorithm, data, signature []byte, options *VerifyDataOptions) (VerifyResult, error) {
 	hash, err := alg.GetHash(algorithm)
 	if err != nil {
 		return VerifyResult{}, err
@@ -349,7 +349,7 @@ type WrapKeyOptions struct {
 type WrapKeyResult = alg.WrapKeyResult
 
 // WrapKey encrypts the specified key using the specified algorithm. Asymmetric encryption is typically used to wrap a symmetric key used for streaming ciphers.
-func (client *Client) WrapKey(ctx context.Context, algorithm KeyWrapAlgorithm, key []byte, options *WrapKeyOptions) (WrapKeyResult, error) {
+func (client *Client) WrapKey(ctx context.Context, algorithm WrapKeyAlgorithm, key []byte, options *WrapKeyOptions) (WrapKeyResult, error) {
 	client.init(ctx)
 
 	if client.localClient != nil {
@@ -402,7 +402,7 @@ type UnwrapKeyOptions struct {
 type UnwrapKeyResult = alg.UnwrapKeyResult
 
 // UnwrapKey decrypts the specified key using the specified algorithm. Asymmetric decryption is typically used to unwrap a symmetric key used for streaming ciphers.
-func (client *Client) UnwrapKey(ctx context.Context, algorithm KeyWrapAlgorithm, encryptedKey []byte, options *UnwrapKeyOptions) (UnwrapKeyResult, error) {
+func (client *Client) UnwrapKey(ctx context.Context, algorithm WrapKeyAlgorithm, encryptedKey []byte, options *UnwrapKeyOptions) (UnwrapKeyResult, error) {
 	// Unwrapping a key requires access to a private key, which Key Vault does not provide by default.
 	parameters := azkeys.KeyOperationsParameters{
 		Algorithm: &algorithm,

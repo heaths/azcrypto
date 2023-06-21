@@ -32,7 +32,7 @@ func ExampleNewClient() {
 }
 
 func ExampleClient_Encrypt() {
-	result, err := client.Encrypt(context.TODO(), azcrypto.EncryptionAlgorithmRSAOAEP256, []byte("plaintext"), nil)
+	result, err := client.Encrypt(context.TODO(), azcrypto.EncryptAlgorithmRSAOAEP256, []byte("plaintext"), nil)
 	if err != nil {
 		// TODO: handle error
 	}
@@ -47,7 +47,7 @@ func ExampleClient_Decrypt() {
 		// TODO: handle error
 	}
 
-	result, err := client.Decrypt(context.TODO(), azcrypto.EncryptionAlgorithmRSAOAEP256, ciphertext, nil)
+	result, err := client.Decrypt(context.TODO(), azcrypto.EncryptAlgorithmRSAOAEP256, ciphertext, nil)
 	if err != nil {
 		// TODO: handle error
 	}
@@ -60,7 +60,7 @@ func ExampleClient_Sign() {
 	hash.Write([]byte("plaintext"))
 	digest := hash.Sum(nil)
 
-	result, err := client.Sign(context.TODO(), azcrypto.SignatureAlgorithmES256, digest, nil)
+	result, err := client.Sign(context.TODO(), azcrypto.SignAlgorithmES256, digest, nil)
 	if err != nil {
 		// TODO: handle error
 	}
@@ -69,7 +69,7 @@ func ExampleClient_Sign() {
 }
 
 func ExampleClient_SignData() {
-	result, err := client.SignData(context.TODO(), azcrypto.SignatureAlgorithmES256, []byte("plaintext"), nil)
+	result, err := client.SignData(context.TODO(), azcrypto.SignAlgorithmES256, []byte("plaintext"), nil)
 	if err != nil {
 		// TODO: handle error
 	}
@@ -86,7 +86,7 @@ func ExampleClient_WrapKey() {
 	}
 
 	// Encrypt the key using RSA-OAEP-256 to be stored securely.
-	result, err := client.WrapKey(context.TODO(), azcrypto.KeyWrapAlgorithmRSAOAEP256, key, nil)
+	result, err := client.WrapKey(context.TODO(), azcrypto.WrapKeyAlgorithmRSAOAEP256, key, nil)
 	if err != nil {
 		// TODO: handle error
 	}
@@ -102,7 +102,7 @@ func ExampleClient_UnwrapKey() {
 	}
 
 	// Decrypt the key for use as a block cipher for e.g., streaming data.
-	result, err := client.UnwrapKey(context.TODO(), azcrypto.KeyWrapAlgorithmRSAOAEP256, encryptedKey, nil)
+	result, err := client.UnwrapKey(context.TODO(), azcrypto.WrapKeyAlgorithmRSAOAEP256, encryptedKey, nil)
 	if err != nil {
 		// TODO: handle error
 	}
@@ -117,7 +117,7 @@ func ExampleClient_Verify() {
 		// TODO: handle error
 	}
 
-	result, err := client.VerifyData(context.TODO(), azcrypto.SignatureAlgorithmES256, []byte("plaintext"), signature, nil)
+	result, err := client.VerifyData(context.TODO(), azcrypto.SignAlgorithmES256, []byte("plaintext"), signature, nil)
 	if err != nil {
 		// TODO: handle error
 	}

@@ -45,47 +45,47 @@ func TestClient_EncryptDecrypt(t *testing.T) {
 	tests := []struct {
 		name       string
 		key        string
-		alg        EncryptionAlgorithm
+		alg        EncryptAlgorithm
 		permission bool
 		err        error
 	}{
 		{
 			name:       "RSA1_5",
 			key:        "rsa2048",
-			alg:        EncryptionAlgorithmRSA15,
+			alg:        EncryptAlgorithmRSA15,
 			permission: true,
 		},
 		{
 			name: "RSA1_5 local",
 			key:  "rsa2048",
-			alg:  EncryptionAlgorithmRSA15,
+			alg:  EncryptAlgorithmRSA15,
 		},
 		{
 			name:       "RSA-OAEP",
 			key:        "rsa2048",
-			alg:        EncryptionAlgorithmRSAOAEP,
+			alg:        EncryptAlgorithmRSAOAEP,
 			permission: true,
 		},
 		{
 			name: "RSA-OAEP local",
 			key:  "rsa2048",
-			alg:  EncryptionAlgorithmRSAOAEP,
+			alg:  EncryptAlgorithmRSAOAEP,
 		},
 		{
 			name:       "RSA-OAEP-256",
 			key:        "rsa2048",
-			alg:        EncryptionAlgorithmRSAOAEP256,
+			alg:        EncryptAlgorithmRSAOAEP256,
 			permission: true,
 		},
 		{
 			name: "RSA-OAEP-256 local",
 			key:  "rsa2048",
-			alg:  EncryptionAlgorithmRSAOAEP256,
+			alg:  EncryptAlgorithmRSAOAEP256,
 		},
 		{
 			name: "missing",
 			key:  "missing",
-			alg:  EncryptionAlgorithmRSAOAEP,
+			alg:  EncryptAlgorithmRSAOAEP,
 			err: &azcore.ResponseError{
 				StatusCode: 404,
 			},
@@ -124,7 +124,7 @@ func TestClient_SignVerify(t *testing.T) {
 	type testData struct {
 		name       string
 		key        string
-		alg        SignatureAlgorithm
+		alg        SignAlgorithm
 		permission bool
 		err        error
 	}
@@ -132,7 +132,7 @@ func TestClient_SignVerify(t *testing.T) {
 		{
 			name: "missing",
 			key:  "missing",
-			alg:  SignatureAlgorithmES256,
+			alg:  SignAlgorithmES256,
 			err: &azcore.ResponseError{
 				StatusCode: 404,
 			},
@@ -142,13 +142,13 @@ func TestClient_SignVerify(t *testing.T) {
 	keys := []struct {
 		name string
 		key  string
-		alg  SignatureAlgorithm
+		alg  SignAlgorithm
 	}{
-		{name: "ES256", key: "ec256", alg: SignatureAlgorithmES256},
-		{name: "ES384", key: "ec384", alg: SignatureAlgorithmES384},
-		{name: "ES512", key: "ec521", alg: SignatureAlgorithmES512},
-		{name: "PS256", key: "rsa2048", alg: SignatureAlgorithmPS256},
-		{name: "RS512", key: "rsa2048", alg: SignatureAlgorithmRS512},
+		{name: "ES256", key: "ec256", alg: SignAlgorithmES256},
+		{name: "ES384", key: "ec384", alg: SignAlgorithmES384},
+		{name: "ES512", key: "ec521", alg: SignAlgorithmES512},
+		{name: "PS256", key: "rsa2048", alg: SignAlgorithmPS256},
+		{name: "RS512", key: "rsa2048", alg: SignAlgorithmRS512},
 	}
 
 	for _, key := range keys {
@@ -197,47 +197,47 @@ func TestClient_WrapUnwrapKey(t *testing.T) {
 	tests := []struct {
 		name       string
 		key        string
-		alg        KeyWrapAlgorithm
+		alg        WrapKeyAlgorithm
 		permission bool
 		err        error
 	}{
 		{
 			name:       "RSA1_5",
 			key:        "rsa2048",
-			alg:        KeyWrapAlgorithmRSA15,
+			alg:        WrapKeyAlgorithmRSA15,
 			permission: true,
 		},
 		{
 			name: "RSA1_5 local",
 			key:  "rsa2048",
-			alg:  KeyWrapAlgorithmRSA15,
+			alg:  WrapKeyAlgorithmRSA15,
 		},
 		{
 			name:       "RSA-OAEP",
 			key:        "rsa2048",
-			alg:        KeyWrapAlgorithmRSAOAEP,
+			alg:        WrapKeyAlgorithmRSAOAEP,
 			permission: true,
 		},
 		{
 			name: "RSA-OAEP local",
 			key:  "rsa2048",
-			alg:  EncryptionAlgorithmRSAOAEP,
+			alg:  WrapKeyAlgorithmRSAOAEP,
 		},
 		{
 			name:       "RSA-OAEP-256",
 			key:        "rsa2048",
-			alg:        KeyWrapAlgorithmRSAOAEP256,
+			alg:        WrapKeyAlgorithmRSAOAEP256,
 			permission: true,
 		},
 		{
 			name: "RSA-OAEP-256 local",
 			key:  "rsa2048",
-			alg:  KeyWrapAlgorithmRSAOAEP256,
+			alg:  WrapKeyAlgorithmRSAOAEP256,
 		},
 		{
 			name: "missing",
 			key:  "missing",
-			alg:  KeyWrapAlgorithmRSAOAEP,
+			alg:  WrapKeyAlgorithmRSAOAEP,
 			err: &azcore.ResponseError{
 				StatusCode: 404,
 			},

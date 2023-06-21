@@ -13,14 +13,14 @@ import (
 	_ "github.com/heaths/azcrypto/internal/test"
 )
 
-type EncryptionAlgorithm = azkeys.JSONWebKeyEncryptionAlgorithm
-type SignatureAlgorithm = azkeys.JSONWebKeySignatureAlgorithm
-type KeyWrapAlgorithm = azkeys.JSONWebKeyEncryptionAlgorithm
+type EncryptAlgorithm = azkeys.JSONWebKeyEncryptionAlgorithm
+type SignAlgorithm = azkeys.JSONWebKeySignatureAlgorithm
+type WrapKeyAlgorithm = azkeys.JSONWebKeyEncryptionAlgorithm
 
 type Algorithm interface {
-	Encrypt(algorithm EncryptionAlgorithm, plaintext []byte) (EncryptResult, error)
-	Verify(algorithm SignatureAlgorithm, digest, signature []byte) (VerifyResult, error)
-	WrapKey(algorithm KeyWrapAlgorithm, key []byte) (WrapKeyResult, error)
+	Encrypt(algorithm EncryptAlgorithm, plaintext []byte) (EncryptResult, error)
+	Verify(algorithm SignAlgorithm, digest, signature []byte) (VerifyResult, error)
+	WrapKey(algorithm WrapKeyAlgorithm, key []byte) (WrapKeyResult, error)
 }
 
 func NewAlgorithm(key azkeys.JSONWebKey) (Algorithm, error) {
@@ -46,7 +46,7 @@ func NewAlgorithm(key azkeys.JSONWebKey) (Algorithm, error) {
 	}
 }
 
-func GetHash(algorithm SignatureAlgorithm) (crypto.Hash, error) {
+func GetHash(algorithm SignAlgorithm) (crypto.Hash, error) {
 	switch algorithm {
 	case azkeys.JSONWebKeySignatureAlgorithmPS256:
 		fallthrough
@@ -78,7 +78,7 @@ func GetHash(algorithm SignatureAlgorithm) (crypto.Hash, error) {
 
 type EncryptResult struct {
 	// Algorithm is encryption algorithm used to encrypt.
-	Algorithm EncryptionAlgorithm
+	Algorithm EncryptAlgorithm
 
 	// KeyID is the key ID used to encrypt. This key ID should be retained.
 	KeyID string
@@ -89,7 +89,7 @@ type EncryptResult struct {
 
 type DecryptResult struct {
 	// Algorithm is encryption algorithm used to decrypt.
-	Algorithm EncryptionAlgorithm
+	Algorithm EncryptAlgorithm
 
 	// KeyID is the key ID used to decrypt.
 	KeyID string
@@ -100,7 +100,7 @@ type DecryptResult struct {
 
 type SignResult struct {
 	// Algorithm is the signature algorithm used to sign.
-	Algorithm SignatureAlgorithm
+	Algorithm SignAlgorithm
 
 	// KeyID is the key ID used to sign. This key ID should be retained.
 	KeyID string
@@ -111,7 +111,7 @@ type SignResult struct {
 
 type VerifyResult struct {
 	// Algorithm is the signature algorithm used to verify.
-	Algorithm SignatureAlgorithm
+	Algorithm SignAlgorithm
 
 	// KeyID is the key ID used to verify.
 	KeyID string
@@ -122,7 +122,7 @@ type VerifyResult struct {
 
 type WrapKeyResult struct {
 	// Algorithm is the key wrap algorithm used to wrap.
-	Algorithm KeyWrapAlgorithm
+	Algorithm WrapKeyAlgorithm
 
 	// KeyID is the key ID used to wrap. This key ID should be retained.
 	KeyID string
@@ -133,7 +133,7 @@ type WrapKeyResult struct {
 
 type UnwrapKeyResult struct {
 	// Algorithm is the key wrap algorithm used to unwrap.
-	Algorithm KeyWrapAlgorithm
+	Algorithm WrapKeyAlgorithm
 
 	// KeyID is the key ID used to unwrap.
 	KeyID string

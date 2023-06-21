@@ -42,7 +42,7 @@ func newRSA(key azkeys.JSONWebKey) (RSA, error) {
 	}, nil
 }
 
-func (r RSA) Encrypt(algorithm EncryptionAlgorithm, plaintext []byte) (EncryptResult, error) {
+func (r RSA) Encrypt(algorithm EncryptAlgorithm, plaintext []byte) (EncryptResult, error) {
 	var ciphertext []byte
 	var err error
 
@@ -55,7 +55,7 @@ func (r RSA) Encrypt(algorithm EncryptionAlgorithm, plaintext []byte) (EncryptRe
 			return crypto.SHA256
 
 		default:
-			panic("unexpected EncryptionAlgorithm")
+			panic("unexpected EncryptAlgorithm")
 		}
 	}
 
@@ -81,7 +81,7 @@ func (r RSA) Encrypt(algorithm EncryptionAlgorithm, plaintext []byte) (EncryptRe
 	}, nil
 }
 
-func (r RSA) Verify(algorithm SignatureAlgorithm, digest, signature []byte) (VerifyResult, error) {
+func (r RSA) Verify(algorithm SignAlgorithm, digest, signature []byte) (VerifyResult, error) {
 	hash, err := GetHash(algorithm)
 	if err != nil {
 		return VerifyResult{}, err
@@ -103,7 +103,7 @@ func (r RSA) Verify(algorithm SignatureAlgorithm, digest, signature []byte) (Ver
 		err = rsa.VerifyPKCS1v15(&r.pub, hash, digest, signature)
 
 	default:
-		panic("unexpected SignatureAlgorithm")
+		panic("unexpected SignAlgorithm")
 	}
 
 	return VerifyResult{
@@ -113,7 +113,7 @@ func (r RSA) Verify(algorithm SignatureAlgorithm, digest, signature []byte) (Ver
 	}, nil
 }
 
-func (r RSA) WrapKey(algorithm KeyWrapAlgorithm, key []byte) (WrapKeyResult, error) {
+func (r RSA) WrapKey(algorithm WrapKeyAlgorithm, key []byte) (WrapKeyResult, error) {
 	var encryptedKey []byte
 	var err error
 
@@ -126,7 +126,7 @@ func (r RSA) WrapKey(algorithm KeyWrapAlgorithm, key []byte) (WrapKeyResult, err
 			return crypto.SHA256
 
 		default:
-			panic("unexpected KeyWrapAlgorithm")
+			panic("unexpected WrapKeyAlgorithm")
 		}
 	}
 
