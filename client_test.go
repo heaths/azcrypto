@@ -50,37 +50,37 @@ func TestClient_EncryptDecrypt(t *testing.T) {
 		err        error
 	}{
 		{
-			name:       "RSA1_5",
+			name: "RSA1_5",
+			key:  "rsa2048",
+			alg:  EncryptAlgorithmRSA15,
+		},
+		{
+			name:       "RSA1_5 local",
 			key:        "rsa2048",
 			alg:        EncryptAlgorithmRSA15,
 			permission: true,
 		},
 		{
-			name: "RSA1_5 local",
+			name: "RSA-OAEP",
 			key:  "rsa2048",
-			alg:  EncryptAlgorithmRSA15,
+			alg:  EncryptAlgorithmRSAOAEP,
 		},
 		{
-			name:       "RSA-OAEP",
+			name:       "RSA-OAEP local",
 			key:        "rsa2048",
 			alg:        EncryptAlgorithmRSAOAEP,
 			permission: true,
 		},
 		{
-			name: "RSA-OAEP local",
+			name: "RSA-OAEP-256",
 			key:  "rsa2048",
-			alg:  EncryptAlgorithmRSAOAEP,
+			alg:  EncryptAlgorithmRSAOAEP256,
 		},
 		{
-			name:       "RSA-OAEP-256",
+			name:       "RSA-OAEP-256 local",
 			key:        "rsa2048",
 			alg:        EncryptAlgorithmRSAOAEP256,
 			permission: true,
-		},
-		{
-			name: "RSA-OAEP-256 local",
-			key:  "rsa2048",
-			alg:  EncryptAlgorithmRSAOAEP256,
 		},
 		{
 			name: "missing",
@@ -153,15 +153,15 @@ func TestClient_SignVerify(t *testing.T) {
 
 	for _, key := range keys {
 		tests = append(tests, testData{
-			name:       key.name,
+			name: key.name,
+			key:  key.key,
+			alg:  key.alg,
+		})
+		tests = append(tests, testData{
+			name:       fmt.Sprintf("%s local", key.name),
 			key:        key.key,
 			alg:        key.alg,
 			permission: true,
-		})
-		tests = append(tests, testData{
-			name: fmt.Sprintf("%s local", key.name),
-			key:  key.key,
-			alg:  key.alg,
 		})
 	}
 
@@ -202,37 +202,37 @@ func TestClient_WrapUnwrapKey(t *testing.T) {
 		err        error
 	}{
 		{
-			name:       "RSA1_5",
+			name: "RSA1_5",
+			key:  "rsa2048",
+			alg:  WrapKeyAlgorithmRSA15,
+		},
+		{
+			name:       "RSA1_5 local",
 			key:        "rsa2048",
 			alg:        WrapKeyAlgorithmRSA15,
 			permission: true,
 		},
 		{
-			name: "RSA1_5 local",
+			name: "RSA-OAEP",
 			key:  "rsa2048",
-			alg:  WrapKeyAlgorithmRSA15,
+			alg:  WrapKeyAlgorithmRSAOAEP,
 		},
 		{
-			name:       "RSA-OAEP",
+			name:       "RSA-OAEP local",
 			key:        "rsa2048",
 			alg:        WrapKeyAlgorithmRSAOAEP,
 			permission: true,
 		},
 		{
-			name: "RSA-OAEP local",
+			name: "RSA-OAEP-256",
 			key:  "rsa2048",
-			alg:  WrapKeyAlgorithmRSAOAEP,
+			alg:  WrapKeyAlgorithmRSAOAEP256,
 		},
 		{
-			name:       "RSA-OAEP-256",
+			name:       "RSA-OAEP-256 local",
 			key:        "rsa2048",
 			alg:        WrapKeyAlgorithmRSAOAEP256,
 			permission: true,
-		},
-		{
-			name: "RSA-OAEP-256 local",
-			key:  "rsa2048",
-			alg:  WrapKeyAlgorithmRSAOAEP256,
 		},
 		{
 			name: "missing",
