@@ -14,11 +14,15 @@ import (
 )
 
 type EncryptAlgorithm = azkeys.JSONWebKeyEncryptionAlgorithm
+type EncryptAESCBCAlgorithm = azkeys.JSONWebKeyEncryptionAlgorithm
+type EncryptAESGCMAlgorithm = azkeys.JSONWebKeyEncryptionAlgorithm
 type SignAlgorithm = azkeys.JSONWebKeySignatureAlgorithm
 type WrapKeyAlgorithm = azkeys.JSONWebKeyEncryptionAlgorithm
 
 type Algorithm interface {
 	Encrypt(algorithm EncryptAlgorithm, plaintext []byte) (EncryptResult, error)
+	EncryptAESCBC(algorithm EncryptAESCBCAlgorithm, plaintext, iv []byte) (EncryptResult, error)
+	EncryptAESGCM(algorithm EncryptAESGCMAlgorithm, plaintext, nonce, additionalAuthenticatedData []byte) (EncryptResult, error)
 	Verify(algorithm SignAlgorithm, digest, signature []byte) (VerifyResult, error)
 	WrapKey(algorithm WrapKeyAlgorithm, key []byte) (WrapKeyResult, error)
 }
@@ -40,6 +44,12 @@ func NewAlgorithm(key azkeys.JSONWebKey) (Algorithm, error) {
 		fallthrough
 	case azkeys.JSONWebKeyTypeRSAHSM:
 		return newRSA(key)
+
+	// oct
+	case azkeys.JSONWebKeyTypeOct:
+		fallthrough
+	case azkeys.JSONWebKeyTypeOctHSM:
+		return newAES(key)
 
 	default:
 		return nil, internal.ErrUnsupported
@@ -85,6 +95,18 @@ type EncryptResult struct {
 
 	// Ciphertext is the encryption result.
 	Ciphertext []byte
+
+	// IV is the initialization vector used to encrypt using AES-CBC.
+	IV []byte
+
+	// Nonce is the nonce used to encrypt using AES-GCM.
+	Nonce []byte
+
+	// AdditionalAuthenticatedData passed to EncryptAESGCM.
+	AdditionalAuthenticatedData []byte
+
+	// AuthenticationTag returned from EncryptAESGCM.
+	AuthenticationTag []byte
 }
 
 type DecryptResult struct {

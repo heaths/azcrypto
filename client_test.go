@@ -6,6 +6,7 @@
 package azcrypto
 
 import (
+	"bytes"
 	"context"
 	"encoding/base64"
 	"fmt"
@@ -114,6 +115,152 @@ func TestClient_EncryptDecrypt(t *testing.T) {
 
 			require.Equal(t, plaintext, decrypted.Plaintext)
 			require.Equal(t, tt.permission, client.localClient != nil)
+		})
+	}
+}
+
+func TestClient_EncryptDecryptAESCBC(t *testing.T) {
+	t.Parallel()
+	requireManagedHSM(t)
+
+	seed := []byte{0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f}
+	tests := []struct {
+		name string
+		key  string
+		alg  EncryptAESCBCAlgorithm
+		iv   []byte
+		err  error
+	}{
+		{
+			name: "missing",
+			key:  "missing",
+			alg:  EncryptAESCBCAlgorithmA128CBC,
+			err: &azcore.ResponseError{
+				StatusCode: 404,
+			},
+		},
+		{
+			name: "a128cbc",
+			key:  "aes128",
+			alg:  EncryptAESCBCAlgorithmA128CBC,
+		},
+		{
+			name: "a128cbc with iv",
+			key:  "aes128",
+			alg:  EncryptAESCBCAlgorithmA128CBC,
+			iv:   seed,
+		},
+		{
+			name: "a192cbc",
+			key:  "aes192",
+			alg:  EncryptAESCBCAlgorithmA192CBC,
+		},
+		{
+			name: "a256cbc",
+			key:  "aes256",
+			alg:  EncryptAESCBCAlgorithmA256CBC,
+		},
+	}
+
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			client := test.Recorded(t, testClient(t, tt.key, false))
+
+			plaintext := []byte{0x61, 0x62, 0x63, 0x64, 0x65, 0x66, 0x67, 0x68, 0x69, 0x6a, 0x6b, 0x6c, 0x6d, 0x6e, 0x6f, 0x70}
+			encrypted, err := client.EncryptAESCBC(context.Background(), tt.alg, plaintext, tt.iv, &EncryptAESCBCOptions{
+				Rand: bytes.NewBuffer(seed),
+			})
+			if tt.err != nil {
+				if !test.RequireIfResponseError(t, err, tt.err) {
+					require.ErrorIs(t, err, tt.err)
+				}
+				return
+			}
+			require.NoError(t, err)
+
+			decrypted, err := client.DecryptAESCBC(context.Background(), tt.alg, encrypted.Ciphertext, encrypted.IV, nil)
+			require.NoError(t, err)
+
+			require.Equal(t, plaintext, decrypted.Plaintext)
+			require.Nil(t, client.localClient)
+		})
+	}
+}
+
+func TestClient_EncryptDecryptAESGCM(t *testing.T) {
+	t.Parallel()
+	requireManagedHSM(t)
+
+	tests := []struct {
+		name string
+		key  string
+		alg  EncryptAESGCMAlgorithm
+		aad  []byte
+		err  error
+	}{
+		{
+			name: "missing",
+			key:  "missing",
+			alg:  EncryptAESGCMAlgorithmA128GCM,
+			err: &azcore.ResponseError{
+				StatusCode: 404,
+			},
+		},
+		{
+			name: "A128GCM",
+			key:  "aes128",
+			alg:  EncryptAESGCMAlgorithmA128GCM,
+		},
+		{
+			name: "A128GCM with AAD",
+			key:  "aes128",
+			alg:  EncryptAESGCMAlgorithmA128GCM,
+			aad:  []byte("aad"),
+		},
+		{
+			name: "A192GCM",
+			key:  "aes192",
+			alg:  EncryptAESGCMAlgorithmA192GCM,
+		},
+		{
+			name: "A256GCM",
+			key:  "aes256",
+			alg:  EncryptAESGCMAlgorithmA256GCM,
+		},
+	}
+
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			client := test.Recorded(t, testClient(t, tt.key, false))
+
+			plaintext := []byte("plaintext")
+			encrypted, err := client.EncryptAESGCM(context.Background(), tt.alg, plaintext, tt.aad, nil)
+			if tt.err != nil {
+				if !test.RequireIfResponseError(t, err, tt.err) {
+					require.ErrorIs(t, err, tt.err)
+				}
+				return
+			}
+			require.NoError(t, err)
+
+			decrypted, err := client.DecryptAESGCM(
+				context.Background(),
+				tt.alg,
+				encrypted.Ciphertext,
+				encrypted.Nonce,
+				encrypted.AuthenticationTag,
+				encrypted.AdditionalAuthenticatedData,
+				nil)
+			require.NoError(t, err)
+
+			require.Equal(t, plaintext, decrypted.Plaintext)
+			require.Nil(t, client.localClient)
 		})
 	}
 }
@@ -302,5 +449,14 @@ func testClient(t *testing.T, keyName string, permission bool) test.ClientFactor
 			},
 			remoteOnly: test.IsRemoteOnly(),
 		})
+	}
+}
+
+func requireManagedHSM(t *testing.T) {
+	t.Helper()
+	if os.Getenv("AZURE_KEYVAULT_URL") != "" {
+		if os.Getenv("AZURE_MANAGEDHSM") == "" {
+			t.Skip("Managed HSM has not been provisioned")
+		}
 	}
 }

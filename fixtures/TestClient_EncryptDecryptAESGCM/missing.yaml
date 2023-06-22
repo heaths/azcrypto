@@ -1,0 +1,172 @@
+---
+version: 2
+interactions:
+    - id: 0
+      request:
+        proto: HTTP/1.1
+        proto_major: 1
+        proto_minor: 1
+        content_length: 0
+        transfer_encoding: []
+        trailer: {}
+        host: ttyfi3p3a4yqbc.managedhsm.azure.net
+        remote_addr: ""
+        request_uri: ""
+        body: ""
+        form: {}
+        headers:
+            Accept:
+                - application/json
+            Authorization:
+                - sanitized
+            User-Agent:
+                - azsdk-go-azkeys/v0.11.0 (go1.20.5; linux)
+        url: https://ttyfi3p3a4yqbc.managedhsm.azure.net/keys/missing/?api-version=7.4
+        method: GET
+      response:
+        proto: HTTP/1.1
+        proto_major: 1
+        proto_minor: 1
+        transfer_encoding: []
+        trailer: {}
+        content_length: 2
+        uncompressed: false
+        body: OK
+        headers:
+            Cache-Control:
+                - no-cache
+            Content-Length:
+                - "2"
+            Content-Security-Policy:
+                - sanitized
+            Content-Type:
+                - application/json; charset=utf-8
+            Strict-Transport-Security:
+                - max-age=31536000; includeSubDomains
+            Www-Authenticate:
+                - Bearer authorization="https://login.microsoftonline.com/72f988bf-86f1-41af-91ab-2d7cd011db47", resource="https://managedhsm.azure.net"
+            X-Content-Type-Options:
+                - nosniff
+            X-Frame-Options:
+                - sanitized
+            X-Ms-Build-Version:
+                - sanitized
+            X-Ms-Request-Id:
+                - 02fc2444-1133-11ee-a07c-6045bd0ee822
+            X-Ms-Server-Latency:
+                - sanitized
+        status: 401 Unauthorized
+        code: 401
+        duration: 894.213028ms
+    - id: 1
+      request:
+        proto: HTTP/1.1
+        proto_major: 1
+        proto_minor: 1
+        content_length: 0
+        transfer_encoding: []
+        trailer: {}
+        host: ttyfi3p3a4yqbc.managedhsm.azure.net
+        remote_addr: ""
+        request_uri: ""
+        body: ""
+        form: {}
+        headers:
+            Accept:
+                - application/json
+            Authorization:
+                - sanitized
+            User-Agent:
+                - azsdk-go-azkeys/v0.11.0 (go1.20.5; linux)
+        url: https://ttyfi3p3a4yqbc.managedhsm.azure.net/keys/missing/?api-version=7.4
+        method: GET
+      response:
+        proto: HTTP/1.1
+        proto_major: 1
+        proto_minor: 1
+        transfer_encoding: []
+        trailer: {}
+        content_length: 168
+        uncompressed: false
+        body: '{"error":{"code":"KeyNotFound","message":"Key not found: https://ttyfi3p3a4yqbc.managedhsm.azure.net/keys/missing (Activity ID: 042d7c5a-1133-11ee-99c0-6045bd0ee822)"}}'
+        headers:
+            Cache-Control:
+                - no-cache
+            Content-Length:
+                - "168"
+            Content-Security-Policy:
+                - sanitized
+            Content-Type:
+                - application/json; charset=utf-8
+            Strict-Transport-Security:
+                - max-age=31536000; includeSubDomains
+            X-Content-Type-Options:
+                - nosniff
+            X-Frame-Options:
+                - sanitized
+            X-Ms-Build-Version:
+                - sanitized
+            X-Ms-Request-Id:
+                - 042d7c5a-1133-11ee-99c0-6045bd0ee822
+            X-Ms-Server-Latency:
+                - sanitized
+        status: 404 Not Found
+        code: 404
+        duration: 333.354867ms
+    - id: 2
+      request:
+        proto: HTTP/1.1
+        proto_major: 1
+        proto_minor: 1
+        content_length: 40
+        transfer_encoding: []
+        trailer: {}
+        host: ttyfi3p3a4yqbc.managedhsm.azure.net
+        remote_addr: ""
+        request_uri: ""
+        body: '{"alg":"A128GCM","value":"cGxhaW50ZXh0"}'
+        form: {}
+        headers:
+            Accept:
+                - application/json
+            Authorization:
+                - sanitized
+            Content-Length:
+                - "40"
+            Content-Type:
+                - application/json
+            User-Agent:
+                - azsdk-go-azkeys/v0.11.0 (go1.20.5; linux)
+        url: https://ttyfi3p3a4yqbc.managedhsm.azure.net/keys/missing/encrypt?api-version=7.4
+        method: POST
+      response:
+        proto: HTTP/1.1
+        proto_major: 1
+        proto_minor: 1
+        transfer_encoding: []
+        trailer: {}
+        content_length: 168
+        uncompressed: false
+        body: '{"error":{"code":"KeyNotFound","message":"Key not found: https://ttyfi3p3a4yqbc.managedhsm.azure.net/keys/missing (Activity ID: 04637bc0-1133-11ee-8f2e-000d3ad5b536)"}}'
+        headers:
+            Cache-Control:
+                - no-cache
+            Content-Length:
+                - "168"
+            Content-Security-Policy:
+                - sanitized
+            Content-Type:
+                - application/json; charset=utf-8
+            Strict-Transport-Security:
+                - max-age=31536000; includeSubDomains
+            X-Content-Type-Options:
+                - nosniff
+            X-Frame-Options:
+                - sanitized
+            X-Ms-Request-Id:
+                - 04637bc0-1133-11ee-8f2e-000d3ad5b536
+            X-Ms-Server-Latency:
+                - sanitized
+        status: 404 Not Found
+        code: 404
+        duration: 521.936418ms
