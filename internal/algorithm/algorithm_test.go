@@ -75,6 +75,22 @@ func TestNewAlgorithm(t *testing.T) {
 			},
 			alg: RSA{},
 		},
+		{
+			name: "oct",
+			key: azkeys.JSONWebKey{
+				Kty: to.Ptr(azkeys.JSONWebKeyTypeOct),
+				K:   decodeBytes("9M09IArT3CEMYXEKBNdhgw=="), // cspell:disable-line,
+			},
+			alg: AES{},
+		},
+		{
+			name: "oct-hsm",
+			key: azkeys.JSONWebKey{
+				Kty: to.Ptr(azkeys.JSONWebKeyTypeOctHSM),
+				K:   decodeBytes("9M09IArT3CEMYXEKBNdhgw=="), // cspell:disable-line,
+			},
+			alg: AES{},
+		},
 	}
 
 	for _, tt := range tests {

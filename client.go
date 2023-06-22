@@ -215,17 +215,18 @@ func (client *Client) EncryptAESCBC(ctx context.Context, algorithm EncryptAESCBC
 		}
 	}
 
-	if client.localClient != nil {
-		result, err := client.localClient.EncryptAESCBC(algorithm, plaintext, iv)
-		if !errors.Is(err, internal.ErrUnsupported) {
-			return EncryptAESCBCResult{
-				Algorithm:  result.Algorithm,
-				KeyID:      result.KeyID,
-				Ciphertext: result.Ciphertext,
-				IV:         result.IV,
-			}, err
-		}
-	}
+	// TODO: Uncomment if JWTs are supported in construction of the Client.
+	// if client.localClient != nil {
+	// 	result, err := client.localClient.EncryptAESCBC(algorithm, plaintext, iv)
+	// 	if !errors.Is(err, internal.ErrUnsupported) {
+	// 		return EncryptAESCBCResult{
+	// 			Algorithm:  result.Algorithm,
+	// 			KeyID:      result.KeyID,
+	// 			Ciphertext: result.Ciphertext,
+	// 			IV:         result.IV,
+	// 		}, err
+	// 	}
+	// }
 
 	parameters := azkeys.KeyOperationsParameters{
 		Algorithm: &algorithm,
@@ -262,10 +263,6 @@ func (client *Client) EncryptAESCBC(ctx context.Context, algorithm EncryptAESCBC
 // EncryptAESGCMOptions defines options for the EncryptAESGCM method.
 type EncryptAESGCMOptions struct {
 	azkeys.EncryptOptions
-
-	// Rand represents a random number generator.
-	// By default this is crypto/rand.Reader.
-	Rand io.Reader
 }
 
 // EncryptAESGCMResult contains information returned by the EncryptAESGCM method.
@@ -296,27 +293,21 @@ func (client *Client) EncryptAESGCM(ctx context.Context, algorithm EncryptAESCBC
 	if options == nil {
 		options = &EncryptAESGCMOptions{}
 	}
-	if options.Rand == nil {
-		options.Rand = rand.Reader
-	}
-	nonce, err := alg.AESGenerateIV(options.Rand)
-	if err != nil {
-		return EncryptAESGCMResult{}, fmt.Errorf("generate nonce: %w", err)
-	}
 
-	if client.localClient != nil {
-		result, err := client.localClient.EncryptAESGCM(algorithm, plaintext, nonce, additionalAuthenticatedData)
-		if !errors.Is(err, internal.ErrUnsupported) {
-			return EncryptAESGCMResult{
-				Algorithm:                   result.Algorithm,
-				KeyID:                       result.KeyID,
-				Ciphertext:                  result.Ciphertext,
-				Nonce:                       result.Nonce,
-				AdditionalAuthenticatedData: result.AdditionalAuthenticatedData,
-				AuthenticationTag:           result.AuthenticationTag,
-			}, err
-		}
-	}
+	// TODO: Uncomment if JWTs are supported in construction of the Client.
+	// if client.localClient != nil {
+	// 	result, err := client.localClient.EncryptAESGCM(algorithm, plaintext, nonce, additionalAuthenticatedData)
+	// 	if !errors.Is(err, internal.ErrUnsupported) {
+	// 		return EncryptAESGCMResult{
+	// 			Algorithm:                   result.Algorithm,
+	// 			KeyID:                       result.KeyID,
+	// 			Ciphertext:                  result.Ciphertext,
+	// 			Nonce:                       result.Nonce,
+	// 			AdditionalAuthenticatedData: result.AdditionalAuthenticatedData,
+	// 			AuthenticationTag:           result.AuthenticationTag,
+	// 		}, err
+	// 	}
+	// }
 
 	parameters := azkeys.KeyOperationsParameters{
 		Algorithm: &algorithm,

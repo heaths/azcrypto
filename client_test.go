@@ -194,7 +194,6 @@ func TestClient_EncryptDecryptAESGCM(t *testing.T) {
 	t.Parallel()
 	requireManagedHSM(t)
 
-	seed := []byte{0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f}
 	tests := []struct {
 		name string
 		key  string
@@ -241,9 +240,7 @@ func TestClient_EncryptDecryptAESGCM(t *testing.T) {
 			client := test.Recorded(t, testClient(t, tt.key, false))
 
 			plaintext := []byte("plaintext")
-			encrypted, err := client.EncryptAESGCM(context.Background(), tt.alg, plaintext, tt.aad, &EncryptAESGCMOptions{
-				Rand: bytes.NewBuffer(seed),
-			})
+			encrypted, err := client.EncryptAESGCM(context.Background(), tt.alg, plaintext, tt.aad, nil)
 			if tt.err != nil {
 				if !test.RequireIfResponseError(t, err, tt.err) {
 					require.ErrorIs(t, err, tt.err)

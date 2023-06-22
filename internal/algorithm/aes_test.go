@@ -222,6 +222,17 @@ func TestAESGenerateIV(t *testing.T) {
 	require.Equal(t, seed, iv)
 }
 
+func TestAESGenerateNonce(t *testing.T) {
+	t.Parallel()
+
+	seed := []byte{0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b}
+	rand := bytes.NewBuffer(seed)
+
+	nonce, err := AESGenerateNonce(rand)
+	require.NoError(t, err)
+	require.Equal(t, seed, nonce)
+}
+
 func decodeBytes(src string) []byte {
 	dst, err := base64.StdEncoding.DecodeString(src)
 	if err != nil {
