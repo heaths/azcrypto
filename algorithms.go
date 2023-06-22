@@ -8,7 +8,7 @@ import (
 	alg "github.com/heaths/azcrypto/internal/algorithm"
 )
 
-// EncryptAlgorithm defines the encryption algorithms supported by Azure Key Vault or MAnaged HSM.
+// EncryptAlgorithm defines the encryption algorithms supported by Azure Key Vault or Managed HSM.
 type EncryptAlgorithm = alg.EncryptAlgorithm
 
 const (
@@ -20,6 +20,42 @@ const (
 
 	// EncryptAlgorithmRSAOAEP256 uses RSA-OAEP-256.
 	EncryptAlgorithmRSAOAEP256 EncryptAlgorithm = azkeys.JSONWebKeyEncryptionAlgorithmRSAOAEP256
+)
+
+// EncryptAESCBCAlgorithm defines the encryption algorithms supported by Azure Managed HSM for encryption with AES-CBC.
+//
+// You should not use CBC without first ensuring the integrity of the ciphertext using an HMAC.
+type EncryptAESCBCAlgorithm = alg.EncryptAESCBCAlgorithm
+
+const (
+	// EncryptAESCBCAlgorithmA128CBC uses A128-CBC with a message length appropriately padded to a multiple of 16 bytes.
+	//
+	// You should not use CBC without first ensuring the integrity of the ciphertext using an HMAC.
+	EncryptAESCBCAlgorithmA128CBC EncryptAESCBCAlgorithm = azkeys.JSONWebKeyEncryptionAlgorithmA128CBC
+
+	// EncryptAESCBCAlgorithmA192CBC uses A192-CBC with a message length appropriately padded to a multiple of 16 bytes.
+	//
+	// You should not use CBC without first ensuring the integrity of the ciphertext using an HMAC.
+	EncryptAESCBCAlgorithmA192CBC EncryptAESCBCAlgorithm = azkeys.JSONWebKeyEncryptionAlgorithmA192CBC
+
+	// EncryptAESCBCAlgorithmA256CBC uses A256-CBC with a message length appropriately padded to a multiple of 16 bytes.
+	//
+	// You should not use CBC without first ensuring the integrity of the ciphertext using an HMAC.
+	EncryptAESCBCAlgorithmA256CBC EncryptAESCBCAlgorithm = azkeys.JSONWebKeyEncryptionAlgorithmA256CBC
+)
+
+// EncryptAESGCMAlgorithm defines the encryption algorithms supported by Azure Managed HSM for encryption with AES-GCM.
+type EncryptAESGCMAlgorithm = alg.EncryptAESGCMAlgorithm
+
+const (
+	// EncryptAESGCMAlgorithmA128GCM uses A128-GCM with optional authenticated data.
+	EncryptAESGCMAlgorithmA128GCM EncryptAESGCMAlgorithm = azkeys.JSONWebKeyEncryptionAlgorithmA128GCM
+
+	// EncryptAESGCMAlgorithmA192GCM uses A192-GCM with optional authenticated data.
+	EncryptAESGCMAlgorithmA192GCM EncryptAESGCMAlgorithm = azkeys.JSONWebKeyEncryptionAlgorithmA192GCM
+
+	// EncryptAESGCMAlgorithmA256GCM uses A256-GCM with optional authenticated data.
+	EncryptAESGCMAlgorithmA256GCM EncryptAESGCMAlgorithm = azkeys.JSONWebKeyEncryptionAlgorithmA256GCM
 )
 
 // SignAlgorithm defines the signing algorithms supported by Azure Key Vault or Managed HSM.

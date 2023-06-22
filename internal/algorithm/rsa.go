@@ -13,6 +13,7 @@ import (
 	"math/big"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azkeys"
+	"github.com/heaths/azcrypto/internal"
 )
 
 type RSA struct {
@@ -79,6 +80,14 @@ func (r RSA) Encrypt(algorithm EncryptAlgorithm, plaintext []byte) (EncryptResul
 		KeyID:      r.keyID,
 		Ciphertext: ciphertext,
 	}, nil
+}
+
+func (r RSA) EncryptAESCBC(algorithm EncryptAESCBCAlgorithm, plaintext, iv []byte) (EncryptResult, error) {
+	return EncryptResult{}, internal.ErrUnsupported
+}
+
+func (r RSA) EncryptAESGCM(algorithm EncryptAESGCMAlgorithm, plaintext, nonce, additionalAuthenticatedData []byte) (EncryptResult, error) {
+	return EncryptResult{}, internal.ErrUnsupported
 }
 
 func (r RSA) Verify(algorithm SignAlgorithm, digest, signature []byte) (VerifyResult, error) {

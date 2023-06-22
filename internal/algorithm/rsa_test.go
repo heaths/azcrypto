@@ -12,6 +12,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azkeys"
+	"github.com/heaths/azcrypto/internal"
 	"github.com/stretchr/testify/require"
 )
 
@@ -75,6 +76,20 @@ func TestRSA_Encrypt(t *testing.T) {
 	result, err := testRSA.Encrypt(azkeys.JSONWebKeyEncryptionAlgorithmRSAOAEP, []byte("plaintext"))
 	require.NoError(t, err)
 	require.Greater(t, len(result.Ciphertext), 0)
+}
+
+func TestRSA_EncryptAESCBC(t *testing.T) {
+	t.Parallel()
+
+	_, err := testRSA.EncryptAESCBC(azkeys.JSONWebKeyEncryptionAlgorithmRSAOAEP, []byte("plaintext"), nil)
+	require.ErrorIs(t, err, internal.ErrUnsupported)
+}
+
+func TestRSA_EncryptAESGCM(t *testing.T) {
+	t.Parallel()
+
+	_, err := testRSA.EncryptAESGCM(azkeys.JSONWebKeyEncryptionAlgorithmRSAOAEP, []byte("plaintext"), nil, nil)
+	require.ErrorIs(t, err, internal.ErrUnsupported)
 }
 
 func TestRSA_Verify(t *testing.T) {

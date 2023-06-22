@@ -113,6 +113,20 @@ func TestECDsa_Encrypt(t *testing.T) {
 	require.ErrorIs(t, err, internal.ErrUnsupported)
 }
 
+func TestECDsa_EncryptAESCBC(t *testing.T) {
+	t.Parallel()
+
+	_, err := testECDsa.EncryptAESCBC(azkeys.JSONWebKeyEncryptionAlgorithmRSAOAEP, []byte("plaintext"), nil)
+	require.ErrorIs(t, err, internal.ErrUnsupported)
+}
+
+func TestECDsa_EncryptAESGCM(t *testing.T) {
+	t.Parallel()
+
+	_, err := testECDsa.EncryptAESGCM(azkeys.JSONWebKeyEncryptionAlgorithmRSAOAEP, []byte("plaintext"), nil, nil)
+	require.ErrorIs(t, err, internal.ErrUnsupported)
+}
+
 func TestECDsa_Verify(t *testing.T) {
 	t.Parallel()
 

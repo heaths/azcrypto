@@ -7,8 +7,10 @@ package azcrypto
 
 import (
 	"context"
+	"crypto/rand"
 	"errors"
 	"fmt"
+	"io"
 	"sync"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
@@ -108,7 +110,16 @@ type EncryptOptions struct {
 }
 
 // EncryptResult contains information returned by the Encrypt method.
-type EncryptResult = alg.EncryptResult
+type EncryptResult struct {
+	// Algorithm is encryption algorithm used to encrypt.
+	Algorithm EncryptAlgorithm
+
+	// KeyID is the key ID used to encrypt. This key ID should be retained.
+	KeyID string
+
+	// Ciphertext is the encryption result.
+	Ciphertext []byte
+}
 
 // Encrypt encrypts the plaintext using the specified algorithm.
 func (client *Client) Encrypt(ctx context.Context, algorithm EncryptAlgorithm, plaintext []byte, options *EncryptOptions) (EncryptResult, error) {
@@ -117,7 +128,11 @@ func (client *Client) Encrypt(ctx context.Context, algorithm EncryptAlgorithm, p
 	if client.localClient != nil {
 		result, err := client.localClient.Encrypt(algorithm, plaintext)
 		if !errors.Is(err, internal.ErrUnsupported) {
-			return result, err
+			return EncryptResult{
+				Algorithm:  result.Algorithm,
+				KeyID:      result.KeyID,
+				Ciphertext: result.Ciphertext,
+			}, err
 		}
 	}
 
@@ -155,6 +170,188 @@ func (client *Client) Encrypt(ctx context.Context, algorithm EncryptAlgorithm, p
 	return result, nil
 }
 
+// EncryptAESCBCOptions defines options for the EncryptAESCBC method.
+type EncryptAESCBCOptions struct {
+	azkeys.EncryptOptions
+
+	// Rand represents a random number generator.
+	// By default this is crypto/rand.Reader.
+	Rand io.Reader
+}
+
+// EncryptAESCBCResult contains information returned by the EncryptAESCBC method.
+type EncryptAESCBCResult struct {
+	// Algorithm is encryption algorithm used to encrypt.
+	Algorithm EncryptAlgorithm
+
+	// KeyID is the key ID used to encrypt. This key ID should be retained.
+	KeyID string
+
+	// Ciphertext is the encryption result.
+	Ciphertext []byte
+
+	// IV is the initialization vector used to encrypt using AES-CBC.
+	IV []byte
+}
+
+// EncryptAESCBC encrypts the plaintext using the specified algorithm and optional initialization vector (IV).
+// If iv is nil, one will be generated from a cryptographically secure random number generator, or options.Rand if specified.
+//
+// You should not use CBC without first ensuring the integrity of the ciphertext using an HMAC.
+func (client *Client) EncryptAESCBC(ctx context.Context, algorithm EncryptAESCBCAlgorithm, plaintext, iv []byte, options *EncryptAESCBCOptions) (EncryptAESCBCResult, error) {
+	client.init(ctx)
+
+	if options == nil {
+		options = &EncryptAESCBCOptions{}
+	}
+	if iv == nil {
+		if options.Rand == nil {
+			options.Rand = rand.Reader
+		}
+		var err error
+		iv, err = alg.AESGenerateIV(options.Rand)
+		if err != nil {
+			return EncryptAESCBCResult{}, fmt.Errorf("generate IV: %w", err)
+		}
+	}
+
+	if client.localClient != nil {
+		result, err := client.localClient.EncryptAESCBC(algorithm, plaintext, iv)
+		if !errors.Is(err, internal.ErrUnsupported) {
+			return EncryptAESCBCResult{
+				Algorithm:  result.Algorithm,
+				KeyID:      result.KeyID,
+				Ciphertext: result.Ciphertext,
+				IV:         result.IV,
+			}, err
+		}
+	}
+
+	parameters := azkeys.KeyOperationsParameters{
+		Algorithm: &algorithm,
+		Value:     plaintext,
+		IV:        iv,
+	}
+
+	response, err := client.remoteClient.Encrypt(
+		ctx,
+		client.keyName,
+		client.keyVersion,
+		parameters,
+		&options.EncryptOptions,
+	)
+	if err != nil {
+		return EncryptAESCBCResult{}, err
+	}
+
+	keyID := client.keyID
+	if response.KID != nil {
+		keyID = string(*response.KID)
+	}
+
+	result := EncryptAESCBCResult{
+		Algorithm:  algorithm,
+		KeyID:      keyID,
+		Ciphertext: response.Result,
+		IV:         response.IV,
+	}
+
+	return result, nil
+}
+
+// EncryptAESGCMOptions defines options for the EncryptAESGCM method.
+type EncryptAESGCMOptions struct {
+	azkeys.EncryptOptions
+
+	// Rand represents a random number generator.
+	// By default this is crypto/rand.Reader.
+	Rand io.Reader
+}
+
+// EncryptAESGCMResult contains information returned by the EncryptAESGCM method.
+type EncryptAESGCMResult struct {
+	// Algorithm is encryption algorithm used to encrypt.
+	Algorithm EncryptAlgorithm
+
+	// KeyID is the key ID used to encrypt. This key ID should be retained.
+	KeyID string
+
+	// Ciphertext is the encryption result.
+	Ciphertext []byte
+
+	// Nonce is the nonce used to encrypt using AES-GCM.
+	Nonce []byte
+
+	// AdditionalAuthenticatedData passed to EncryptAESGCM.
+	AdditionalAuthenticatedData []byte
+
+	// AuthenticationTag returned from EncryptAESGCM.
+	AuthenticationTag []byte
+}
+
+// EncryptAESGCM encrypts the plaintext using the specified algorithm and optional authenticated data which is not encrypted.
+func (client *Client) EncryptAESGCM(ctx context.Context, algorithm EncryptAESCBCAlgorithm, plaintext, additionalAuthenticatedData []byte, options *EncryptAESGCMOptions) (EncryptAESGCMResult, error) {
+	client.init(ctx)
+
+	if options == nil {
+		options = &EncryptAESGCMOptions{}
+	}
+	if options.Rand == nil {
+		options.Rand = rand.Reader
+	}
+	nonce, err := alg.AESGenerateIV(options.Rand)
+	if err != nil {
+		return EncryptAESGCMResult{}, fmt.Errorf("generate nonce: %w", err)
+	}
+
+	if client.localClient != nil {
+		result, err := client.localClient.EncryptAESGCM(algorithm, plaintext, nonce, additionalAuthenticatedData)
+		if !errors.Is(err, internal.ErrUnsupported) {
+			return EncryptAESGCMResult{
+				Algorithm:                   result.Algorithm,
+				KeyID:                       result.KeyID,
+				Ciphertext:                  result.Ciphertext,
+				Nonce:                       result.Nonce,
+				AdditionalAuthenticatedData: result.AdditionalAuthenticatedData,
+				AuthenticationTag:           result.AuthenticationTag,
+			}, err
+		}
+	}
+
+	parameters := azkeys.KeyOperationsParameters{
+		Algorithm: &algorithm,
+		Value:     plaintext,
+		AAD:       additionalAuthenticatedData,
+	}
+
+	response, err := client.remoteClient.Encrypt(
+		ctx,
+		client.keyName,
+		client.keyVersion,
+		parameters,
+		&options.EncryptOptions,
+	)
+	if err != nil {
+		return EncryptAESGCMResult{}, err
+	}
+
+	keyID := client.keyID
+	if response.KID != nil {
+		keyID = string(*response.KID)
+	}
+
+	result := EncryptAESGCMResult{
+		Algorithm:                   algorithm,
+		KeyID:                       keyID,
+		Ciphertext:                  response.Result,
+		Nonce:                       response.IV,
+		AdditionalAuthenticatedData: response.AdditionalAuthenticatedData,
+		AuthenticationTag:           response.AuthenticationTag,
+	}
+
+	return result, nil
+}
+
 // DecryptOptions defines options for the Decrypt method.
 type DecryptOptions struct {
 	azkeys.DecryptOptions
@@ -173,6 +370,100 @@ func (client *Client) Decrypt(ctx context.Context, algorithm EncryptAlgorithm, c
 
 	if options == nil {
 		options = &DecryptOptions{}
+	}
+
+	response, err := client.remoteClient.Decrypt(
+		ctx,
+		client.keyName,
+		client.keyVersion,
+		parameters,
+		&options.DecryptOptions,
+	)
+	if err != nil {
+		return DecryptResult{}, err
+	}
+
+	keyID := client.keyID
+	if response.KID != nil {
+		keyID = string(*response.KID)
+	}
+
+	result := DecryptResult{
+		Algorithm: algorithm,
+		KeyID:     keyID,
+		Plaintext: response.Result,
+	}
+
+	return result, nil
+}
+
+// DecryptAESCBCOptions defines options for the DecryptAESCBC method.
+type DecryptAESCBCOptions struct {
+	azkeys.DecryptOptions
+}
+
+// DecryptAESCBCResult contains information returned by the DecryptAESCBC method.
+type DecryptAESCBCResult = alg.DecryptResult
+
+// DecryptAESCBC decrypts the ciphertext using the specified algorithm.
+func (client *Client) DecryptAESCBC(ctx context.Context, algorithm EncryptAESCBCAlgorithm, ciphertext, iv []byte, options *DecryptAESCBCOptions) (DecryptAESCBCResult, error) {
+	// Decrypting requires access to a private key, which Key Vault does not provide by default.
+	parameters := azkeys.KeyOperationsParameters{
+		Algorithm: &algorithm,
+		Value:     ciphertext,
+		IV:        iv,
+	}
+
+	if options == nil {
+		options = &DecryptAESCBCOptions{}
+	}
+
+	response, err := client.remoteClient.Decrypt(
+		ctx,
+		client.keyName,
+		client.keyVersion,
+		parameters,
+		&options.DecryptOptions,
+	)
+	if err != nil {
+		return DecryptResult{}, err
+	}
+
+	keyID := client.keyID
+	if response.KID != nil {
+		keyID = string(*response.KID)
+	}
+
+	result := DecryptResult{
+		Algorithm: algorithm,
+		KeyID:     keyID,
+		Plaintext: response.Result,
+	}
+
+	return result, nil
+}
+
+// DecryptAESGCMOptions defines options for the DecryptAESGCM method.
+type DecryptAESGCMOptions struct {
+	azkeys.DecryptOptions
+}
+
+// DecryptAESGCMResult contains information returned by the DecryptAESGCM method.
+type DecryptAESGCMResult = alg.DecryptResult
+
+// DecryptAESGCM decrypts the ciphertext using the specified algorithm.
+func (client *Client) DecryptAESGCM(ctx context.Context, algorithm EncryptAESGCMAlgorithm, ciphertext, nonce, authenticationTag, additionalAuthenticatedData []byte, options *DecryptAESGCMOptions) (DecryptAESGCMResult, error) {
+	// Decrypting requires access to a private key, which Key Vault does not provide by default.
+	parameters := azkeys.KeyOperationsParameters{
+		Algorithm: &algorithm,
+		Value:     ciphertext,
+		IV:        nonce,
+		Tag:       authenticationTag,
+		AAD:       additionalAuthenticatedData,
+	}
+
+	if options == nil {
+		options = &DecryptAESGCMOptions{}
 	}
 
 	response, err := client.remoteClient.Decrypt(

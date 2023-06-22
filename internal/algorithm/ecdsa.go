@@ -65,6 +65,14 @@ func (c ECDsa) Encrypt(algorithm EncryptAlgorithm, plaintext []byte) (EncryptRes
 	return EncryptResult{}, internal.ErrUnsupported
 }
 
+func (c ECDsa) EncryptAESCBC(algorithm EncryptAESCBCAlgorithm, plaintext, iv []byte) (EncryptResult, error) {
+	return EncryptResult{}, internal.ErrUnsupported
+}
+
+func (c ECDsa) EncryptAESGCM(algorithm EncryptAESGCMAlgorithm, plaintext, nonce, additionalAuthenticatedData []byte) (EncryptResult, error) {
+	return EncryptResult{}, internal.ErrUnsupported
+}
+
 func (c ECDsa) Verify(algorithm SignAlgorithm, digest, signature []byte) (VerifyResult, error) {
 	// Key Vault and Managed HSM concatenate r and s components.
 	r := new(big.Int).SetBytes(signature[:len(signature)/2])
