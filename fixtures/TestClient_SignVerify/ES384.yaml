@@ -44,7 +44,7 @@ interactions:
             Content-Type:
                 - application/json; charset=utf-8
             Date:
-                - Thu, 01 Jun 2023 08:04:00 GMT
+                - Thu, 01 Jun 2023 08:04:01 GMT
             Expires:
                 - "-1"
             Pragma:
@@ -62,10 +62,10 @@ interactions:
             X-Ms-Keyvault-Service-Version:
                 - 1.9.804.1
             X-Ms-Request-Id:
-                - 6675d9fa-0f8c-4eba-86b0-f4a97897805a
+                - 59776d0c-19b4-4cd8-92f1-d4b5c4130b9a
         status: 401 Unauthorized
         code: 401
-        duration: 46.284238ms
+        duration: 40.944933ms
     - id: 1
       request:
         proto: HTTP/1.1
@@ -100,7 +100,7 @@ interactions:
         trailer: {}
         content_length: 231
         uncompressed: false
-        body: '{"kid":"https://tlxbprqlwess6y.vault.azure.net/keys/ec384/89d199ba35b7492bb3f503e342551a1e","value":"p1ZK4yvMAWkWjEGApIRhZ1rbwKkqfIExkTgLEHfW1jg6b-9RUy4JppPRnWLr7rQDgkFr6Z4OUTEfzJslM4tfnXH7bkhfO7uVK9ytZgsPomZDpWKMI9XL6j1ysjvfiBBW"}'
+        body: '{"kid":"https://tlxbprqlwess6y.vault.azure.net/keys/ec384/89d199ba35b7492bb3f503e342551a1e","value":"BsVhgCUdyEloR31hk8qVRKZ680OtvOXmg0RqVzXK2DcW20-aEF2Wzns-e973LQY1vU2Vgtr3Dpakcz9v4lXQ5s2NWJFST8ZeYWQgL1RpePG1rkdUFxdpiKGT_ALr1c_G"}'
         headers:
             Cache-Control:
                 - no-cache
@@ -109,7 +109,7 @@ interactions:
             Content-Type:
                 - application/json; charset=utf-8
             Date:
-                - Thu, 01 Jun 2023 08:04:01 GMT
+                - Thu, 01 Jun 2023 08:04:03 GMT
             Expires:
                 - "-1"
             Pragma:
@@ -125,10 +125,10 @@ interactions:
             X-Ms-Keyvault-Service-Version:
                 - 1.9.804.1
             X-Ms-Request-Id:
-                - 26ea0ee5-349c-4844-8f5e-a51b9b8da244
+                - 1c24c846-8eec-4d85-b9b1-e8cc7b02b02f
         status: 200 OK
         code: 200
-        duration: 50.423435ms
+        duration: 57.871682ms
     - id: 2
       request:
         proto: HTTP/1.1
@@ -157,9 +157,9 @@ interactions:
         proto_minor: 0
         transfer_encoding: []
         trailer: {}
-        content_length: 447
+        content_length: 30
         uncompressed: false
-        body: '{"key":{"kid":"https://tlxbprqlwess6y.vault.azure.net/keys/ec384/89d199ba35b7492bb3f503e342551a1e","kty":"EC","key_ops":["sign","verify"],"crv":"P-384","x":"ucyZ7bAVC2owZ_zIFBmFhLvya-Y08SGKmxt_er3JI4ov4r92HFjTtlmXnC7nnIr0","y":"2rqYGIiRrAp87fvwas4HeRIlTR4VZ3O8JoavBjWlUSwvaRS_V1Y5MHwnjlumg-vL"},"attributes":{"enabled":true,"created":1685587027,"updated":1685587027,"recoveryLevel":"Recoverable+Purgeable","recoverableDays":90,"exportable":false}}'
+        body: '{"error":{"code":"Forbidden"}}'
         headers:
             Cache-Control:
                 - no-cache
@@ -168,7 +168,7 @@ interactions:
             Content-Type:
                 - application/json; charset=utf-8
             Date:
-                - Thu, 01 Jun 2023 08:04:01 GMT
+                - Thu, 01 Jun 2023 08:04:03 GMT
             Expires:
                 - "-1"
             Pragma:
@@ -184,7 +184,70 @@ interactions:
             X-Ms-Keyvault-Service-Version:
                 - 1.9.804.1
             X-Ms-Request-Id:
-                - 700c8ef9-45f2-4d25-9e27-f8da2fb2b9ac
+                - f7239bae-c8c1-4ed2-82cf-f13259e5caa4
+        status: Forbidden
+        code: 403
+        duration: 54.630277ms
+    - id: 3
+      request:
+        proto: HTTP/1.1
+        proto_major: 1
+        proto_minor: 1
+        content_length: 230
+        transfer_encoding: []
+        trailer: {}
+        host: tlxbprqlwess6y.vault.azure.net
+        remote_addr: ""
+        request_uri: ""
+        body: '{"alg":"ES384","digest":"_CNYrmb1MgeDGzoxyXDPxb942fbON57v_ZbqnA6vNDZs4u4zvj_f_gqzJsj2GY83","value":"BsVhgCUdyEloR31hk8qVRKZ680OtvOXmg0RqVzXK2DcW20-aEF2Wzns-e973LQY1vU2Vgtr3Dpakcz9v4lXQ5s2NWJFST8ZeYWQgL1RpePG1rkdUFxdpiKGT_ALr1c_G"}'
+        form: {}
+        headers:
+            Accept:
+                - application/json
+            Authorization:
+                - sanitized
+            Content-Length:
+                - "230"
+            Content-Type:
+                - application/json
+            User-Agent:
+                - azsdk-go-azkeys/v0.11.0 (go1.20.4; linux)
+        url: https://tlxbprqlwess6y.vault.azure.net/keys/ec384/verify?api-version=7.4
+        method: POST
+      response:
+        proto: HTTP/2.0
+        proto_major: 2
+        proto_minor: 0
+        transfer_encoding: []
+        trailer: {}
+        content_length: 14
+        uncompressed: false
+        body: '{"value":true}'
+        headers:
+            Cache-Control:
+                - no-cache
+            Content-Length:
+                - "14"
+            Content-Type:
+                - application/json; charset=utf-8
+            Date:
+                - Thu, 01 Jun 2023 08:04:03 GMT
+            Expires:
+                - "-1"
+            Pragma:
+                - no-cache
+            Strict-Transport-Security:
+                - max-age=31536000;includeSubDomains
+            X-Content-Type-Options:
+                - nosniff
+            X-Ms-Keyvault-Network-Info:
+                - conn_type=Ipv4;addr=24.16.18.89;act_addr_fam=InterNetwork;
+            X-Ms-Keyvault-Region:
+                - westus
+            X-Ms-Keyvault-Service-Version:
+                - 1.9.804.1
+            X-Ms-Request-Id:
+                - c2744985-26f2-416e-a3c7-3ff1658c5e48
         status: 200 OK
         code: 200
-        duration: 50.671986ms
+        duration: 47.488747ms
