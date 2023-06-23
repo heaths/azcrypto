@@ -22,7 +22,7 @@ func TestNewAlgorithm(t *testing.T) {
 	tests := []struct {
 		name string
 		key  azkeys.JSONWebKey
-		alg  Algorithm
+		alg  any
 		err  error
 	}{
 		{
@@ -104,6 +104,75 @@ func TestNewAlgorithm(t *testing.T) {
 			require.IsType(t, tt.alg, alg)
 		})
 	}
+}
+
+func TestAs(t *testing.T) {
+	t.Parallel()
+
+	var encrypter Encrypter
+	var aesEncrypter AESEncrypter
+	var signer Signer
+	tests := []struct {
+		name string
+		key  azkeys.JSONWebKey
+		alg  any
+	}{
+		{
+			name: "ec",
+			key: azkeys.JSONWebKey{
+				Kty: to.Ptr(azkeys.JSONWebKeyTypeEC),
+				Crv: to.Ptr(azkeys.JSONWebKeyCurveNameP256),
+				X:   []byte{0},
+				Y:   []byte{1},
+			},
+			alg: signer,
+		},
+		{
+			name: "rsa encrypter",
+			key: azkeys.JSONWebKey{
+				Kty: to.Ptr(azkeys.JSONWebKeyTypeRSA),
+				N:   []byte{0},
+				E:   []byte{1},
+			},
+			alg: encrypter,
+		},
+		{
+			name: "rsa signer",
+			key: azkeys.JSONWebKey{
+				Kty: to.Ptr(azkeys.JSONWebKeyTypeRSA),
+				N:   []byte{0},
+				E:   []byte{1},
+			},
+			alg: signer,
+		},
+		{
+			name: "oct",
+			key: azkeys.JSONWebKey{
+				Kty: to.Ptr(azkeys.JSONWebKeyTypeOct),
+				K:   decodeBytes("9M09IArT3CEMYXEKBNdhgw=="), // cspell:disable-line,
+			},
+			alg: aesEncrypter,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			alg, err := NewAlgorithm(tt.key)
+			require.NoError(t, err)
+			require.True(t, As(alg, &tt.alg))
+
+			var decrypter crypto.Decrypter
+			require.False(t, As(alg, &decrypter))
+			require.Nil(t, decrypter)
+		})
+	}
+
+	require.False(t, As(nil, &signer))
+	require.Nil(t, signer)
+
+	require.Panics(t, func() {
+		As[Signer](RSA{}, nil)
+	})
 }
 
 func TestGetHash(t *testing.T) {

@@ -61,18 +61,6 @@ func fromCurve(crv azkeys.JSONWebKeyCurveName) (elliptic.Curve, error) {
 	}
 }
 
-func (c ECDsa) Encrypt(algorithm EncryptAlgorithm, plaintext []byte) (EncryptResult, error) {
-	return EncryptResult{}, internal.ErrUnsupported
-}
-
-func (c ECDsa) EncryptAESCBC(algorithm EncryptAESCBCAlgorithm, plaintext, iv []byte) (EncryptResult, error) {
-	return EncryptResult{}, internal.ErrUnsupported
-}
-
-func (c ECDsa) EncryptAESGCM(algorithm EncryptAESGCMAlgorithm, plaintext, nonce, additionalAuthenticatedData []byte) (EncryptResult, error) {
-	return EncryptResult{}, internal.ErrUnsupported
-}
-
 func (c ECDsa) Verify(algorithm SignAlgorithm, digest, signature []byte) (VerifyResult, error) {
 	if !supportsAlgorithm(
 		algorithm,
@@ -92,8 +80,4 @@ func (c ECDsa) Verify(algorithm SignAlgorithm, digest, signature []byte) (Verify
 		KeyID:     c.keyID,
 		Valid:     ecdsa.Verify(&c.pub, digest, r, s),
 	}, nil
-}
-
-func (c ECDsa) WrapKey(algorithm WrapKeyAlgorithm, key []byte) (WrapKeyResult, error) {
-	return WrapKeyResult{}, internal.ErrUnsupported
 }

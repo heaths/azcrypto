@@ -81,20 +81,6 @@ func TestRSA_Encrypt(t *testing.T) {
 	require.ErrorIs(t, err, internal.ErrUnsupported)
 }
 
-func TestRSA_EncryptAESCBC(t *testing.T) {
-	t.Parallel()
-
-	_, err := testRSA.EncryptAESCBC(azkeys.JSONWebKeyEncryptionAlgorithmRSAOAEP, []byte("plaintext"), nil)
-	require.ErrorIs(t, err, internal.ErrUnsupported)
-}
-
-func TestRSA_EncryptAESGCM(t *testing.T) {
-	t.Parallel()
-
-	_, err := testRSA.EncryptAESGCM(azkeys.JSONWebKeyEncryptionAlgorithmRSAOAEP, []byte("plaintext"), nil, nil)
-	require.ErrorIs(t, err, internal.ErrUnsupported)
-}
-
 func TestRSA_Verify(t *testing.T) {
 	t.Parallel()
 
