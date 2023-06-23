@@ -163,3 +163,12 @@ type UnwrapKeyResult struct {
 	// Key is the unwrapped (decrypted) key.
 	Key []byte
 }
+
+func supportsAlgorithm[T ~string](algorithm T, supports ...T) bool {
+	for _, supported := range supports {
+		if algorithm == supported {
+			return true
+		}
+	}
+	return false
+}

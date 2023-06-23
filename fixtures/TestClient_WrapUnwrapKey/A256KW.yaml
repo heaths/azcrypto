@@ -1,0 +1,241 @@
+---
+version: 2
+interactions:
+    - id: 0
+      request:
+        proto: HTTP/1.1
+        proto_major: 1
+        proto_minor: 1
+        content_length: 0
+        transfer_encoding: []
+        trailer: {}
+        host: ttyfi3p3a4yqbc.managedhsm.azure.net
+        remote_addr: ""
+        request_uri: ""
+        body: ""
+        form: {}
+        headers:
+            Accept:
+                - application/json
+            Authorization:
+                - sanitized
+            User-Agent:
+                - azsdk-go-azkeys/v0.11.0 (go1.20.5; linux)
+        url: https://ttyfi3p3a4yqbc.managedhsm.azure.net/keys/aes256/?api-version=7.4
+        method: GET
+      response:
+        proto: HTTP/1.1
+        proto_major: 1
+        proto_minor: 1
+        transfer_encoding: []
+        trailer: {}
+        content_length: 2
+        uncompressed: false
+        body: OK
+        headers:
+            Cache-Control:
+                - no-cache
+            Content-Length:
+                - "2"
+            Content-Security-Policy:
+                - sanitized
+            Content-Type:
+                - application/json; charset=utf-8
+            Strict-Transport-Security:
+                - max-age=31536000; includeSubDomains
+            Www-Authenticate:
+                - Bearer authorization="https://login.microsoftonline.com/72f988bf-86f1-41af-91ab-2d7cd011db47", resource="https://managedhsm.azure.net"
+            X-Content-Type-Options:
+                - nosniff
+            X-Frame-Options:
+                - sanitized
+            X-Ms-Build-Version:
+                - sanitized
+            X-Ms-Request-Id:
+                - 890ad82a-115e-11ee-9647-000d3ad5b536
+            X-Ms-Server-Latency:
+                - sanitized
+        status: 401 Unauthorized
+        code: 401
+        duration: 893.549253ms
+    - id: 1
+      request:
+        proto: HTTP/1.1
+        proto_major: 1
+        proto_minor: 1
+        content_length: 0
+        transfer_encoding: []
+        trailer: {}
+        host: ttyfi3p3a4yqbc.managedhsm.azure.net
+        remote_addr: ""
+        request_uri: ""
+        body: ""
+        form: {}
+        headers:
+            Accept:
+                - application/json
+            Authorization:
+                - sanitized
+            User-Agent:
+                - azsdk-go-azkeys/v0.11.0 (go1.20.5; linux)
+        url: https://ttyfi3p3a4yqbc.managedhsm.azure.net/keys/aes256/?api-version=7.4
+        method: GET
+      response:
+        proto: HTTP/1.1
+        proto_major: 1
+        proto_minor: 1
+        transfer_encoding: []
+        trailer: {}
+        content_length: 365
+        uncompressed: false
+        body: '{"attributes":{"created":1687479326,"enabled":true,"exportable":false,"recoverableDays":7,"recoveryLevel":"CustomizedRecoverable+Purgeable","updated":1687479326},"key":{"key_ops":["sign","verify","unwrapKey","decrypt","encrypt","wrapKey","deriveKey"],"kid":"https://ttyfi3p3a4yqbc.managedhsm.azure.net/keys/aes256/d1f637ee268507800e59a6d168da5cce","kty":"oct-HSM"}}'
+        headers:
+            Cache-Control:
+                - no-cache
+            Content-Length:
+                - "365"
+            Content-Security-Policy:
+                - sanitized
+            Content-Type:
+                - application/json; charset=utf-8
+            Strict-Transport-Security:
+                - max-age=31536000; includeSubDomains
+            X-Content-Type-Options:
+                - nosniff
+            X-Frame-Options:
+                - sanitized
+            X-Ms-Build-Version:
+                - sanitized
+            X-Ms-Keyvault-Network-Info:
+                - conn_type=Ipv4;addr=24.16.18.89;act_addr_fam=Ipv4;
+            X-Ms-Keyvault-Region:
+                - uksouth
+            X-Ms-Request-Id:
+                - 8a0cd8b8-115e-11ee-8a1b-6045bd10041b
+            X-Ms-Server-Latency:
+                - sanitized
+        status: 200 OK
+        code: 200
+        duration: 172.639417ms
+    - id: 2
+      request:
+        proto: HTTP/1.1
+        proto_major: 1
+        proto_minor: 1
+        content_length: 49
+        transfer_encoding: []
+        trailer: {}
+        host: ttyfi3p3a4yqbc.managedhsm.azure.net
+        remote_addr: ""
+        request_uri: ""
+        body: '{"alg":"A256KW","value":"XuzMCMA534jyOTYaJ-rYvw"}'
+        form: {}
+        headers:
+            Accept:
+                - application/json
+            Authorization:
+                - sanitized
+            Content-Length:
+                - "49"
+            Content-Type:
+                - application/json
+            User-Agent:
+                - azsdk-go-azkeys/v0.11.0 (go1.20.5; linux)
+        url: https://ttyfi3p3a4yqbc.managedhsm.azure.net/keys/aes256/wrapkey?api-version=7.4
+        method: POST
+      response:
+        proto: HTTP/1.1
+        proto_major: 1
+        proto_minor: 1
+        transfer_encoding: []
+        trailer: {}
+        content_length: 156
+        uncompressed: false
+        body: '{"alg":"A256KW","kid":"https://ttyfi3p3a4yqbc.managedhsm.azure.net/keys/aes256/d1f637ee268507800e59a6d168da5cce","value":"JXbhzjj_dzo2zK5CIv82NO7ssSaGHNFg"}'
+        headers:
+            Cache-Control:
+                - no-cache
+            Content-Length:
+                - "156"
+            Content-Security-Policy:
+                - sanitized
+            Content-Type:
+                - application/json; charset=utf-8
+            Strict-Transport-Security:
+                - max-age=31536000; includeSubDomains
+            X-Content-Type-Options:
+                - nosniff
+            X-Frame-Options:
+                - sanitized
+            X-Ms-Keyvault-Network-Info:
+                - conn_type=Ipv4;addr=24.16.18.89;act_addr_fam=Ipv4;
+            X-Ms-Keyvault-Region:
+                - uksouth
+            X-Ms-Request-Id:
+                - 8a28a048-115e-11ee-9647-000d3ad5b536
+            X-Ms-Server-Latency:
+                - sanitized
+        status: 200 OK
+        code: 200
+        duration: 204.742874ms
+    - id: 3
+      request:
+        proto: HTTP/1.1
+        proto_major: 1
+        proto_minor: 1
+        content_length: 59
+        transfer_encoding: []
+        trailer: {}
+        host: ttyfi3p3a4yqbc.managedhsm.azure.net
+        remote_addr: ""
+        request_uri: ""
+        body: '{"alg":"A256KW","value":"JXbhzjj_dzo2zK5CIv82NO7ssSaGHNFg"}'
+        form: {}
+        headers:
+            Accept:
+                - application/json
+            Authorization:
+                - sanitized
+            Content-Length:
+                - "59"
+            Content-Type:
+                - application/json
+            User-Agent:
+                - azsdk-go-azkeys/v0.11.0 (go1.20.5; linux)
+        url: https://ttyfi3p3a4yqbc.managedhsm.azure.net/keys/aes256/unwrapkey?api-version=7.4
+        method: POST
+      response:
+        proto: HTTP/1.1
+        proto_major: 1
+        proto_minor: 1
+        transfer_encoding: []
+        trailer: {}
+        content_length: 146
+        uncompressed: false
+        body: '{"alg":"A256KW","kid":"https://ttyfi3p3a4yqbc.managedhsm.azure.net/keys/aes256/d1f637ee268507800e59a6d168da5cce","value":"XuzMCMA534jyOTYaJ-rYvw"}'
+        headers:
+            Cache-Control:
+                - no-cache
+            Content-Length:
+                - "146"
+            Content-Security-Policy:
+                - sanitized
+            Content-Type:
+                - application/json; charset=utf-8
+            Strict-Transport-Security:
+                - max-age=31536000; includeSubDomains
+            X-Content-Type-Options:
+                - nosniff
+            X-Frame-Options:
+                - sanitized
+            X-Ms-Keyvault-Network-Info:
+                - conn_type=Ipv4;addr=24.16.18.89;act_addr_fam=Ipv4;
+            X-Ms-Keyvault-Region:
+                - uksouth
+            X-Ms-Request-Id:
+                - 8a5ab90c-115e-11ee-b64a-002248426ab3
+            X-Ms-Server-Latency:
+                - sanitized
+        status: 200 OK
+        code: 200
+        duration: 489.632388ms

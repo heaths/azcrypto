@@ -185,6 +185,22 @@ func TestGetHash(t *testing.T) {
 	}
 }
 
+func TestSupportsAlgorithm(t *testing.T) {
+	require.True(t, supportsAlgorithm(
+		azkeys.JSONWebKeyEncryptionAlgorithmA128CBC,
+		azkeys.JSONWebKeyEncryptionAlgorithmA128CBC,
+		azkeys.JSONWebKeyEncryptionAlgorithmA192CBC,
+		azkeys.JSONWebKeyEncryptionAlgorithmA256CBC,
+	))
+
+	require.False(t, supportsAlgorithm(
+		azkeys.JSONWebKeyEncryptionAlgorithmA128CBCPAD,
+		azkeys.JSONWebKeyEncryptionAlgorithmA128CBC,
+		azkeys.JSONWebKeyEncryptionAlgorithmA192CBC,
+		azkeys.JSONWebKeyEncryptionAlgorithmA256CBC,
+	))
+}
+
 // decode a base64 string.
 func decode(s string) *big.Int {
 	b, err := base64.StdEncoding.DecodeString(s)

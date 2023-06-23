@@ -137,6 +137,12 @@ func TestECDsa_Verify(t *testing.T) {
 	result, err := testECDsa.Verify(azkeys.JSONWebKeySignatureAlgorithmES256, digest, signature)
 	require.NoError(t, err)
 	require.True(t, result.Valid)
+
+	_, err = testECDsa.Verify(azkeys.JSONWebKeySignatureAlgorithmES256K, digest, signature)
+	require.ErrorIs(t, err, internal.ErrUnsupported)
+
+	_, err = testECDsa.Verify(azkeys.JSONWebKeySignatureAlgorithmPS256, digest, signature)
+	require.ErrorIs(t, err, internal.ErrUnsupported)
 }
 
 func TestECDsa_WrapKey(t *testing.T) {

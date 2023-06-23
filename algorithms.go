@@ -33,15 +33,30 @@ const (
 	// You should not use CBC without first ensuring the integrity of the ciphertext using an HMAC.
 	EncryptAESCBCAlgorithmA128CBC EncryptAESCBCAlgorithm = azkeys.JSONWebKeyEncryptionAlgorithmA128CBC
 
+	// EncryptAESCBCAlgorithmA128CBC uses A128-CBCPAD to pad a message using PKCS7 to a multiple of 16 bytes.
+	//
+	// You should not use CBC without first ensuring the integrity of the ciphertext using an HMAC.
+	EncryptAESCBCAlgorithmA128CBCPAD EncryptAESCBCAlgorithm = azkeys.JSONWebKeyEncryptionAlgorithmA128CBCPAD
+
 	// EncryptAESCBCAlgorithmA192CBC uses A192-CBC with a message length appropriately padded to a multiple of 16 bytes.
 	//
 	// You should not use CBC without first ensuring the integrity of the ciphertext using an HMAC.
 	EncryptAESCBCAlgorithmA192CBC EncryptAESCBCAlgorithm = azkeys.JSONWebKeyEncryptionAlgorithmA192CBC
 
+	// EncryptAESCBCAlgorithmA192CBC uses A192-CBCPAD to pad a message using PKCS7 to a multiple of 16 bytes.
+	//
+	// You should not use CBC without first ensuring the integrity of the ciphertext using an HMAC.
+	EncryptAESCBCAlgorithmA192CBCPAD EncryptAESCBCAlgorithm = azkeys.JSONWebKeyEncryptionAlgorithmA192CBCPAD
+
 	// EncryptAESCBCAlgorithmA256CBC uses A256-CBC with a message length appropriately padded to a multiple of 16 bytes.
 	//
 	// You should not use CBC without first ensuring the integrity of the ciphertext using an HMAC.
 	EncryptAESCBCAlgorithmA256CBC EncryptAESCBCAlgorithm = azkeys.JSONWebKeyEncryptionAlgorithmA256CBC
+
+	// EncryptAESCBCAlgorithmA256CBC uses A256-CBCPAD to pad a message using PKCS7 to a multiple of 16 bytes.
+	//
+	// You should not use CBC without first ensuring the integrity of the ciphertext using an HMAC.
+	EncryptAESCBCAlgorithmA256CBCPAD EncryptAESCBCAlgorithm = azkeys.JSONWebKeyEncryptionAlgorithmA256CBCPAD
 )
 
 // EncryptAESGCMAlgorithm defines the encryption algorithms supported by Azure Managed HSM for encryption with AES-GCM.
@@ -105,4 +120,13 @@ const (
 
 	// WrapKeyAlgorithmRSAOAEP256 uses RSA-OAEP-256.
 	WrapKeyAlgorithmRSAOAEP256 WrapKeyAlgorithm = azkeys.JSONWebKeyEncryptionAlgorithmRSAOAEP256
+
+	// WrapKeyAlgorithmA128KW uses A128-KW.
+	WrapKeyAlgorithmA128KW WrapKeyAlgorithm = azkeys.JSONWebKeyEncryptionAlgorithmA128KW
+
+	// WrapKeyAlgorithmA192KW uses A192-KW.
+	WrapKeyAlgorithmA192KW WrapKeyAlgorithm = azkeys.JSONWebKeyEncryptionAlgorithmA192KW
+
+	// WrapKeyAlgorithmA256KW uses A256-KW.
+	WrapKeyAlgorithmA256KW WrapKeyAlgorithm = azkeys.JSONWebKeyEncryptionAlgorithmA256KW
 )

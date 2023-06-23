@@ -69,6 +69,9 @@ func (r RSA) Encrypt(algorithm EncryptAlgorithm, plaintext []byte) (EncryptResul
 
 	case azkeys.JSONWebKeyEncryptionAlgorithmRSA15:
 		ciphertext, err = rsa.EncryptPKCS1v15(rand.Reader, &r.pub, plaintext)
+
+	default:
+		return EncryptResult{}, internal.ErrUnsupported
 	}
 
 	if err != nil {
@@ -112,7 +115,7 @@ func (r RSA) Verify(algorithm SignAlgorithm, digest, signature []byte) (VerifyRe
 		err = rsa.VerifyPKCS1v15(&r.pub, hash, digest, signature)
 
 	default:
-		panic("unexpected SignAlgorithm")
+		return VerifyResult{}, internal.ErrUnsupported
 	}
 
 	return VerifyResult{
@@ -148,6 +151,9 @@ func (r RSA) WrapKey(algorithm WrapKeyAlgorithm, key []byte) (WrapKeyResult, err
 
 	case azkeys.JSONWebKeyEncryptionAlgorithmRSA15:
 		encryptedKey, err = rsa.EncryptPKCS1v15(rand.Reader, &r.pub, key)
+
+	default:
+		return WrapKeyResult{}, internal.ErrUnsupported
 	}
 
 	if err != nil {
