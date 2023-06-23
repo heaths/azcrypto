@@ -12,7 +12,6 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azkeys"
-	"github.com/heaths/azcrypto/internal"
 	"github.com/stretchr/testify/require"
 )
 
@@ -84,13 +83,6 @@ func TestNewAES(t *testing.T) {
 			require.Equal(t, tt.blockSize, alg.block.BlockSize())
 		})
 	}
-}
-
-func TestAES_Encrypt(t *testing.T) {
-	t.Parallel()
-
-	_, err := testAES.Encrypt(azkeys.JSONWebKeyEncryptionAlgorithmRSAOAEP, []byte("plaintext"))
-	require.ErrorIs(t, err, internal.ErrUnsupported)
 }
 
 func TestAES_EncryptAESCBC(t *testing.T) {
@@ -210,20 +202,6 @@ func TestAES_EncryptAESGCM(t *testing.T) {
 			require.Equal(t, []byte("plaintext"), plaintext)
 		})
 	}
-}
-
-func TestAES_Verify(t *testing.T) {
-	t.Parallel()
-
-	_, err := testAES.Verify(azkeys.JSONWebKeySignatureAlgorithmPS256, []byte("digest"), []byte("signature"))
-	require.ErrorIs(t, err, internal.ErrUnsupported)
-}
-
-func TestAES_WrapKey(t *testing.T) {
-	t.Parallel()
-
-	_, err := testAES.WrapKey(azkeys.JSONWebKeyEncryptionAlgorithmRSAOAEP, []byte("key"))
-	require.ErrorIs(t, err, internal.ErrUnsupported)
 }
 
 func TestAESGenerateIV(t *testing.T) {

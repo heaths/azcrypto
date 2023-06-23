@@ -29,7 +29,7 @@ type Client struct {
 
 	options      *ClientOptions
 	remoteClient *azkeys.Client
-	localClient  alg.Algorithm
+	localClient  any
 
 	_init sync.Once
 }
@@ -125,8 +125,9 @@ type EncryptResult struct {
 func (client *Client) Encrypt(ctx context.Context, algorithm EncryptAlgorithm, plaintext []byte, options *EncryptOptions) (EncryptResult, error) {
 	client.init(ctx)
 
-	if client.localClient != nil {
-		result, err := client.localClient.Encrypt(algorithm, plaintext)
+	var encrypter alg.Encrypter
+	if alg.As(client.localClient, &encrypter) {
+		result, err := encrypter.Encrypt(algorithm, plaintext)
 		if !errors.Is(err, internal.ErrUnsupported) {
 			return EncryptResult{
 				Algorithm:  result.Algorithm,
@@ -216,8 +217,9 @@ func (client *Client) EncryptAESCBC(ctx context.Context, algorithm EncryptAESCBC
 	}
 
 	// TODO: Uncomment if JWTs are supported in construction of the Client.
-	// if client.localClient != nil {
-	// 	result, err := client.localClient.EncryptAESCBC(algorithm, plaintext, iv)
+	// var encrypter alg.AESEncrypter
+	// if alg.As(client.localClient, &encrypter) {
+	// 	result, err := encrypter.EncryptAESCBC(algorithm, plaintext, iv)
 	// 	if !errors.Is(err, internal.ErrUnsupported) {
 	// 		return EncryptAESCBCResult{
 	// 			Algorithm:  result.Algorithm,
@@ -295,8 +297,9 @@ func (client *Client) EncryptAESGCM(ctx context.Context, algorithm EncryptAESCBC
 	}
 
 	// TODO: Uncomment if JWTs are supported in construction of the Client.
-	// if client.localClient != nil {
-	// 	result, err := client.localClient.EncryptAESGCM(algorithm, plaintext, nonce, additionalAuthenticatedData)
+	// var encrypter alg.AESEncrypter
+	// if alg.As(client.localClient, &encrypter) {
+	// 	result, err := encrypter.EncryptAESGCM(algorithm, plaintext, nonce, additionalAuthenticatedData)
 	// 	if !errors.Is(err, internal.ErrUnsupported) {
 	// 		return EncryptAESGCMResult{
 	// 			Algorithm:                   result.Algorithm,
@@ -562,8 +565,9 @@ type VerifyResult = alg.VerifyResult
 func (client *Client) Verify(ctx context.Context, algorithm SignAlgorithm, digest, signature []byte, options *VerifyOptions) (VerifyResult, error) {
 	client.init(ctx)
 
-	if client.localClient != nil {
-		result, err := client.localClient.Verify(algorithm, digest, signature)
+	var signer alg.Signer
+	if alg.As(client.localClient, &signer) {
+		result, err := signer.Verify(algorithm, digest, signature)
 		if !errors.Is(err, internal.ErrUnsupported) {
 			return result, err
 		}
@@ -634,8 +638,9 @@ type WrapKeyResult = alg.WrapKeyResult
 func (client *Client) WrapKey(ctx context.Context, algorithm WrapKeyAlgorithm, key []byte, options *WrapKeyOptions) (WrapKeyResult, error) {
 	client.init(ctx)
 
-	if client.localClient != nil {
-		result, err := client.localClient.WrapKey(algorithm, key)
+	var encrypter alg.Encrypter
+	if alg.As(client.localClient, &encrypter) {
+		result, err := encrypter.WrapKey(algorithm, key)
 		if !errors.Is(err, internal.ErrUnsupported) {
 			return result, err
 		}

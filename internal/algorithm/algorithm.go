@@ -19,15 +19,35 @@ type EncryptAESGCMAlgorithm = azkeys.JSONWebKeyEncryptionAlgorithm
 type SignAlgorithm = azkeys.JSONWebKeySignatureAlgorithm
 type WrapKeyAlgorithm = azkeys.JSONWebKeyEncryptionAlgorithm
 
-type Algorithm interface {
-	Encrypt(algorithm EncryptAlgorithm, plaintext []byte) (EncryptResult, error)
+type AESEncrypter interface {
 	EncryptAESCBC(algorithm EncryptAESCBCAlgorithm, plaintext, iv []byte) (EncryptResult, error)
 	EncryptAESGCM(algorithm EncryptAESGCMAlgorithm, plaintext, nonce, additionalAuthenticatedData []byte) (EncryptResult, error)
-	Verify(algorithm SignAlgorithm, digest, signature []byte) (VerifyResult, error)
+}
+
+type Encrypter interface {
+	Encrypt(algorithm EncryptAlgorithm, plaintext []byte) (EncryptResult, error)
 	WrapKey(algorithm WrapKeyAlgorithm, key []byte) (WrapKeyResult, error)
 }
 
-func NewAlgorithm(key azkeys.JSONWebKey) (Algorithm, error) {
+type Signer interface {
+	Verify(algorithm SignAlgorithm, digest, signature []byte) (VerifyResult, error)
+}
+
+func As[T any](algorithm any, target *T) bool {
+	if algorithm == nil {
+		return false
+	}
+	if target == nil {
+		panic("target cannot be nil")
+	}
+	if v, ok := algorithm.(T); ok {
+		*target = v
+		return true
+	}
+	return false
+}
+
+func NewAlgorithm(key azkeys.JSONWebKey) (any, error) {
 	if key.Kty == nil {
 		return nil, internal.ErrUnsupported
 	}

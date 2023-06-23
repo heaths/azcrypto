@@ -47,10 +47,6 @@ func newAES(key azkeys.JSONWebKey) (AES, error) {
 	}, nil
 }
 
-func (a AES) Encrypt(algorithm EncryptAlgorithm, plaintext []byte) (EncryptResult, error) {
-	return EncryptResult{}, internal.ErrUnsupported
-}
-
 func (a AES) EncryptAESCBC(algorithm EncryptAESCBCAlgorithm, plaintext, iv []byte) (EncryptResult, error) {
 	// TODO: Consider implementing local PKCS7 padding support should we need local encryption support.
 	if !supportsAlgorithm(
@@ -103,14 +99,6 @@ func (a AES) EncryptAESGCM(algorithm EncryptAESGCMAlgorithm, plaintext, nonce, a
 		AdditionalAuthenticatedData: additionalAuthenticatedData,
 		AuthenticationTag:           ciphertext[len(plaintext):],
 	}, nil
-}
-
-func (a AES) Verify(algorithm SignAlgorithm, digest, signature []byte) (VerifyResult, error) {
-	return VerifyResult{}, internal.ErrUnsupported
-}
-
-func (a AES) WrapKey(algorithm WrapKeyAlgorithm, key []byte) (WrapKeyResult, error) {
-	return WrapKeyResult{}, internal.ErrUnsupported
 }
 
 func AESGenerateIV(rand io.Reader) ([]byte, error) {

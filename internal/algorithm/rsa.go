@@ -85,14 +85,6 @@ func (r RSA) Encrypt(algorithm EncryptAlgorithm, plaintext []byte) (EncryptResul
 	}, nil
 }
 
-func (r RSA) EncryptAESCBC(algorithm EncryptAESCBCAlgorithm, plaintext, iv []byte) (EncryptResult, error) {
-	return EncryptResult{}, internal.ErrUnsupported
-}
-
-func (r RSA) EncryptAESGCM(algorithm EncryptAESGCMAlgorithm, plaintext, nonce, additionalAuthenticatedData []byte) (EncryptResult, error) {
-	return EncryptResult{}, internal.ErrUnsupported
-}
-
 func (r RSA) Verify(algorithm SignAlgorithm, digest, signature []byte) (VerifyResult, error) {
 	hash, err := GetHash(algorithm)
 	if err != nil {
