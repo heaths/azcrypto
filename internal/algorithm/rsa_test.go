@@ -76,6 +76,9 @@ func TestRSA_Encrypt(t *testing.T) {
 	result, err := testRSA.Encrypt(azkeys.JSONWebKeyEncryptionAlgorithmRSAOAEP, []byte("plaintext"))
 	require.NoError(t, err)
 	require.Greater(t, len(result.Ciphertext), 0)
+
+	_, err = testRSA.Encrypt(azkeys.JSONWebKeyEncryptionAlgorithmA128CBC, []byte("plaintext"))
+	require.ErrorIs(t, err, internal.ErrUnsupported)
 }
 
 func TestRSA_EncryptAESCBC(t *testing.T) {
@@ -102,6 +105,9 @@ func TestRSA_Verify(t *testing.T) {
 	result, err := testRSA.Verify(azkeys.JSONWebKeySignatureAlgorithmPS256, digest, signature)
 	require.NoError(t, err)
 	require.True(t, result.Valid)
+
+	_, err = testRSA.Verify(azkeys.JSONWebKeySignatureAlgorithmES256, digest, signature)
+	require.ErrorIs(t, err, internal.ErrUnsupported)
 }
 
 func TestRSA_WrapKey(t *testing.T) {
@@ -112,6 +118,9 @@ func TestRSA_WrapKey(t *testing.T) {
 	result, err := testRSA.WrapKey(azkeys.JSONWebKeyEncryptionAlgorithmRSAOAEP, key)
 	require.NoError(t, err)
 	require.Greater(t, len(result.EncryptedKey), 0)
+
+	_, err = testRSA.WrapKey(azkeys.JSONWebKeyEncryptionAlgorithmA128CBC, key)
+	require.ErrorIs(t, err, internal.ErrUnsupported)
 }
 
 var testRSA = RSA{

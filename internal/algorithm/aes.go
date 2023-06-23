@@ -28,7 +28,7 @@ func newAES(key azkeys.JSONWebKey) (AES, error) {
 	}
 
 	if len(key.K) == 0 {
-		return AES{}, fmt.Errorf("key unavailable: %w", internal.ErrUnsupported)
+		return AES{}, fmt.Errorf("key unavailable")
 	}
 
 	block, err := aes.NewCipher(key.K)
@@ -52,6 +52,16 @@ func (a AES) Encrypt(algorithm EncryptAlgorithm, plaintext []byte) (EncryptResul
 }
 
 func (a AES) EncryptAESCBC(algorithm EncryptAESCBCAlgorithm, plaintext, iv []byte) (EncryptResult, error) {
+	// TODO: Consider implementing local PKCS7 padding support should we need local encryption support.
+	if !supportsAlgorithm(
+		algorithm,
+		azkeys.JSONWebKeyEncryptionAlgorithmA128CBC,
+		azkeys.JSONWebKeyEncryptionAlgorithmA192CBC,
+		azkeys.JSONWebKeyEncryptionAlgorithmA256CBC,
+	) {
+		return EncryptResult{}, internal.ErrUnsupported
+	}
+
 	blockSize := a.block.BlockSize()
 	if len(plaintext)%blockSize != 0 {
 		return EncryptResult{}, fmt.Errorf("size of plaintext not a multiple of block size")
@@ -70,6 +80,15 @@ func (a AES) EncryptAESCBC(algorithm EncryptAESCBCAlgorithm, plaintext, iv []byt
 }
 
 func (a AES) EncryptAESGCM(algorithm EncryptAESGCMAlgorithm, plaintext, nonce, additionalAuthenticatedData []byte) (EncryptResult, error) {
+	if !supportsAlgorithm(
+		algorithm,
+		azkeys.JSONWebKeyEncryptionAlgorithmA128GCM,
+		azkeys.JSONWebKeyEncryptionAlgorithmA192GCM,
+		azkeys.JSONWebKeyEncryptionAlgorithmA256GCM,
+	) {
+		return EncryptResult{}, internal.ErrUnsupported
+	}
+
 	gcm, err := cipher.NewGCM(a.block)
 	if err != nil {
 		return EncryptResult{}, err

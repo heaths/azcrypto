@@ -118,6 +118,11 @@ func TestAES_EncryptAESCBC(t *testing.T) {
 			plaintext: []byte("invalid"),
 			errMsg:    "size of plaintext not a multiple of block size",
 		},
+		{
+			name:   "unsupported",
+			kty:    azkeys.JSONWebKeyEncryptionAlgorithmA128CBCPAD,
+			errMsg: "operation not supported",
+		},
 	}
 
 	for _, tt := range tests {
@@ -156,9 +161,10 @@ func TestAES_EncryptAESGCM(t *testing.T) {
 
 	nonce := []byte{0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b}
 	tests := []struct {
-		name string
-		kty  EncryptAESGCMAlgorithm
-		aad  []byte
+		name   string
+		kty    EncryptAESGCMAlgorithm
+		aad    []byte
+		errMsg string
 	}{
 		{
 			name: "a128gcm",
@@ -169,11 +175,20 @@ func TestAES_EncryptAESGCM(t *testing.T) {
 			kty:  azkeys.JSONWebKeyEncryptionAlgorithmA256GCM,
 			aad:  []byte("additionalAuthenticatedData"),
 		},
+		{
+			name:   "unsupported",
+			kty:    azkeys.JSONWebKeyEncryptionAlgorithmA128CBC,
+			errMsg: "operation not supported",
+		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			result, err := testAES.EncryptAESGCM(tt.kty, []byte("plaintext"), nonce, tt.aad)
+			if tt.errMsg != "" {
+				require.ErrorContains(t, err, tt.errMsg)
+				return
+			}
 			require.NoError(t, err)
 			require.Equal(t, tt.kty, result.Algorithm)
 			require.Equal(t, "aes256", result.KeyID)

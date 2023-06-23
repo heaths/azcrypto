@@ -74,6 +74,15 @@ func (c ECDsa) EncryptAESGCM(algorithm EncryptAESGCMAlgorithm, plaintext, nonce,
 }
 
 func (c ECDsa) Verify(algorithm SignAlgorithm, digest, signature []byte) (VerifyResult, error) {
+	if !supportsAlgorithm(
+		algorithm,
+		azkeys.JSONWebKeySignatureAlgorithmES256,
+		azkeys.JSONWebKeySignatureAlgorithmES384,
+		azkeys.JSONWebKeySignatureAlgorithmES512,
+	) {
+		return VerifyResult{}, internal.ErrUnsupported
+	}
+
 	// Key Vault and Managed HSM concatenate r and s components.
 	r := new(big.Int).SetBytes(signature[:len(signature)/2])
 	s := new(big.Int).SetBytes(signature[len(signature)/2:])

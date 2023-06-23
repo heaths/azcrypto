@@ -41,8 +41,6 @@ func TestNewClient(t *testing.T) {
 }
 
 func TestClient_EncryptDecrypt(t *testing.T) {
-	t.Parallel()
-
 	tests := []struct {
 		name       string
 		key        string
@@ -96,8 +94,6 @@ func TestClient_EncryptDecrypt(t *testing.T) {
 	for _, tt := range tests {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-
 			client := test.Recorded(t, testClient(t, tt.key, tt.permission))
 
 			var plaintext = []byte("plaintext")
@@ -120,7 +116,6 @@ func TestClient_EncryptDecrypt(t *testing.T) {
 }
 
 func TestClient_EncryptDecryptAESCBC(t *testing.T) {
-	t.Parallel()
 	requireManagedHSM(t)
 
 	seed := []byte{0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f}
@@ -138,6 +133,11 @@ func TestClient_EncryptDecryptAESCBC(t *testing.T) {
 			err: &azcore.ResponseError{
 				StatusCode: 404,
 			},
+		},
+		{
+			name: "unsupported local",
+			key:  "aes128",
+			alg:  EncryptAESCBCAlgorithmA128CBCPAD,
 		},
 		{
 			name: "a128cbc",
@@ -165,8 +165,6 @@ func TestClient_EncryptDecryptAESCBC(t *testing.T) {
 	for _, tt := range tests {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-
 			client := test.Recorded(t, testClient(t, tt.key, false))
 
 			plaintext := []byte{0x61, 0x62, 0x63, 0x64, 0x65, 0x66, 0x67, 0x68, 0x69, 0x6a, 0x6b, 0x6c, 0x6d, 0x6e, 0x6f, 0x70}
@@ -191,7 +189,6 @@ func TestClient_EncryptDecryptAESCBC(t *testing.T) {
 }
 
 func TestClient_EncryptDecryptAESGCM(t *testing.T) {
-	t.Parallel()
 	requireManagedHSM(t)
 
 	tests := []struct {
@@ -235,8 +232,6 @@ func TestClient_EncryptDecryptAESGCM(t *testing.T) {
 	for _, tt := range tests {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-
 			client := test.Recorded(t, testClient(t, tt.key, false))
 
 			plaintext := []byte("plaintext")
@@ -266,8 +261,6 @@ func TestClient_EncryptDecryptAESGCM(t *testing.T) {
 }
 
 func TestClient_SignVerify(t *testing.T) {
-	t.Parallel()
-
 	type testData struct {
 		name       string
 		key        string
@@ -315,8 +308,6 @@ func TestClient_SignVerify(t *testing.T) {
 	for _, tt := range tests {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-
 			client := test.Recorded(t, testClient(t, tt.key, tt.permission))
 
 			var plaintext = []byte("plaintext")
@@ -339,8 +330,6 @@ func TestClient_SignVerify(t *testing.T) {
 }
 
 func TestClient_WrapUnwrapKey(t *testing.T) {
-	t.Parallel()
-
 	tests := []struct {
 		name       string
 		key        string
@@ -382,6 +371,21 @@ func TestClient_WrapUnwrapKey(t *testing.T) {
 			permission: true,
 		},
 		{
+			name: "A128KW",
+			key:  "aes128",
+			alg:  WrapKeyAlgorithmA128KW,
+		},
+		{
+			name: "A192KW",
+			key:  "aes192",
+			alg:  WrapKeyAlgorithmA192KW,
+		},
+		{
+			name: "A256KW",
+			key:  "aes256",
+			alg:  WrapKeyAlgorithmA256KW,
+		},
+		{
 			name: "missing",
 			key:  "missing",
 			alg:  WrapKeyAlgorithmRSAOAEP,
@@ -394,8 +398,6 @@ func TestClient_WrapUnwrapKey(t *testing.T) {
 	for _, tt := range tests {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-
 			client := test.Recorded(t, testClient(t, tt.key, tt.permission))
 
 			key, err := base64.StdEncoding.DecodeString("XuzMCMA534jyOTYaJ+rYvw==")
