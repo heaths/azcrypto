@@ -5,7 +5,8 @@ package algorithm
 
 import (
 	"crypto"
-	"crypto/sha256"
+	_ "crypto/sha256"
+	_ "crypto/sha512"
 	"encoding/base64"
 	"math/big"
 	"testing"
@@ -280,8 +281,8 @@ func decode(s string) *big.Int {
 }
 
 // hash a plaintext string using SHA256.
-func hash(plaintext string) []byte {
-	h := sha256.New()
+func hash(plaintext string, hash crypto.Hash) []byte {
+	h := hash.New()
 	h.Write([]byte(plaintext))
 	return h.Sum(nil)
 }
