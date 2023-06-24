@@ -4,6 +4,7 @@
 package algorithm
 
 import (
+	"crypto"
 	"crypto/ecdsa"
 	"crypto/elliptic"
 	"encoding/hex"
@@ -109,7 +110,7 @@ func TestFromCurve(t *testing.T) {
 func TestECDsa_Verify(t *testing.T) {
 	t.Parallel()
 
-	digest := hash("message")
+	digest := hash("message", crypto.SHA256)
 	signature, err := hex.DecodeString("6f1ebd371ccae1a455bb709c5bb2c3e999ede7ed34b8e5e3d3994508f238c33c48f979c986182f6b8f7bd3fb277cc3a6c10f42ee906d18420d6ee7895720fca8")
 	require.NoError(t, err)
 
