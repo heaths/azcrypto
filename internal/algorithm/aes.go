@@ -6,7 +6,6 @@ package algorithm
 import (
 	"crypto/aes"
 	"crypto/cipher"
-	"crypto/subtle"
 	"encoding/binary"
 	"fmt"
 	"io"
@@ -170,7 +169,7 @@ func wrap(block cipher.Block, plaintext []byte) ([]byte, error) {
 			// A = MSB(64, B) ^ t where t = (n*j)+i
 			t := make([]byte, 8)
 			binary.BigEndian.PutUint64(t, uint64(n*j+i))
-			subtle.XORBytes(a, b[:8], t)
+			xorBytes(a, b[:8], t)
 
 			// R[i] = LSB(64, B)
 			copy(r[i-1], b[8:])
@@ -185,4 +184,20 @@ func wrap(block cipher.Block, plaintext []byte) ([]byte, error) {
 	}
 
 	return c, nil
+}
+
+func xorBytes(dst, x, y []byte) {
+	n := len(x)
+	if len(y) < n {
+		n = len(y)
+	}
+	if n == 0 {
+		return
+	}
+	if n > len(dst) {
+		panic("dst too short")
+	}
+	for i := range dst {
+		dst[i] = x[i] ^ y[i]
+	}
 }
