@@ -26,11 +26,14 @@ type AESEncrypter interface {
 
 type Encrypter interface {
 	Encrypt(algorithm EncryptAlgorithm, plaintext []byte) (EncryptResult, error)
-	WrapKey(algorithm WrapKeyAlgorithm, key []byte) (WrapKeyResult, error)
 }
 
 type Signer interface {
 	Verify(algorithm SignAlgorithm, digest, signature []byte) (VerifyResult, error)
+}
+
+type KeyWrapper interface {
+	WrapKey(algorithm WrapKeyAlgorithm, key []byte) (WrapKeyResult, error)
 }
 
 func As[T any](algorithm any, target *T) bool {

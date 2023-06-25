@@ -6,6 +6,8 @@ package algorithm
 import (
 	"crypto/aes"
 	"crypto/cipher"
+	"crypto/subtle"
+	"encoding/binary"
 	"fmt"
 	"io"
 
@@ -15,6 +17,11 @@ import (
 
 const (
 	gcmNonceSize int = 12
+)
+
+var (
+	// Default IV from https://www.rfc-editor.org/rfc/rfc3394
+	defaultIV = []byte{0xA6, 0xA6, 0xA6, 0xA6, 0xA6, 0xA6, 0xA6, 0xA6}
 )
 
 type AES struct {
@@ -101,6 +108,28 @@ func (a AES) EncryptAESGCM(algorithm EncryptAESGCMAlgorithm, plaintext, nonce, a
 	}, nil
 }
 
+func (a AES) WrapKey(algorithm WrapKeyAlgorithm, key []byte) (WrapKeyResult, error) {
+	if !supportsAlgorithm(
+		algorithm,
+		azkeys.JSONWebKeyEncryptionAlgorithmA128KW,
+		azkeys.JSONWebKeyEncryptionAlgorithmA192KW,
+		azkeys.JSONWebKeyEncryptionAlgorithmA256KW,
+	) {
+		return WrapKeyResult{}, internal.ErrUnsupported
+	}
+
+	ciphertext, err := wrap(a.block, key)
+	if err != nil {
+		return WrapKeyResult{}, err
+	}
+
+	return WrapKeyResult{
+		Algorithm:    algorithm,
+		KeyID:        a.keyID,
+		EncryptedKey: ciphertext,
+	}, nil
+}
+
 func AESGenerateIV(rand io.Reader) ([]byte, error) {
 	iv := make([]byte, aes.BlockSize)
 	_, err := rand.Read(iv)
@@ -111,4 +140,49 @@ func AESGenerateNonce(rand io.Reader) ([]byte, error) {
 	nonce := make([]byte, gcmNonceSize)
 	_, err := rand.Read(nonce)
 	return nonce, err
+}
+
+func wrap(block cipher.Block, plaintext []byte) ([]byte, error) {
+	if len(plaintext)%8 != 0 {
+		return nil, fmt.Errorf("length of plaintext not multiple of 64 bits")
+	}
+
+	// Initialize variables.
+	a := make([]byte, 8)
+	copy(a, defaultIV)
+
+	n := len(plaintext) / 8
+	r := make([][]byte, n)
+	for i := range r {
+		r[i] = make([]byte, 8)
+		copy(r[i], plaintext[i*8:])
+	}
+
+	// Calculate intermediate values.
+	for j := 0; j <= 5; j++ {
+		for i := 1; i <= n; i++ {
+			// B = AES(K, A | R[i])
+			b := make([]byte, 16)
+			copy(b, a)
+			copy(b[8:], r[i-1])
+			block.Encrypt(b, b)
+
+			// A = MSB(64, B) ^ t where t = (n*j)+i
+			t := make([]byte, 8)
+			binary.BigEndian.PutUint64(t, uint64(n*j+i))
+			subtle.XORBytes(a, b[:8], t)
+
+			// R[i] = LSB(64, B)
+			copy(r[i-1], b[8:])
+		}
+	}
+
+	// Output the results.
+	c := make([]byte, (n+1)*8)
+	copy(c, a)
+	for i := 1; i <= n; i++ {
+		copy(c[i*8:], r[i-1])
+	}
+
+	return c, nil
 }

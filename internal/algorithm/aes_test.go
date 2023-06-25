@@ -8,6 +8,7 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"encoding/base64"
+	"encoding/hex"
 	"testing"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
@@ -204,6 +205,55 @@ func TestAES_EncryptAESGCM(t *testing.T) {
 	}
 }
 
+func TestAES_WrapKey(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name       string
+		alg        WrapKeyAlgorithm
+		plaintext  string
+		ciphertext string
+		errMsg     string
+	}{
+		{
+			name:       "A128KW",
+			alg:        azkeys.JSONWebKeyEncryptionAlgorithmA128KW,
+			plaintext:  "00112233445566778899AABBCCDDEEFF",
+			ciphertext: "f41d33f9b9a7ea0bf3645432c8c89dc4f1be8cc32408a933",
+		},
+		{
+			name:      "invalid",
+			alg:       azkeys.JSONWebKeyEncryptionAlgorithmA128KW,
+			plaintext: "00112233",
+			errMsg:    "length of plaintext not multiple of 64 bits",
+		},
+		{
+			name:   "unsupported",
+			alg:    azkeys.JSONWebKeyEncryptionAlgorithmA128CBC,
+			errMsg: "operation not supported",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			plaintext, err := hex.DecodeString(tt.plaintext)
+			require.NoError(t, err)
+			ciphertext, err := hex.DecodeString(tt.ciphertext)
+			require.NoError(t, err)
+
+			result, err := testAES.WrapKey(tt.alg, plaintext)
+			if tt.errMsg != "" {
+				require.ErrorContains(t, err, tt.errMsg)
+				return
+			}
+			require.NoError(t, err)
+			require.Equal(t, tt.alg, result.Algorithm)
+			require.Equal(t, "aes256", result.KeyID)
+			require.Equal(t, ciphertext, result.EncryptedKey)
+		})
+	}
+}
+
 func TestAESGenerateIV(t *testing.T) {
 	t.Parallel()
 
@@ -224,6 +274,81 @@ func TestAESGenerateNonce(t *testing.T) {
 	nonce, err := AESGenerateNonce(rand)
 	require.NoError(t, err)
 	require.Equal(t, seed, nonce)
+}
+
+func TestWrap(t *testing.T) {
+	tests := []struct {
+		name       string
+		kek        string
+		plaintext  string
+		ciphertext string
+		errMsg     string
+	}{
+		{
+			name:       "wrap 128 bits of plaintext with 128-bit kek",
+			kek:        "000102030405060708090A0B0C0D0E0F",
+			plaintext:  "00112233445566778899AABBCCDDEEFF",
+			ciphertext: "1FA68B0A8112B447AEF34BD8FB5A7B829D3E862371D2CFE5",
+		},
+		{
+			name:       "wrap 128 bits of plaintext with 192-bit kek",
+			kek:        "000102030405060708090A0B0C0D0E0F1011121314151617",
+			plaintext:  "00112233445566778899AABBCCDDEEFF",
+			ciphertext: "96778B25AE6CA435F92B5B97C050AED2468AB8A17AD84E5D",
+		},
+		{
+			name:       "wrap 128 bits of plaintext with 256-bit kek",
+			kek:        "000102030405060708090A0B0C0D0E0F101112131415161718191A1B1C1D1E1F",
+			plaintext:  "00112233445566778899AABBCCDDEEFF",
+			ciphertext: "64E8C3F9CE0F5BA263E9777905818A2A93C8191E7D6E8AE7",
+		},
+		{
+			name:       "wrap 192 bits of plaintext with 192-bit kek",
+			kek:        "000102030405060708090A0B0C0D0E0F1011121314151617",
+			plaintext:  "00112233445566778899AABBCCDDEEFF0001020304050607",
+			ciphertext: "031D33264E15D33268F24EC260743EDCE1C6C7DDEE725A936BA814915C6762D2",
+		},
+		{
+			name:       "wrap 192 bits of plaintext with 256-bit kek",
+			kek:        "000102030405060708090A0B0C0D0E0F101112131415161718191A1B1C1D1E1F",
+			plaintext:  "00112233445566778899AABBCCDDEEFF0001020304050607",
+			ciphertext: "A8F9BC1612C68B3FF6E6F4FBE30E71E4769C8B80A32CB8958CD5D17D6B254DA1",
+		},
+		{
+			name:       "wrap 256 bits of plaintext with 256-bit kek",
+			kek:        "000102030405060708090A0B0C0D0E0F101112131415161718191A1B1C1D1E1F",
+			plaintext:  "00112233445566778899AABBCCDDEEFF000102030405060708090A0B0C0D0E0F",
+			ciphertext: "28C9F404C4B810F4CBCCB35CFB87F8263F5786E2D80ED326CBC7F0E71A99F43BFB988B9B7A02DD21",
+		},
+		{
+			name:      "invalid",
+			kek:       "000102030405060708090A0B0C0D0E0F",
+			plaintext: "00112233",
+			errMsg:    "length of plaintext not multiple of 64 bits",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			kek, err := hex.DecodeString(tt.kek)
+			require.NoError(t, err)
+			plaintext, err := hex.DecodeString(tt.plaintext)
+			require.NoError(t, err)
+			expected, err := hex.DecodeString(tt.ciphertext)
+			require.NoError(t, err)
+
+			block, err := aes.NewCipher(kek)
+			require.NoError(t, err)
+
+			ciphertext, err := wrap(block, plaintext)
+			if tt.errMsg != "" {
+				require.ErrorContains(t, err, tt.errMsg)
+				return
+			}
+			require.NoError(t, err)
+			require.Equal(t, expected, ciphertext)
+		})
+	}
 }
 
 func decodeBytes(src string) []byte {
