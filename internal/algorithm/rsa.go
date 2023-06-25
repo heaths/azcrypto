@@ -86,17 +86,18 @@ func (r RSA) Encrypt(algorithm EncryptAlgorithm, plaintext []byte) (EncryptResul
 }
 
 func (r RSA) Verify(algorithm SignAlgorithm, digest, signature []byte) (VerifyResult, error) {
-	hash, err := GetHash(algorithm)
-	if err != nil {
-		return VerifyResult{}, err
-	}
-
+	var err error
 	switch algorithm {
 	case azkeys.JSONWebKeySignatureAlgorithmPS256:
 		fallthrough
 	case azkeys.JSONWebKeySignatureAlgorithmPS384:
 		fallthrough
 	case azkeys.JSONWebKeySignatureAlgorithmPS512:
+		var hash crypto.Hash
+		hash, err = GetHash(algorithm)
+		if err != nil {
+			return VerifyResult{}, err
+		}
 		err = rsa.VerifyPSS(&r.pub, hash, digest, signature, nil)
 
 	case azkeys.JSONWebKeySignatureAlgorithmRS256:
@@ -104,6 +105,11 @@ func (r RSA) Verify(algorithm SignAlgorithm, digest, signature []byte) (VerifyRe
 	case azkeys.JSONWebKeySignatureAlgorithmRS384:
 		fallthrough
 	case azkeys.JSONWebKeySignatureAlgorithmRS512:
+		var hash crypto.Hash
+		hash, err = GetHash(algorithm)
+		if err != nil {
+			return VerifyResult{}, err
+		}
 		err = rsa.VerifyPKCS1v15(&r.pub, hash, digest, signature)
 
 	default:

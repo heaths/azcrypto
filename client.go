@@ -638,9 +638,9 @@ type WrapKeyResult = alg.WrapKeyResult
 func (client *Client) WrapKey(ctx context.Context, algorithm WrapKeyAlgorithm, key []byte, options *WrapKeyOptions) (WrapKeyResult, error) {
 	client.init(ctx)
 
-	var encrypter alg.Encrypter
-	if alg.As(client.localClient, &encrypter) {
-		result, err := encrypter.WrapKey(algorithm, key)
+	var keyWrapper alg.KeyWrapper
+	if alg.As(client.localClient, &keyWrapper) {
+		result, err := keyWrapper.WrapKey(algorithm, key)
 		if !errors.Is(err, internal.ErrUnsupported) {
 			return result, err
 		}
