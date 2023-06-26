@@ -238,31 +238,22 @@ func (a AES) UnwrapKey(algorithm WrapKeyAlgorithm, encryptedKey []byte) (UnwrapK
 
 func requiresKeySize[T ~string](algorithm T, a AES) int {
 	switch algorithm {
-	case T(azkeys.JSONWebKeyEncryptionAlgorithmA128CBC):
-		fallthrough
-	case T(azkeys.JSONWebKeyEncryptionAlgorithmA128CBCPAD):
-		fallthrough
-	case T(azkeys.JSONWebKeyEncryptionAlgorithmA128GCM):
-		fallthrough
-	case T(azkeys.JSONWebKeyEncryptionAlgorithmA128KW):
+	case T(azkeys.JSONWebKeyEncryptionAlgorithmA128CBC),
+		T(azkeys.JSONWebKeyEncryptionAlgorithmA128CBCPAD),
+		T(azkeys.JSONWebKeyEncryptionAlgorithmA128GCM),
+		T(azkeys.JSONWebKeyEncryptionAlgorithmA128KW):
 		return 16
 
-	case T(azkeys.JSONWebKeyEncryptionAlgorithmA192CBC):
-		fallthrough
-	case T(azkeys.JSONWebKeyEncryptionAlgorithmA192CBCPAD):
-		fallthrough
-	case T(azkeys.JSONWebKeyEncryptionAlgorithmA192GCM):
-		fallthrough
-	case T(azkeys.JSONWebKeyEncryptionAlgorithmA192KW):
+	case T(azkeys.JSONWebKeyEncryptionAlgorithmA192CBC),
+		T(azkeys.JSONWebKeyEncryptionAlgorithmA192CBCPAD),
+		T(azkeys.JSONWebKeyEncryptionAlgorithmA192GCM),
+		T(azkeys.JSONWebKeyEncryptionAlgorithmA192KW):
 		return 24
 
-	case T(azkeys.JSONWebKeyEncryptionAlgorithmA256CBC):
-		fallthrough
-	case T(azkeys.JSONWebKeyEncryptionAlgorithmA256CBCPAD):
-		fallthrough
-	case T(azkeys.JSONWebKeyEncryptionAlgorithmA256GCM):
-		fallthrough
-	case T(azkeys.JSONWebKeyEncryptionAlgorithmA256KW):
+	case T(azkeys.JSONWebKeyEncryptionAlgorithmA256CBC),
+		T(azkeys.JSONWebKeyEncryptionAlgorithmA256CBCPAD),
+		T(azkeys.JSONWebKeyEncryptionAlgorithmA256GCM),
+		T(azkeys.JSONWebKeyEncryptionAlgorithmA256KW):
 		return 32
 
 	default:
