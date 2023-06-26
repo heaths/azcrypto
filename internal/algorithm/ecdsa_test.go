@@ -128,7 +128,7 @@ func TestECDsa_Verify(t *testing.T) {
 var testECDsa = ECDsa{
 	pub: ecdsa.PublicKey{
 		Curve: elliptic.P256(),
-		X:     decode("7WxNBlctcTGSin66Wagm+TjuJNkakZ66/kBWbrEXH7A="),
-		Y:     decode("eezcbUP083FjPhwp+uTTXiJVKI7/j+IMYMl4uYrF95Y="),
+		X:     base64ToBigInt("7WxNBlctcTGSin66Wagm+TjuJNkakZ66/kBWbrEXH7A="),
+		Y:     base64ToBigInt("eezcbUP083FjPhwp+uTTXiJVKI7/j+IMYMl4uYrF95Y="),
 	},
 }

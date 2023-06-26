@@ -8,6 +8,7 @@ import (
 	_ "crypto/sha256"
 	_ "crypto/sha512"
 	"encoding/base64"
+	"encoding/hex"
 	"math/big"
 	"testing"
 
@@ -80,7 +81,7 @@ func TestNewAlgorithm(t *testing.T) {
 			name: "oct",
 			key: azkeys.JSONWebKey{
 				Kty: to.Ptr(azkeys.JSONWebKeyTypeOct),
-				K:   decodeBytes("9M09IArT3CEMYXEKBNdhgw=="), // cspell:disable-line,
+				K:   base64ToBytes("9M09IArT3CEMYXEKBNdhgw=="), // cspell:disable-line,
 			},
 			alg: AES{},
 		},
@@ -88,7 +89,7 @@ func TestNewAlgorithm(t *testing.T) {
 			name: "oct-hsm",
 			key: azkeys.JSONWebKey{
 				Kty: to.Ptr(azkeys.JSONWebKeyTypeOctHSM),
-				K:   decodeBytes("9M09IArT3CEMYXEKBNdhgw=="), // cspell:disable-line,
+				K:   base64ToBytes("9M09IArT3CEMYXEKBNdhgw=="), // cspell:disable-line,
 			},
 			alg: AES{},
 		},
@@ -150,7 +151,7 @@ func TestAs(t *testing.T) {
 			name: "oct",
 			key: azkeys.JSONWebKey{
 				Kty: to.Ptr(azkeys.JSONWebKeyTypeOct),
-				K:   decodeBytes("9M09IArT3CEMYXEKBNdhgw=="), // cspell:disable-line,
+				K:   base64ToBytes("9M09IArT3CEMYXEKBNdhgw=="), // cspell:disable-line,
 			},
 			alg: aesEncrypter,
 		},
@@ -271,13 +272,31 @@ func TestSupportsAlgorithm(t *testing.T) {
 	))
 }
 
-// decode a base64 string.
-func decode(s string) *big.Int {
+// base64ToBigInt decodes a base64 string to a big.Int.
+func base64ToBigInt(s string) *big.Int {
 	b, err := base64.StdEncoding.DecodeString(s)
 	if err != nil {
 		panic(err)
 	}
 	return new(big.Int).SetBytes(b)
+}
+
+// base64ToBytes decodes a base64 string to a []byte.
+func base64ToBytes(s string) []byte {
+	dst, err := base64.StdEncoding.DecodeString(s)
+	if err != nil {
+		panic(err)
+	}
+	return dst
+}
+
+// hexToBytes decodes a hexadecimal string to a []byte.
+func hexToBytes(s string) []byte {
+	dst, err := hex.DecodeString(s)
+	if err != nil {
+		panic(err)
+	}
+	return dst
 }
 
 // hash a plaintext string using SHA256.
