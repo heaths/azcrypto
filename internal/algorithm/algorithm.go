@@ -60,21 +60,15 @@ func NewAlgorithm(key azkeys.JSONWebKey) (any, error) {
 
 	switch *key.Kty {
 	// ECDsa
-	case azkeys.JSONWebKeyTypeEC:
-		fallthrough
-	case azkeys.JSONWebKeyTypeECHSM:
+	case azkeys.JSONWebKeyTypeEC, azkeys.JSONWebKeyTypeECHSM:
 		return newECDsa(key)
 
 	// RSA
-	case azkeys.JSONWebKeyTypeRSA:
-		fallthrough
-	case azkeys.JSONWebKeyTypeRSAHSM:
+	case azkeys.JSONWebKeyTypeRSA, azkeys.JSONWebKeyTypeRSAHSM:
 		return newRSA(key)
 
 	// oct
-	case azkeys.JSONWebKeyTypeOct:
-		fallthrough
-	case azkeys.JSONWebKeyTypeOctHSM:
+	case azkeys.JSONWebKeyTypeOct, azkeys.JSONWebKeyTypeOctHSM:
 		return newAES(key)
 
 	default:
@@ -84,27 +78,20 @@ func NewAlgorithm(key azkeys.JSONWebKey) (any, error) {
 
 func GetHash(algorithm SignAlgorithm) (crypto.Hash, error) {
 	switch algorithm {
-	case azkeys.JSONWebKeySignatureAlgorithmPS256:
-		fallthrough
-	case azkeys.JSONWebKeySignatureAlgorithmRS256:
-		fallthrough
-	case azkeys.JSONWebKeySignatureAlgorithmES256:
-		fallthrough
-	case azkeys.JSONWebKeySignatureAlgorithmES256K:
+	case azkeys.JSONWebKeySignatureAlgorithmPS256,
+		azkeys.JSONWebKeySignatureAlgorithmRS256,
+		azkeys.JSONWebKeySignatureAlgorithmES256,
+		azkeys.JSONWebKeySignatureAlgorithmES256K:
 		return crypto.SHA256, nil
 
-	case azkeys.JSONWebKeySignatureAlgorithmPS384:
-		fallthrough
-	case azkeys.JSONWebKeySignatureAlgorithmRS384:
-		fallthrough
-	case azkeys.JSONWebKeySignatureAlgorithmES384:
+	case azkeys.JSONWebKeySignatureAlgorithmPS384,
+		azkeys.JSONWebKeySignatureAlgorithmRS384,
+		azkeys.JSONWebKeySignatureAlgorithmES384:
 		return crypto.SHA384, nil
 
-	case azkeys.JSONWebKeySignatureAlgorithmPS512:
-		fallthrough
-	case azkeys.JSONWebKeySignatureAlgorithmRS512:
-		fallthrough
-	case azkeys.JSONWebKeySignatureAlgorithmES512:
+	case azkeys.JSONWebKeySignatureAlgorithmPS512,
+		azkeys.JSONWebKeySignatureAlgorithmRS512,
+		azkeys.JSONWebKeySignatureAlgorithmES512:
 		return crypto.SHA512, nil
 
 	default:

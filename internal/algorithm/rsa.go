@@ -61,9 +61,8 @@ func (r RSA) Encrypt(algorithm EncryptAlgorithm, plaintext []byte) (EncryptResul
 	}
 
 	switch algorithm {
-	case azkeys.JSONWebKeyEncryptionAlgorithmRSAOAEP:
-		fallthrough
-	case azkeys.JSONWebKeyEncryptionAlgorithmRSAOAEP256:
+	case azkeys.JSONWebKeyEncryptionAlgorithmRSAOAEP,
+		azkeys.JSONWebKeyEncryptionAlgorithmRSAOAEP256:
 		hash := getHash()
 		ciphertext, err = rsa.EncryptOAEP(hash.New(), rand.Reader, &r.pub, plaintext, nil)
 
@@ -88,11 +87,9 @@ func (r RSA) Encrypt(algorithm EncryptAlgorithm, plaintext []byte) (EncryptResul
 func (r RSA) Verify(algorithm SignAlgorithm, digest, signature []byte) (VerifyResult, error) {
 	var err error
 	switch algorithm {
-	case azkeys.JSONWebKeySignatureAlgorithmPS256:
-		fallthrough
-	case azkeys.JSONWebKeySignatureAlgorithmPS384:
-		fallthrough
-	case azkeys.JSONWebKeySignatureAlgorithmPS512:
+	case azkeys.JSONWebKeySignatureAlgorithmPS256,
+		azkeys.JSONWebKeySignatureAlgorithmPS384,
+		azkeys.JSONWebKeySignatureAlgorithmPS512:
 		var hash crypto.Hash
 		hash, err = GetHash(algorithm)
 		if err != nil {
@@ -100,11 +97,9 @@ func (r RSA) Verify(algorithm SignAlgorithm, digest, signature []byte) (VerifyRe
 		}
 		err = rsa.VerifyPSS(&r.pub, hash, digest, signature, nil)
 
-	case azkeys.JSONWebKeySignatureAlgorithmRS256:
-		fallthrough
-	case azkeys.JSONWebKeySignatureAlgorithmRS384:
-		fallthrough
-	case azkeys.JSONWebKeySignatureAlgorithmRS512:
+	case azkeys.JSONWebKeySignatureAlgorithmRS256,
+		azkeys.JSONWebKeySignatureAlgorithmRS384,
+		azkeys.JSONWebKeySignatureAlgorithmRS512:
 		var hash crypto.Hash
 		hash, err = GetHash(algorithm)
 		if err != nil {
@@ -141,9 +136,8 @@ func (r RSA) WrapKey(algorithm WrapKeyAlgorithm, key []byte) (WrapKeyResult, err
 	}
 
 	switch algorithm {
-	case azkeys.JSONWebKeyEncryptionAlgorithmRSAOAEP:
-		fallthrough
-	case azkeys.JSONWebKeyEncryptionAlgorithmRSAOAEP256:
+	case azkeys.JSONWebKeyEncryptionAlgorithmRSAOAEP,
+		azkeys.JSONWebKeyEncryptionAlgorithmRSAOAEP256:
 		hash := getHash()
 		encryptedKey, err = rsa.EncryptOAEP(hash.New(), rand.Reader, &r.pub, key, nil)
 
