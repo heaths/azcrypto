@@ -533,6 +533,12 @@ func TestUnwrap(t *testing.T) {
 			ciphertext: "00112233",
 			errMsg:     "length of ciphertext not multiple of 64 bits",
 		},
+		{
+			name:       "corrupt",
+			kek:        "000102030405060708090A0B0C0D0E0F",
+			ciphertext: "18C9F404C4B810F4CBCCB35CFB87F8263F5786E2D80ED326CBC7F0E71A99F43BFB988B9B7A02DD21",
+			errMsg:     "integrity check failed",
+		},
 	}
 
 	for _, tt := range tests {
