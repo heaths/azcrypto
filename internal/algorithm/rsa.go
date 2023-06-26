@@ -31,7 +31,7 @@ func newRSA(key azkeys.JSONWebKey) (RSA, error) {
 		keyID = string(*key.KID)
 	}
 
-	eb := ensure(key.E, 4)
+	eb := ensureSize(key.E, 4)
 	eu := binary.BigEndian.Uint32(eb)
 
 	return RSA{
@@ -165,7 +165,11 @@ func (r RSA) WrapKey(algorithm WrapKeyAlgorithm, key []byte) (WrapKeyResult, err
 	}, nil
 }
 
-func ensure(src []byte, size int) []byte {
+func (r RSA) UnwrapKey(algorithm WrapKeyAlgorithm, encryptedKey []byte) (UnwrapKeyResult, error) {
+	return UnwrapKeyResult{}, internal.ErrUnsupported
+}
+
+func ensureSize(src []byte, size int) []byte {
 	l := len(src)
 	if l < size {
 		dst := make([]byte, size)

@@ -3,8 +3,6 @@
 
 package azcrypto
 
-// TODO: Remove calls to log throughout this module.
-
 import (
 	"context"
 	"crypto/rand"
@@ -74,6 +72,34 @@ func NewClient(keyID string, credential azcore.TokenCredential, options *ClientO
 	}, nil
 }
 
+// NewClientFromJSONWebKey creates a Client from the given JSON Web Key (JWK).
+// No attempt will be made to contact Azure Key Vault or Managed HSM.
+// If the JWK does not have the key material necessary for an operation, an error will be returned.
+func NewClientFromJSONWebKey(key azkeys.JSONWebKey, options *ClientOptions) (*Client, error) {
+	if options == nil {
+		options = &ClientOptions{}
+	}
+
+	var keyID string
+	if key.KID != nil {
+		keyID = string(*key.KID)
+	}
+
+	localClient, err := alg.NewAlgorithm(key)
+	if err != nil {
+		return nil, fmt.Errorf("bad key: %w", err)
+	}
+
+	client := &Client{
+		keyID:       string(keyID),
+		options:     options,
+		localClient: localClient,
+	}
+	client._init.Do(func() {})
+
+	return client, nil
+}
+
 // KeyID gets the key ID passed to NewClient.
 func (client *Client) KeyID() string {
 	return client.keyID
@@ -128,7 +154,7 @@ func (client *Client) Encrypt(ctx context.Context, algorithm EncryptAlgorithm, p
 	var encrypter alg.Encrypter
 	if alg.As(client.localClient, &encrypter) {
 		result, err := encrypter.Encrypt(algorithm, plaintext)
-		if !errors.Is(err, internal.ErrUnsupported) {
+		if client.localOnly() || !errors.Is(err, internal.ErrUnsupported) {
 			return EncryptResult{
 				Algorithm:  result.Algorithm,
 				KeyID:      result.KeyID,
@@ -216,19 +242,18 @@ func (client *Client) EncryptAESCBC(ctx context.Context, algorithm EncryptAESCBC
 		}
 	}
 
-	// TODO: Uncomment if JWTs are supported in construction of the Client.
-	// var encrypter alg.AESEncrypter
-	// if alg.As(client.localClient, &encrypter) {
-	// 	result, err := encrypter.EncryptAESCBC(algorithm, plaintext, iv)
-	// 	if !errors.Is(err, internal.ErrUnsupported) {
-	// 		return EncryptAESCBCResult{
-	// 			Algorithm:  result.Algorithm,
-	// 			KeyID:      result.KeyID,
-	// 			Ciphertext: result.Ciphertext,
-	// 			IV:         result.IV,
-	// 		}, err
-	// 	}
-	// }
+	var encrypter alg.AESEncrypter
+	if alg.As(client.localClient, &encrypter) {
+		result, err := encrypter.EncryptAESCBC(algorithm, plaintext, iv)
+		if client.localOnly() || !errors.Is(err, internal.ErrUnsupported) {
+			return EncryptAESCBCResult{
+				Algorithm:  result.Algorithm,
+				KeyID:      result.KeyID,
+				Ciphertext: result.Ciphertext,
+				IV:         result.IV,
+			}, err
+		}
+	}
 
 	parameters := azkeys.KeyOperationsParameters{
 		Algorithm: &algorithm,
@@ -265,6 +290,10 @@ func (client *Client) EncryptAESCBC(ctx context.Context, algorithm EncryptAESCBC
 // EncryptAESGCMOptions defines options for the EncryptAESGCM method.
 type EncryptAESGCMOptions struct {
 	azkeys.EncryptOptions
+
+	// Rand represents a random number generator.
+	// By default this is crypto/rand.Reader.
+	Rand io.Reader
 }
 
 // EncryptAESGCMResult contains information returned by the EncryptAESGCM method.
@@ -295,22 +324,29 @@ func (client *Client) EncryptAESGCM(ctx context.Context, algorithm EncryptAESCBC
 	if options == nil {
 		options = &EncryptAESGCMOptions{}
 	}
+	if options.Rand == nil {
+		options.Rand = rand.Reader
+	}
 
-	// TODO: Uncomment if JWTs are supported in construction of the Client.
-	// var encrypter alg.AESEncrypter
-	// if alg.As(client.localClient, &encrypter) {
-	// 	result, err := encrypter.EncryptAESGCM(algorithm, plaintext, nonce, additionalAuthenticatedData)
-	// 	if !errors.Is(err, internal.ErrUnsupported) {
-	// 		return EncryptAESGCMResult{
-	// 			Algorithm:                   result.Algorithm,
-	// 			KeyID:                       result.KeyID,
-	// 			Ciphertext:                  result.Ciphertext,
-	// 			Nonce:                       result.Nonce,
-	// 			AdditionalAuthenticatedData: result.AdditionalAuthenticatedData,
-	// 			AuthenticationTag:           result.AuthenticationTag,
-	// 		}, err
-	// 	}
-	// }
+	var encrypter alg.AESEncrypter
+	if alg.As(client.localClient, &encrypter) {
+		nonce, err := alg.AESGenerateNonce(options.Rand)
+		if err != nil {
+			return EncryptAESGCMResult{}, nil
+		}
+
+		result, err := encrypter.EncryptAESGCM(algorithm, plaintext, nonce, additionalAuthenticatedData)
+		if client.localOnly() || !errors.Is(err, internal.ErrUnsupported) {
+			return EncryptAESGCMResult{
+				Algorithm:                   result.Algorithm,
+				KeyID:                       result.KeyID,
+				Ciphertext:                  result.Ciphertext,
+				Nonce:                       result.Nonce,
+				AdditionalAuthenticatedData: result.AdditionalAuthenticatedData,
+				AuthenticationTag:           result.AuthenticationTag,
+			}, err
+		}
+	}
 
 	parameters := azkeys.KeyOperationsParameters{
 		Algorithm: &algorithm,
@@ -401,7 +437,20 @@ type DecryptAESCBCResult = alg.DecryptResult
 
 // DecryptAESCBC decrypts the ciphertext using the specified algorithm.
 func (client *Client) DecryptAESCBC(ctx context.Context, algorithm EncryptAESCBCAlgorithm, ciphertext, iv []byte, options *DecryptAESCBCOptions) (DecryptAESCBCResult, error) {
-	// Decrypting requires access to a private key, which Key Vault does not provide by default.
+	client.init(ctx)
+
+	var encrypter alg.AESEncrypter
+	if alg.As(client.localClient, &encrypter) {
+		result, err := encrypter.DecryptAESCBC(algorithm, ciphertext, iv)
+		if client.localOnly() || !errors.Is(err, internal.ErrUnsupported) {
+			return DecryptAESCBCResult{
+				Algorithm: result.Algorithm,
+				KeyID:     result.KeyID,
+				Plaintext: result.Plaintext,
+			}, err
+		}
+	}
+
 	parameters := azkeys.KeyOperationsParameters{
 		Algorithm: &algorithm,
 		Value:     ciphertext,
@@ -447,7 +496,20 @@ type DecryptAESGCMResult = alg.DecryptResult
 
 // DecryptAESGCM decrypts the ciphertext using the specified algorithm.
 func (client *Client) DecryptAESGCM(ctx context.Context, algorithm EncryptAESGCMAlgorithm, ciphertext, nonce, authenticationTag, additionalAuthenticatedData []byte, options *DecryptAESGCMOptions) (DecryptAESGCMResult, error) {
-	// Decrypting requires access to a private key, which Key Vault does not provide by default.
+	client.init(ctx)
+
+	var encrypter alg.AESEncrypter
+	if alg.As(client.localClient, &encrypter) {
+		result, err := encrypter.DecryptAESGCM(algorithm, ciphertext, nonce, authenticationTag, additionalAuthenticatedData)
+		if client.localOnly() || !errors.Is(err, internal.ErrUnsupported) {
+			return DecryptAESCBCResult{
+				Algorithm: result.Algorithm,
+				KeyID:     result.KeyID,
+				Plaintext: result.Plaintext,
+			}, err
+		}
+	}
+
 	parameters := azkeys.KeyOperationsParameters{
 		Algorithm: &algorithm,
 		Value:     ciphertext,
@@ -568,7 +630,7 @@ func (client *Client) Verify(ctx context.Context, algorithm SignAlgorithm, diges
 	var signer alg.Signer
 	if alg.As(client.localClient, &signer) {
 		result, err := signer.Verify(algorithm, digest, signature)
-		if !errors.Is(err, internal.ErrUnsupported) {
+		if client.localOnly() || !errors.Is(err, internal.ErrUnsupported) {
 			return result, err
 		}
 	}
@@ -641,7 +703,7 @@ func (client *Client) WrapKey(ctx context.Context, algorithm WrapKeyAlgorithm, k
 	var keyWrapper alg.KeyWrapper
 	if alg.As(client.localClient, &keyWrapper) {
 		result, err := keyWrapper.WrapKey(algorithm, key)
-		if !errors.Is(err, internal.ErrUnsupported) {
+		if client.localOnly() || !errors.Is(err, internal.ErrUnsupported) {
 			return result, err
 		}
 	}
@@ -690,7 +752,16 @@ type UnwrapKeyResult = alg.UnwrapKeyResult
 
 // UnwrapKey decrypts the specified key using the specified algorithm. Asymmetric decryption is typically used to unwrap a symmetric key used for streaming ciphers.
 func (client *Client) UnwrapKey(ctx context.Context, algorithm WrapKeyAlgorithm, encryptedKey []byte, options *UnwrapKeyOptions) (UnwrapKeyResult, error) {
-	// Unwrapping a key requires access to a private key, which Key Vault does not provide by default.
+	client.init(ctx)
+
+	var keyWrapper alg.KeyWrapper
+	if alg.As(client.localClient, &keyWrapper) {
+		result, err := keyWrapper.UnwrapKey(algorithm, encryptedKey)
+		if client.localOnly() || !errors.Is(err, internal.ErrUnsupported) {
+			return result, err
+		}
+	}
+
 	parameters := azkeys.KeyOperationsParameters{
 		Algorithm: &algorithm,
 		Value:     encryptedKey,
@@ -723,4 +794,8 @@ func (client *Client) UnwrapKey(ctx context.Context, algorithm WrapKeyAlgorithm,
 	}
 
 	return result, nil
+}
+
+func (c *Client) localOnly() bool {
+	return c.remoteClient == nil
 }

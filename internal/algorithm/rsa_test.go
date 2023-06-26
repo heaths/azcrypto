@@ -60,7 +60,7 @@ func TestEnsure(t *testing.T) {
 	t.Parallel()
 
 	sut := func(src []byte) []byte {
-		return ensure(src, 4)
+		return ensureSize(src, 4)
 	}
 
 	require.Equal(t, []byte{0x00, 0x00, 0x00, 0x00}, sut([]byte{}))
@@ -224,7 +224,7 @@ func TestRSA_WrapKey(t *testing.T) {
 
 var testRSA = RSA{
 	pub: rsa.PublicKey{
-		N: decode("tzFeRPTTKru13TcHYp0YvfPBs4EthI/iUZHkfT1n93OeRQMtNdxVqi6axRAMVBprSBXE35axxivTV+nGezJpbq+JJfVRiY9HBDpxtmpY3ikRB2Pr7DatxFABF6IbfPSsQmKGUsjTJWwSDdYLgtzZmhpQmbUfXm2MCausYzC+yIkFy8PbcS+ouyeT1LGCJXziQU37pUHXrEFfXav8Q5SRMbk74HtWqqI1Hx0IssC+Bj6Wp0wrM9QxRQiArOnJ61nuzApUarnYT7xr0Ft3qiex8lKmhZ52mK0JvRlzXuSaSZ8KH7BJ5z09vJFLX2eEOBuiM/wOdmEdgHcvlv0TLn6uYYmXuwhtMr8FvV7TPs0CK5fCl3SBsmdnlh2+7XNMg9o6hkcpbzL2dTdnfscVOtUGhh7ypftCNnPy219knPwlzYcTuNovoBAvrmBTJOlJhXx/9qHyE+Ig/MdtXuh19sohUnls6fdIiBVqHRfhNewOPr7wURZGG58S4zHk+RB5k+5pONtf1lb7+dLwrG0xtgqV6dobcJUYYkKJlToHmT1ApquROZt1hnRvIr72aKiRCWNViwlK0yBQ4c3giyzB5xduDLAUiWOwxYU9Lr6shNAMQ8A3JHARgQakh3UqAE0rNLLqrNGVKEpUtxBcLxRqR2v9y91dhiXmEAiG8gEfnrSRAsU="),
+		N: base64ToBigInt("tzFeRPTTKru13TcHYp0YvfPBs4EthI/iUZHkfT1n93OeRQMtNdxVqi6axRAMVBprSBXE35axxivTV+nGezJpbq+JJfVRiY9HBDpxtmpY3ikRB2Pr7DatxFABF6IbfPSsQmKGUsjTJWwSDdYLgtzZmhpQmbUfXm2MCausYzC+yIkFy8PbcS+ouyeT1LGCJXziQU37pUHXrEFfXav8Q5SRMbk74HtWqqI1Hx0IssC+Bj6Wp0wrM9QxRQiArOnJ61nuzApUarnYT7xr0Ft3qiex8lKmhZ52mK0JvRlzXuSaSZ8KH7BJ5z09vJFLX2eEOBuiM/wOdmEdgHcvlv0TLn6uYYmXuwhtMr8FvV7TPs0CK5fCl3SBsmdnlh2+7XNMg9o6hkcpbzL2dTdnfscVOtUGhh7ypftCNnPy219knPwlzYcTuNovoBAvrmBTJOlJhXx/9qHyE+Ig/MdtXuh19sohUnls6fdIiBVqHRfhNewOPr7wURZGG58S4zHk+RB5k+5pONtf1lb7+dLwrG0xtgqV6dobcJUYYkKJlToHmT1ApquROZt1hnRvIr72aKiRCWNViwlK0yBQ4c3giyzB5xduDLAUiWOwxYU9Lr6shNAMQ8A3JHARgQakh3UqAE0rNLLqrNGVKEpUtxBcLxRqR2v9y91dhiXmEAiG8gEfnrSRAsU="),
 		E: 65537, // AQAB
 	},
 }

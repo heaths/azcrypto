@@ -21,7 +21,9 @@ type WrapKeyAlgorithm = azkeys.JSONWebKeyEncryptionAlgorithm
 
 type AESEncrypter interface {
 	EncryptAESCBC(algorithm EncryptAESCBCAlgorithm, plaintext, iv []byte) (EncryptResult, error)
+	DecryptAESCBC(algorithm EncryptAESCBCAlgorithm, ciphertext, iv []byte) (DecryptResult, error)
 	EncryptAESGCM(algorithm EncryptAESGCMAlgorithm, plaintext, nonce, additionalAuthenticatedData []byte) (EncryptResult, error)
+	DecryptAESGCM(algorithm EncryptAESGCMAlgorithm, ciphertext, nonce, authenticationTag, additionalAuthenticatedData []byte) (DecryptResult, error)
 }
 
 type Encrypter interface {
@@ -34,6 +36,7 @@ type Signer interface {
 
 type KeyWrapper interface {
 	WrapKey(algorithm WrapKeyAlgorithm, key []byte) (WrapKeyResult, error)
+	UnwrapKey(algorithm WrapKeyAlgorithm, encryptedKey []byte) (UnwrapKeyResult, error)
 }
 
 func As[T any](algorithm any, target *T) bool {

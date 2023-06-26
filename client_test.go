@@ -9,6 +9,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"os"
@@ -188,6 +189,42 @@ func TestClient_EncryptDecryptAESCBC(t *testing.T) {
 	}
 }
 
+func TestClient_EncryptDecryptAESCBC_local(t *testing.T) {
+	const jwk = `{
+		"kty": "oct",
+		"k": "vzZ5FtPDDpVJCwdwikXfzvz_3RAhWqGg7mcpPqPRlXk"
+	}`
+
+	var key azkeys.JSONWebKey
+	err := json.Unmarshal([]byte(jwk), &key)
+	require.NoError(t, err)
+
+	client, err := NewClientFromJSONWebKey(key, nil)
+	require.NoError(t, err)
+
+	iv := base64ToBytes("AAECAwQFBgcICQoLDA0ODw==")
+	plaintext := base64ToBytes("YWJjZGVmZ2hpamtsbW5vcA==")
+	encrypted, err := client.EncryptAESCBC(
+		context.Background(),
+		EncryptAESCBCAlgorithmA128CBC,
+		plaintext,
+		iv,
+		nil,
+	)
+	require.NoError(t, err)
+	require.Equal(t, base64ToBytes("fNAMESgFNBfTvYpyoT0/AQ=="), encrypted.Ciphertext) // cspell:disable-line
+
+	decrypted, err := client.DecryptAESCBC(
+		context.Background(),
+		EncryptAESCBCAlgorithmA128CBC,
+		encrypted.Ciphertext,
+		encrypted.IV,
+		nil,
+	)
+	require.NoError(t, err)
+	require.Equal(t, plaintext, decrypted.Plaintext)
+}
+
 func TestClient_EncryptDecryptAESGCM(t *testing.T) {
 	requireManagedHSM(t)
 
@@ -258,6 +295,49 @@ func TestClient_EncryptDecryptAESGCM(t *testing.T) {
 			require.Nil(t, client.localClient)
 		})
 	}
+}
+
+func TestClient_EncryptDecryptAESGCM_local(t *testing.T) {
+	const jwk = `{
+		"kty": "oct",
+		"k": "vzZ5FtPDDpVJCwdwikXfzvz_3RAhWqGg7mcpPqPRlXk"
+	}`
+
+	var key azkeys.JSONWebKey
+	err := json.Unmarshal([]byte(jwk), &key)
+	require.NoError(t, err)
+
+	client, err := NewClientFromJSONWebKey(key, nil)
+	require.NoError(t, err)
+
+	rand := base64ToBytes("AAECAwQFBgcICQoL")
+	options := EncryptAESGCMOptions{
+		Rand: bytes.NewBuffer(rand),
+	}
+
+	plaintext := []byte("plaintext")
+	encrypted, err := client.EncryptAESGCM(
+		context.Background(),
+		EncryptAESGCMAlgorithmA128GCM,
+		plaintext,
+		nil,
+		&options,
+	)
+	require.NoError(t, err)
+	require.Equal(t, base64ToBytes("+2sRgggQxsWv"), encrypted.Ciphertext)                    // cspell:disable-line
+	require.Equal(t, base64ToBytes("IrJDF0jD+BZ56+BPnRH7rg=="), encrypted.AuthenticationTag) // cspell:disable-line
+
+	decrypted, err := client.DecryptAESGCM(
+		context.Background(),
+		EncryptAESGCMAlgorithmA128GCM,
+		encrypted.Ciphertext,
+		encrypted.Nonce,
+		encrypted.AuthenticationTag,
+		encrypted.AdditionalAuthenticatedData,
+		nil,
+	)
+	require.NoError(t, err)
+	require.Equal(t, plaintext, decrypted.Plaintext)
 }
 
 func TestClient_SignVerify(t *testing.T) {
@@ -400,9 +480,7 @@ func TestClient_WrapUnwrapKey(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			client := test.Recorded(t, testClient(t, tt.key, tt.permission))
 
-			key, err := base64.StdEncoding.DecodeString("XuzMCMA534jyOTYaJ+rYvw==")
-			require.NoError(t, err)
-
+			key := base64ToBytes("XuzMCMA534jyOTYaJ+rYvw==")
 			wrapped, err := client.WrapKey(context.Background(), tt.alg, key, nil)
 			if tt.err != nil {
 				if !test.RequireIfResponseError(t, err, tt.err) {
@@ -419,6 +497,29 @@ func TestClient_WrapUnwrapKey(t *testing.T) {
 			require.Equal(t, tt.permission, client.localClient != nil)
 		})
 	}
+}
+
+func TestClient_WrapUnwrapKey_local(t *testing.T) {
+	const jwk = `{
+		"kty": "oct",
+		"k": "vzZ5FtPDDpVJCwdwikXfzvz_3RAhWqGg7mcpPqPRlXk"
+	}`
+
+	var kek azkeys.JSONWebKey
+	err := json.Unmarshal([]byte(jwk), &kek)
+	require.NoError(t, err)
+
+	client, err := NewClientFromJSONWebKey(kek, nil)
+	require.NoError(t, err)
+
+	key := base64ToBytes("ABEiM0RVZneImaq7zN3u/w==")
+	encrypted, err := client.WrapKey(context.Background(), WrapKeyAlgorithmA128KW, key, nil)
+	require.NoError(t, err)
+	require.Equal(t, base64ToBytes("9B0z+bmn6gvzZFQyyMidxPG+jMMkCKkz"), encrypted.EncryptedKey) // cspell:disable-line
+
+	decrypted, err := client.UnwrapKey(context.Background(), WrapKeyAlgorithmA128KW, encrypted.EncryptedKey, nil)
+	require.NoError(t, err)
+	require.Equal(t, key, decrypted.Key)
 }
 
 func testClient(t *testing.T, keyName string, permission bool) test.ClientFactory[Client] {
@@ -461,4 +562,13 @@ func requireManagedHSM(t *testing.T) {
 			t.Skip("Managed HSM has not been provisioned")
 		}
 	}
+}
+
+// base64ToBytes decodes a base64 string to a []byte.
+func base64ToBytes(s string) []byte {
+	dst, err := base64.StdEncoding.DecodeString(s)
+	if err != nil {
+		panic(err)
+	}
+	return dst
 }
