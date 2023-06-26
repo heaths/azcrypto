@@ -6,7 +6,6 @@
 package azcrypto
 
 import (
-	"bytes"
 	"context"
 	"encoding/base64"
 	"encoding/json"
@@ -169,9 +168,7 @@ func TestClient_EncryptDecryptAESCBC(t *testing.T) {
 			client := test.Recorded(t, testClient(t, tt.key, false))
 
 			plaintext := []byte{0x61, 0x62, 0x63, 0x64, 0x65, 0x66, 0x67, 0x68, 0x69, 0x6a, 0x6b, 0x6c, 0x6d, 0x6e, 0x6f, 0x70}
-			encrypted, err := client.EncryptAESCBC(context.Background(), tt.alg, plaintext, tt.iv, &EncryptAESCBCOptions{
-				Rand: bytes.NewBuffer(seed),
-			})
+			encrypted, err := client.EncryptAESCBC(context.Background(), tt.alg, plaintext, tt.iv, nil)
 			if tt.err != nil {
 				if !test.RequireIfResponseError(t, err, tt.err) {
 					require.ErrorIs(t, err, tt.err)
@@ -307,13 +304,11 @@ func TestClient_EncryptDecryptAESGCM_local(t *testing.T) {
 	err := json.Unmarshal([]byte(jwk), &key)
 	require.NoError(t, err)
 
-	client, err := NewClientFromJSONWebKey(key, nil)
-	require.NoError(t, err)
-
-	rand := base64ToBytes("AAECAwQFBgcICQoL")
-	options := EncryptAESGCMOptions{
-		Rand: bytes.NewBuffer(rand),
+	options := ClientOptions{
+		Rand: new(rng),
 	}
+	client, err := NewClientFromJSONWebKey(key, &options)
+	require.NoError(t, err)
 
 	plaintext := []byte("plaintext")
 	encrypted, err := client.EncryptAESGCM(
@@ -321,7 +316,7 @@ func TestClient_EncryptDecryptAESGCM_local(t *testing.T) {
 		EncryptAESGCMAlgorithmA128GCM,
 		plaintext,
 		nil,
-		&options,
+		nil,
 	)
 	require.NoError(t, err)
 	require.Equal(t, base64ToBytes("+2sRgggQxsWv"), encrypted.Ciphertext)                    // cspell:disable-line
@@ -550,6 +545,7 @@ func testClient(t *testing.T, keyName string, permission bool) test.ClientFactor
 					Transport: recording.GetTransport(),
 				},
 			},
+			Rand:       new(rng),
 			remoteOnly: test.IsRemoteOnly(),
 		})
 	}
@@ -571,4 +567,14 @@ func base64ToBytes(s string) []byte {
 		panic(err)
 	}
 	return dst
+}
+
+// rng is a mock RNG used only for testing.
+type rng struct{}
+
+func (r *rng) Read(b []byte) (int, error) {
+	for i := range b {
+		b[i] = byte(i)
+	}
+	return len(b), nil
 }
