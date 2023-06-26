@@ -25,15 +25,19 @@ type Client struct {
 	keyName    string
 	keyVersion string
 
-	options      *ClientOptions
 	remoteClient *azkeys.Client
 	localClient  any
 
 	_init sync.Once
+	rand  io.Reader
 }
 
 type ClientOptions struct {
 	azkeys.ClientOptions
+
+	// Rand should be a cryptographically random number generator.
+	// The default is crypto/Rand.Reader.
+	Rand io.Reader
 
 	remoteOnly bool
 }
@@ -58,18 +62,27 @@ func NewClient(keyID string, credential azcore.TokenCredential, options *ClientO
 		version = to.Ptr("")
 	}
 
-	client, err := azkeys.NewClient(*vaultURL, credential, &options.ClientOptions)
+	remoteClient, err := azkeys.NewClient(*vaultURL, credential, &options.ClientOptions)
 	if err != nil {
 		return nil, err
 	}
 
-	return &Client{
+	client := &Client{
 		keyID:        keyID,
 		keyName:      *name,
 		keyVersion:   *version,
-		options:      options,
-		remoteClient: client,
-	}, nil
+		remoteClient: remoteClient,
+		rand:         options.Rand,
+	}
+	if client.rand == nil {
+		client.rand = rand.Reader
+	}
+
+	if options.remoteOnly {
+		client._init.Do(func() {})
+	}
+
+	return client, nil
 }
 
 // NewClientFromJSONWebKey creates a Client from the given JSON Web Key (JWK).
@@ -92,8 +105,11 @@ func NewClientFromJSONWebKey(key azkeys.JSONWebKey, options *ClientOptions) (*Cl
 
 	client := &Client{
 		keyID:       string(keyID),
-		options:     options,
 		localClient: localClient,
+		rand:        options.Rand,
+	}
+	if client.rand == nil {
+		client.rand = rand.Reader
 	}
 	client._init.Do(func() {})
 
@@ -107,10 +123,6 @@ func (client *Client) KeyID() string {
 
 func (client *Client) init(ctx context.Context) {
 	client._init.Do(func() {
-		if client.options.remoteOnly {
-			return
-		}
-
 		response, err := client.remoteClient.GetKey(ctx, client.keyName, client.keyVersion, nil)
 		if err != nil {
 			return
@@ -200,10 +212,6 @@ func (client *Client) Encrypt(ctx context.Context, algorithm EncryptAlgorithm, p
 // EncryptAESCBCOptions defines options for the EncryptAESCBC method.
 type EncryptAESCBCOptions struct {
 	azkeys.EncryptOptions
-
-	// Rand represents a random number generator.
-	// By default this is crypto/rand.Reader.
-	Rand io.Reader
 }
 
 // EncryptAESCBCResult contains information returned by the EncryptAESCBC method.
@@ -232,11 +240,8 @@ func (client *Client) EncryptAESCBC(ctx context.Context, algorithm EncryptAESCBC
 		options = &EncryptAESCBCOptions{}
 	}
 	if iv == nil {
-		if options.Rand == nil {
-			options.Rand = rand.Reader
-		}
 		var err error
-		iv, err = alg.AESGenerateIV(options.Rand)
+		iv, err = alg.AESGenerateIV(client.rand)
 		if err != nil {
 			return EncryptAESCBCResult{}, fmt.Errorf("generate IV: %w", err)
 		}
@@ -290,10 +295,6 @@ func (client *Client) EncryptAESCBC(ctx context.Context, algorithm EncryptAESCBC
 // EncryptAESGCMOptions defines options for the EncryptAESGCM method.
 type EncryptAESGCMOptions struct {
 	azkeys.EncryptOptions
-
-	// Rand represents a random number generator.
-	// By default this is crypto/rand.Reader.
-	Rand io.Reader
 }
 
 // EncryptAESGCMResult contains information returned by the EncryptAESGCM method.
@@ -324,13 +325,10 @@ func (client *Client) EncryptAESGCM(ctx context.Context, algorithm EncryptAESCBC
 	if options == nil {
 		options = &EncryptAESGCMOptions{}
 	}
-	if options.Rand == nil {
-		options.Rand = rand.Reader
-	}
 
 	var encrypter alg.AESEncrypter
 	if alg.As(client.localClient, &encrypter) {
-		nonce, err := alg.AESGenerateNonce(options.Rand)
+		nonce, err := alg.AESGenerateNonce(client.rand)
 		if err != nil {
 			return EncryptAESGCMResult{}, nil
 		}
