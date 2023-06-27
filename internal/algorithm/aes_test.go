@@ -26,21 +26,21 @@ func TestNewAES(t *testing.T) {
 		{
 			name: "unsupported kty",
 			key: azkeys.JSONWebKey{
-				Kty: to.Ptr(azkeys.JSONWebKeyTypeRSA),
+				Kty: to.Ptr(azkeys.KeyTypeRSA),
 			},
 			errMsg: `AES does not support key type "RSA"`,
 		},
 		{
 			name: "missing k",
 			key: azkeys.JSONWebKey{
-				Kty: to.Ptr(azkeys.JSONWebKeyTypeOct),
+				Kty: to.Ptr(azkeys.KeyTypeOct),
 			},
 			errMsg: `key unavailable`,
 		},
 		{
 			name: "aes-128",
 			key: azkeys.JSONWebKey{
-				Kty: to.Ptr(azkeys.JSONWebKeyTypeOct),
+				Kty: to.Ptr(azkeys.KeyTypeOct),
 				KID: to.Ptr(azkeys.ID("aes128")),
 				K:   base64ToBytes("9M09IArT3CEMYXEKBNdhgw=="), // cspell:disable-line
 			},
@@ -50,7 +50,7 @@ func TestNewAES(t *testing.T) {
 		{
 			name: "aes-192",
 			key: azkeys.JSONWebKey{
-				Kty: to.Ptr(azkeys.JSONWebKeyTypeOct),
+				Kty: to.Ptr(azkeys.KeyTypeOct),
 				KID: to.Ptr(azkeys.ID("aes192")),
 				K:   base64ToBytes("j47gBb9et5ytAdDV/YOOPke2DBjTLIOD"), // cspell:disable-line
 			},
@@ -60,7 +60,7 @@ func TestNewAES(t *testing.T) {
 		{
 			name: "aes-256",
 			key: azkeys.JSONWebKey{
-				Kty: to.Ptr(azkeys.JSONWebKeyTypeOct),
+				Kty: to.Ptr(azkeys.KeyTypeOct),
 				KID: to.Ptr(azkeys.ID("aes256")),
 				K:   base64ToBytes("vzZ5FtPDDpVJCwdwikXfzvz/3RAhWqGg7mcpPqPRlXk="), // cspell:disable-line
 			},
@@ -96,25 +96,25 @@ func TestAES_EncryptAESCBC(t *testing.T) {
 	}{
 		{
 			name:       "a128cbc",
-			kty:        azkeys.JSONWebKeyEncryptionAlgorithmA128CBC,
+			kty:        azkeys.EncryptionAlgorithmA128CBC,
 			plaintext:  base64ToBytes("YWJjZGVmZ2hpamtsbW5vcA=="), // cspell:disable-line
 			ciphertext: base64ToBytes("fNAMESgFNBfTvYpyoT0/AQ=="), // cspell:disable-line
 		},
 		{
 			name:       "a256cbc",
-			kty:        azkeys.JSONWebKeyEncryptionAlgorithmA256CBC,
+			kty:        azkeys.EncryptionAlgorithmA256CBC,
 			plaintext:  base64ToBytes("YWJjZGVmZ2hpamtsbW5vcA=="), // cspell:disable-line
 			ciphertext: base64ToBytes("fNAMESgFNBfTvYpyoT0/AQ=="), // cspell:disable-line
 		},
 		{
 			name:      "invalid block size",
-			kty:       azkeys.JSONWebKeyEncryptionAlgorithmA128CBC,
+			kty:       azkeys.EncryptionAlgorithmA128CBC,
 			plaintext: []byte("invalid"),
 			errMsg:    "size of plaintext not a multiple of block size",
 		},
 		{
 			name:   "unsupported",
-			kty:    azkeys.JSONWebKeyEncryptionAlgorithmA128CBCPAD,
+			kty:    azkeys.EncryptionAlgorithmA128CBCPAD,
 			errMsg: "operation not supported",
 		},
 	}
@@ -152,25 +152,25 @@ func TestAES_DecryptAESCBC(t *testing.T) {
 	}{
 		{
 			name:       "a128cbc",
-			kty:        azkeys.JSONWebKeyEncryptionAlgorithmA128CBC,
+			kty:        azkeys.EncryptionAlgorithmA128CBC,
 			plaintext:  base64ToBytes("YWJjZGVmZ2hpamtsbW5vcA=="), // cspell:disable-line
 			ciphertext: base64ToBytes("fNAMESgFNBfTvYpyoT0/AQ=="), // cspell:disable-line
 		},
 		{
 			name:       "a256cbc",
-			kty:        azkeys.JSONWebKeyEncryptionAlgorithmA256CBC,
+			kty:        azkeys.EncryptionAlgorithmA256CBC,
 			plaintext:  base64ToBytes("YWJjZGVmZ2hpamtsbW5vcA=="), // cspell:disable-line
 			ciphertext: base64ToBytes("fNAMESgFNBfTvYpyoT0/AQ=="), // cspell:disable-line
 		},
 		{
 			name:       "invalid block size",
-			kty:        azkeys.JSONWebKeyEncryptionAlgorithmA128CBC,
+			kty:        azkeys.EncryptionAlgorithmA128CBC,
 			ciphertext: []byte("invalid"),
 			errMsg:     "size of ciphertext not a multiple of block size",
 		},
 		{
 			name:   "unsupported",
-			kty:    azkeys.JSONWebKeyEncryptionAlgorithmA128CBCPAD,
+			kty:    azkeys.EncryptionAlgorithmA128CBCPAD,
 			errMsg: "operation not supported",
 		},
 	}
@@ -205,20 +205,20 @@ func TestAES_EncryptAESGCM(t *testing.T) {
 	}{
 		{
 			name:       "a128gcm",
-			kty:        azkeys.JSONWebKeyEncryptionAlgorithmA128GCM,
+			kty:        azkeys.EncryptionAlgorithmA128GCM,
 			ciphertext: base64ToBytes("+2sRgggQxsWv"),             // cspell:disable-line
 			tag:        base64ToBytes("IrJDF0jD+BZ56+BPnRH7rg=="), // cspell:disable-line
 		},
 		{
 			name:       "a256gcm with aad",
-			kty:        azkeys.JSONWebKeyEncryptionAlgorithmA256GCM,
+			kty:        azkeys.EncryptionAlgorithmA256GCM,
 			aad:        []byte("additionalAuthenticatedData"),
 			ciphertext: base64ToBytes("+2sRgggQxsWv"),             // cspell:disable-line
 			tag:        base64ToBytes("Xora0uL34SJwoNUA5FOkAg=="), // cspell:disable-line
 		},
 		{
 			name:   "unsupported",
-			kty:    azkeys.JSONWebKeyEncryptionAlgorithmA128CBC,
+			kty:    azkeys.EncryptionAlgorithmA128CBC,
 			errMsg: "operation not supported",
 		},
 	}
@@ -256,20 +256,20 @@ func TestAES_DecryptAESGCM(t *testing.T) {
 	}{
 		{
 			name:       "a128gcm",
-			kty:        azkeys.JSONWebKeyEncryptionAlgorithmA128GCM,
+			kty:        azkeys.EncryptionAlgorithmA128GCM,
 			ciphertext: base64ToBytes("+2sRgggQxsWv"),             // cspell:disable-line
 			tag:        base64ToBytes("IrJDF0jD+BZ56+BPnRH7rg=="), // cspell:disable-line
 		},
 		{
 			name:       "a256gcm with aad",
-			kty:        azkeys.JSONWebKeyEncryptionAlgorithmA256GCM,
+			kty:        azkeys.EncryptionAlgorithmA256GCM,
 			aad:        []byte("additionalAuthenticatedData"),
 			ciphertext: base64ToBytes("+2sRgggQxsWv"),             // cspell:disable-line
 			tag:        base64ToBytes("Xora0uL34SJwoNUA5FOkAg=="), // cspell:disable-line
 		},
 		{
 			name:   "unsupported",
-			kty:    azkeys.JSONWebKeyEncryptionAlgorithmA128CBC,
+			kty:    azkeys.EncryptionAlgorithmA128CBC,
 			errMsg: "operation not supported",
 		},
 	}
@@ -301,19 +301,19 @@ func TestAES_WrapKey(t *testing.T) {
 	}{
 		{
 			name:       "a128kw",
-			alg:        azkeys.JSONWebKeyEncryptionAlgorithmA128KW,
+			alg:        azkeys.EncryptionAlgorithmA128KW,
 			plaintext:  "00112233445566778899AABBCCDDEEFF",
 			ciphertext: "f41d33f9b9a7ea0bf3645432c8c89dc4f1be8cc32408a933",
 		},
 		{
 			name:      "invalid",
-			alg:       azkeys.JSONWebKeyEncryptionAlgorithmA128KW,
+			alg:       azkeys.EncryptionAlgorithmA128KW,
 			plaintext: "00112233",
 			errMsg:    "length of plaintext not multiple of 64 bits",
 		},
 		{
 			name:   "unsupported",
-			alg:    azkeys.JSONWebKeyEncryptionAlgorithmA128CBC,
+			alg:    azkeys.EncryptionAlgorithmA128CBC,
 			errMsg: "operation not supported",
 		},
 	}
@@ -348,19 +348,19 @@ func TestAES_UnwrapKey(t *testing.T) {
 	}{
 		{
 			name:       "a128kw",
-			alg:        azkeys.JSONWebKeyEncryptionAlgorithmA128KW,
+			alg:        azkeys.EncryptionAlgorithmA128KW,
 			plaintext:  "00112233445566778899AABBCCDDEEFF",
 			ciphertext: "f41d33f9b9a7ea0bf3645432c8c89dc4f1be8cc32408a933",
 		},
 		{
 			name:       "invalid",
-			alg:        azkeys.JSONWebKeyEncryptionAlgorithmA128KW,
+			alg:        azkeys.EncryptionAlgorithmA128KW,
 			ciphertext: "00112233",
 			errMsg:     "length of ciphertext not multiple of 64 bits",
 		},
 		{
 			name:   "unsupported",
-			alg:    azkeys.JSONWebKeyEncryptionAlgorithmA128CBC,
+			alg:    azkeys.EncryptionAlgorithmA128CBC,
 			errMsg: "operation not supported",
 		},
 	}
@@ -590,25 +590,25 @@ func TestRequiresKeySize(t *testing.T) {
 	}
 	iv := base64ToBytes("AAECAwQFBgcICQoLDA0ODw==") // cspell:disable-line
 
-	_, err = a.EncryptAESCBC(azkeys.JSONWebKeyEncryptionAlgorithmA128CBC, nil, iv)
+	_, err = a.EncryptAESCBC(azkeys.EncryptionAlgorithmA128CBC, nil, iv)
 	require.NoError(t, err)
 
-	_, err = a.EncryptAESCBC(azkeys.JSONWebKeyEncryptionAlgorithmA192CBC, nil, iv)
+	_, err = a.EncryptAESCBC(azkeys.EncryptionAlgorithmA192CBC, nil, iv)
 	require.ErrorContains(t, err, "A192CBC requires key size 24 bytes or larger")
 
-	_, err = a.EncryptAESCBC(azkeys.JSONWebKeyEncryptionAlgorithmA256CBC, nil, iv)
+	_, err = a.EncryptAESCBC(azkeys.EncryptionAlgorithmA256CBC, nil, iv)
 	require.ErrorContains(t, err, "A256CBC requires key size 32 bytes or larger")
 
-	_, err = a.EncryptAESGCM(azkeys.JSONWebKeyEncryptionAlgorithmA256GCM, nil, iv, nil)
+	_, err = a.EncryptAESGCM(azkeys.EncryptionAlgorithmA256GCM, nil, iv, nil)
 	require.ErrorContains(t, err, "A256GCM requires key size 32 bytes or larger")
 
-	_, err = a.DecryptAESCBC(azkeys.JSONWebKeyEncryptionAlgorithmA256CBC, nil, iv)
+	_, err = a.DecryptAESCBC(azkeys.EncryptionAlgorithmA256CBC, nil, iv)
 	require.ErrorContains(t, err, "A256CBC requires key size 32 bytes or larger")
 
-	_, err = a.DecryptAESGCM(azkeys.JSONWebKeyEncryptionAlgorithmA256GCM, nil, iv, nil, nil)
+	_, err = a.DecryptAESGCM(azkeys.EncryptionAlgorithmA256GCM, nil, iv, nil, nil)
 	require.ErrorContains(t, err, "A256GCM requires key size 32 bytes or larger")
 
-	_, err = a.WrapKey(azkeys.JSONWebKeyEncryptionAlgorithmA256KW, nil)
+	_, err = a.WrapKey(azkeys.EncryptionAlgorithmA256KW, nil)
 	require.ErrorContains(t, err, "A256KW requires key size 32 bytes or larger")
 }
 

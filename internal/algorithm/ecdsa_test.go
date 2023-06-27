@@ -28,22 +28,22 @@ func TestNewECDsa(t *testing.T) {
 		{
 			name: "unsupported kty",
 			key: azkeys.JSONWebKey{
-				Kty: to.Ptr(azkeys.JSONWebKeyTypeRSA),
+				Kty: to.Ptr(azkeys.KeyTypeRSA),
 			},
 			errMsg: `ECDsa does not support key type "RSA"`,
 		},
 		{
 			name: "missing crv",
 			key: azkeys.JSONWebKey{
-				Kty: to.Ptr(azkeys.JSONWebKeyTypeEC),
+				Kty: to.Ptr(azkeys.KeyTypeEC),
 			},
 			errMsg: "ECDsa requires curve name",
 		},
 		{
 			name: "with keyID",
 			key: azkeys.JSONWebKey{
-				Kty: to.Ptr(azkeys.JSONWebKeyTypeEC),
-				Crv: to.Ptr(azkeys.JSONWebKeyCurveNameP256),
+				Kty: to.Ptr(azkeys.KeyTypeEC),
+				Crv: to.Ptr(azkeys.CurveNameP256),
 				KID: to.Ptr(azkeys.ID("kid")),
 			},
 			keyID: "kid",
@@ -68,28 +68,28 @@ func TestFromCurve(t *testing.T) {
 
 	tests := []struct {
 		name string
-		crv  azkeys.JSONWebKeyCurveName
+		crv  azkeys.CurveName
 		want elliptic.Curve
 		err  error
 	}{
 		{
 			name: "p256",
-			crv:  azkeys.JSONWebKeyCurveNameP256,
+			crv:  azkeys.CurveNameP256,
 			want: elliptic.P256(),
 		},
 		{
 			name: "p256k",
-			crv:  azkeys.JSONWebKeyCurveNameP256K,
+			crv:  azkeys.CurveNameP256K,
 			err:  internal.ErrUnsupported,
 		},
 		{
 			name: "p384",
-			crv:  azkeys.JSONWebKeyCurveNameP384,
+			crv:  azkeys.CurveNameP384,
 			want: elliptic.P384(),
 		},
 		{
 			name: "p521",
-			crv:  azkeys.JSONWebKeyCurveNameP521,
+			crv:  azkeys.CurveNameP521,
 			want: elliptic.P521(),
 		},
 	}
@@ -114,14 +114,14 @@ func TestECDsa_Verify(t *testing.T) {
 	signature, err := hex.DecodeString("6f1ebd371ccae1a455bb709c5bb2c3e999ede7ed34b8e5e3d3994508f238c33c48f979c986182f6b8f7bd3fb277cc3a6c10f42ee906d18420d6ee7895720fca8")
 	require.NoError(t, err)
 
-	result, err := testECDsa.Verify(azkeys.JSONWebKeySignatureAlgorithmES256, digest, signature)
+	result, err := testECDsa.Verify(azkeys.SignatureAlgorithmES256, digest, signature)
 	require.NoError(t, err)
 	require.True(t, result.Valid)
 
-	_, err = testECDsa.Verify(azkeys.JSONWebKeySignatureAlgorithmES256K, digest, signature)
+	_, err = testECDsa.Verify(azkeys.SignatureAlgorithmES256K, digest, signature)
 	require.ErrorIs(t, err, internal.ErrUnsupported)
 
-	_, err = testECDsa.Verify(azkeys.JSONWebKeySignatureAlgorithmPS256, digest, signature)
+	_, err = testECDsa.Verify(azkeys.SignatureAlgorithmPS256, digest, signature)
 	require.ErrorIs(t, err, internal.ErrUnsupported)
 }
 

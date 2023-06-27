@@ -20,7 +20,7 @@ type ECDsa struct {
 }
 
 func newECDsa(key azkeys.JSONWebKey) (ECDsa, error) {
-	if *key.Kty != azkeys.JSONWebKeyTypeEC && *key.Kty != azkeys.JSONWebKeyTypeECHSM {
+	if *key.Kty != azkeys.KeyTypeEC && *key.Kty != azkeys.KeyTypeECHSM {
 		return ECDsa{}, fmt.Errorf("ECDsa does not support key type %q", *key.Kty)
 	}
 
@@ -48,13 +48,13 @@ func newECDsa(key azkeys.JSONWebKey) (ECDsa, error) {
 	}, nil
 }
 
-func fromCurve(crv azkeys.JSONWebKeyCurveName) (elliptic.Curve, error) {
+func fromCurve(crv azkeys.CurveName) (elliptic.Curve, error) {
 	switch crv {
-	case azkeys.JSONWebKeyCurveNameP256:
+	case azkeys.CurveNameP256:
 		return elliptic.P256(), nil
-	case azkeys.JSONWebKeyCurveNameP384:
+	case azkeys.CurveNameP384:
 		return elliptic.P384(), nil
-	case azkeys.JSONWebKeyCurveNameP521:
+	case azkeys.CurveNameP521:
 		return elliptic.P521(), nil
 	default:
 		return nil, internal.ErrUnsupported
@@ -64,9 +64,9 @@ func fromCurve(crv azkeys.JSONWebKeyCurveName) (elliptic.Curve, error) {
 func (c ECDsa) Verify(algorithm SignAlgorithm, digest, signature []byte) (VerifyResult, error) {
 	if !supportsAlgorithm(
 		algorithm,
-		azkeys.JSONWebKeySignatureAlgorithmES256,
-		azkeys.JSONWebKeySignatureAlgorithmES384,
-		azkeys.JSONWebKeySignatureAlgorithmES512,
+		azkeys.SignatureAlgorithmES256,
+		azkeys.SignatureAlgorithmES384,
+		azkeys.SignatureAlgorithmES512,
 	) {
 		return VerifyResult{}, internal.ErrUnsupported
 	}

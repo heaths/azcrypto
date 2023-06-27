@@ -22,7 +22,7 @@ type RSA struct {
 }
 
 func newRSA(key azkeys.JSONWebKey) (RSA, error) {
-	if *key.Kty != azkeys.JSONWebKeyTypeRSA && *key.Kty != azkeys.JSONWebKeyTypeRSAHSM {
+	if *key.Kty != azkeys.KeyTypeRSA && *key.Kty != azkeys.KeyTypeRSAHSM {
 		return RSA{}, fmt.Errorf("RSA does not support key type %q", *key.Kty)
 	}
 
@@ -49,10 +49,10 @@ func (r RSA) Encrypt(algorithm EncryptAlgorithm, plaintext []byte) (EncryptResul
 
 	getHash := func() crypto.Hash {
 		switch algorithm {
-		case azkeys.JSONWebKeyEncryptionAlgorithmRSAOAEP:
+		case azkeys.EncryptionAlgorithmRSAOAEP:
 			return crypto.SHA1
 
-		case azkeys.JSONWebKeyEncryptionAlgorithmRSAOAEP256:
+		case azkeys.EncryptionAlgorithmRSAOAEP256:
 			return crypto.SHA256
 
 		default:
@@ -61,12 +61,12 @@ func (r RSA) Encrypt(algorithm EncryptAlgorithm, plaintext []byte) (EncryptResul
 	}
 
 	switch algorithm {
-	case azkeys.JSONWebKeyEncryptionAlgorithmRSAOAEP,
-		azkeys.JSONWebKeyEncryptionAlgorithmRSAOAEP256:
+	case azkeys.EncryptionAlgorithmRSAOAEP,
+		azkeys.EncryptionAlgorithmRSAOAEP256:
 		hash := getHash()
 		ciphertext, err = rsa.EncryptOAEP(hash.New(), rand.Reader, &r.pub, plaintext, nil)
 
-	case azkeys.JSONWebKeyEncryptionAlgorithmRSA15:
+	case azkeys.EncryptionAlgorithmRSA15:
 		ciphertext, err = rsa.EncryptPKCS1v15(rand.Reader, &r.pub, plaintext)
 
 	default:
@@ -87,9 +87,9 @@ func (r RSA) Encrypt(algorithm EncryptAlgorithm, plaintext []byte) (EncryptResul
 func (r RSA) Verify(algorithm SignAlgorithm, digest, signature []byte) (VerifyResult, error) {
 	var err error
 	switch algorithm {
-	case azkeys.JSONWebKeySignatureAlgorithmPS256,
-		azkeys.JSONWebKeySignatureAlgorithmPS384,
-		azkeys.JSONWebKeySignatureAlgorithmPS512:
+	case azkeys.SignatureAlgorithmPS256,
+		azkeys.SignatureAlgorithmPS384,
+		azkeys.SignatureAlgorithmPS512:
 		var hash crypto.Hash
 		hash, err = GetHash(algorithm)
 		if err != nil {
@@ -97,9 +97,9 @@ func (r RSA) Verify(algorithm SignAlgorithm, digest, signature []byte) (VerifyRe
 		}
 		err = rsa.VerifyPSS(&r.pub, hash, digest, signature, nil)
 
-	case azkeys.JSONWebKeySignatureAlgorithmRS256,
-		azkeys.JSONWebKeySignatureAlgorithmRS384,
-		azkeys.JSONWebKeySignatureAlgorithmRS512:
+	case azkeys.SignatureAlgorithmRS256,
+		azkeys.SignatureAlgorithmRS384,
+		azkeys.SignatureAlgorithmRS512:
 		var hash crypto.Hash
 		hash, err = GetHash(algorithm)
 		if err != nil {
@@ -124,10 +124,10 @@ func (r RSA) WrapKey(algorithm WrapKeyAlgorithm, key []byte) (WrapKeyResult, err
 
 	getHash := func() crypto.Hash {
 		switch algorithm {
-		case azkeys.JSONWebKeyEncryptionAlgorithmRSAOAEP:
+		case azkeys.EncryptionAlgorithmRSAOAEP:
 			return crypto.SHA1
 
-		case azkeys.JSONWebKeyEncryptionAlgorithmRSAOAEP256:
+		case azkeys.EncryptionAlgorithmRSAOAEP256:
 			return crypto.SHA256
 
 		default:
@@ -136,12 +136,12 @@ func (r RSA) WrapKey(algorithm WrapKeyAlgorithm, key []byte) (WrapKeyResult, err
 	}
 
 	switch algorithm {
-	case azkeys.JSONWebKeyEncryptionAlgorithmRSAOAEP,
-		azkeys.JSONWebKeyEncryptionAlgorithmRSAOAEP256:
+	case azkeys.EncryptionAlgorithmRSAOAEP,
+		azkeys.EncryptionAlgorithmRSAOAEP256:
 		hash := getHash()
 		encryptedKey, err = rsa.EncryptOAEP(hash.New(), rand.Reader, &r.pub, key, nil)
 
-	case azkeys.JSONWebKeyEncryptionAlgorithmRSA15:
+	case azkeys.EncryptionAlgorithmRSA15:
 		encryptedKey, err = rsa.EncryptPKCS1v15(rand.Reader, &r.pub, key)
 
 	default:

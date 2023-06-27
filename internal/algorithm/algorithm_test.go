@@ -35,15 +35,15 @@ func TestNewAlgorithm(t *testing.T) {
 		{
 			name: "unsupported kty",
 			key: azkeys.JSONWebKey{
-				Kty: to.Ptr(azkeys.JSONWebKeyType("unknown")),
+				Kty: to.Ptr(azkeys.KeyType("unknown")),
 			},
 			err: internal.ErrUnsupported,
 		},
 		{
 			name: "ec",
 			key: azkeys.JSONWebKey{
-				Kty: to.Ptr(azkeys.JSONWebKeyTypeEC),
-				Crv: to.Ptr(azkeys.JSONWebKeyCurveNameP256),
+				Kty: to.Ptr(azkeys.KeyTypeEC),
+				Crv: to.Ptr(azkeys.CurveNameP256),
 				X:   []byte{0},
 				Y:   []byte{1},
 			},
@@ -52,8 +52,8 @@ func TestNewAlgorithm(t *testing.T) {
 		{
 			name: "ec-hsm",
 			key: azkeys.JSONWebKey{
-				Kty: to.Ptr(azkeys.JSONWebKeyTypeECHSM),
-				Crv: to.Ptr(azkeys.JSONWebKeyCurveNameP256),
+				Kty: to.Ptr(azkeys.KeyTypeECHSM),
+				Crv: to.Ptr(azkeys.CurveNameP256),
 				X:   []byte{0},
 				Y:   []byte{1},
 			},
@@ -62,7 +62,7 @@ func TestNewAlgorithm(t *testing.T) {
 		{
 			name: "rsa",
 			key: azkeys.JSONWebKey{
-				Kty: to.Ptr(azkeys.JSONWebKeyTypeRSA),
+				Kty: to.Ptr(azkeys.KeyTypeRSA),
 				N:   []byte{0},
 				E:   []byte{1},
 			},
@@ -71,7 +71,7 @@ func TestNewAlgorithm(t *testing.T) {
 		{
 			name: "rsa-hsm",
 			key: azkeys.JSONWebKey{
-				Kty: to.Ptr(azkeys.JSONWebKeyTypeRSAHSM),
+				Kty: to.Ptr(azkeys.KeyTypeRSAHSM),
 				N:   []byte{0},
 				E:   []byte{1},
 			},
@@ -80,7 +80,7 @@ func TestNewAlgorithm(t *testing.T) {
 		{
 			name: "oct",
 			key: azkeys.JSONWebKey{
-				Kty: to.Ptr(azkeys.JSONWebKeyTypeOct),
+				Kty: to.Ptr(azkeys.KeyTypeOct),
 				K:   base64ToBytes("9M09IArT3CEMYXEKBNdhgw=="), // cspell:disable-line,
 			},
 			alg: AES{},
@@ -88,7 +88,7 @@ func TestNewAlgorithm(t *testing.T) {
 		{
 			name: "oct-hsm",
 			key: azkeys.JSONWebKey{
-				Kty: to.Ptr(azkeys.JSONWebKeyTypeOctHSM),
+				Kty: to.Ptr(azkeys.KeyTypeOctHSM),
 				K:   base64ToBytes("9M09IArT3CEMYXEKBNdhgw=="), // cspell:disable-line,
 			},
 			alg: AES{},
@@ -122,8 +122,8 @@ func TestAs(t *testing.T) {
 		{
 			name: "ec",
 			key: azkeys.JSONWebKey{
-				Kty: to.Ptr(azkeys.JSONWebKeyTypeEC),
-				Crv: to.Ptr(azkeys.JSONWebKeyCurveNameP256),
+				Kty: to.Ptr(azkeys.KeyTypeEC),
+				Crv: to.Ptr(azkeys.CurveNameP256),
 				X:   []byte{0},
 				Y:   []byte{1},
 			},
@@ -132,7 +132,7 @@ func TestAs(t *testing.T) {
 		{
 			name: "rsa encrypter",
 			key: azkeys.JSONWebKey{
-				Kty: to.Ptr(azkeys.JSONWebKeyTypeRSA),
+				Kty: to.Ptr(azkeys.KeyTypeRSA),
 				N:   []byte{0},
 				E:   []byte{1},
 			},
@@ -141,7 +141,7 @@ func TestAs(t *testing.T) {
 		{
 			name: "rsa signer",
 			key: azkeys.JSONWebKey{
-				Kty: to.Ptr(azkeys.JSONWebKeyTypeRSA),
+				Kty: to.Ptr(azkeys.KeyTypeRSA),
 				N:   []byte{0},
 				E:   []byte{1},
 			},
@@ -150,7 +150,7 @@ func TestAs(t *testing.T) {
 		{
 			name: "oct",
 			key: azkeys.JSONWebKey{
-				Kty: to.Ptr(azkeys.JSONWebKeyTypeOct),
+				Kty: to.Ptr(azkeys.KeyTypeOct),
 				K:   base64ToBytes("9M09IArT3CEMYXEKBNdhgw=="), // cspell:disable-line,
 			},
 			alg: aesEncrypter,
@@ -188,57 +188,57 @@ func TestGetHash(t *testing.T) {
 	}{
 		{
 			name: "es256",
-			alg:  azkeys.JSONWebKeySignatureAlgorithmES256,
+			alg:  azkeys.SignatureAlgorithmES256,
 			h:    crypto.SHA256,
 		},
 		{
 			name: "es256k",
-			alg:  azkeys.JSONWebKeySignatureAlgorithmES256K,
+			alg:  azkeys.SignatureAlgorithmES256K,
 			h:    crypto.SHA256,
 		},
 		{
 			name: "es384",
-			alg:  azkeys.JSONWebKeySignatureAlgorithmES384,
+			alg:  azkeys.SignatureAlgorithmES384,
 			h:    crypto.SHA384,
 		},
 		{
 			name: "es512",
-			alg:  azkeys.JSONWebKeySignatureAlgorithmES512,
+			alg:  azkeys.SignatureAlgorithmES512,
 			h:    crypto.SHA512,
 		},
 		{
 			name: "ps256",
-			alg:  azkeys.JSONWebKeySignatureAlgorithmPS256,
+			alg:  azkeys.SignatureAlgorithmPS256,
 			h:    crypto.SHA256,
 		},
 		{
 			name: "ps384",
-			alg:  azkeys.JSONWebKeySignatureAlgorithmPS384,
+			alg:  azkeys.SignatureAlgorithmPS384,
 			h:    crypto.SHA384,
 		},
 		{
 			name: "ps512",
-			alg:  azkeys.JSONWebKeySignatureAlgorithmPS512,
+			alg:  azkeys.SignatureAlgorithmPS512,
 			h:    crypto.SHA512,
 		},
 		{
 			name: "RS256",
-			alg:  azkeys.JSONWebKeySignatureAlgorithmRS256,
+			alg:  azkeys.SignatureAlgorithmRS256,
 			h:    crypto.SHA256,
 		},
 		{
 			name: "RS384",
-			alg:  azkeys.JSONWebKeySignatureAlgorithmRS384,
+			alg:  azkeys.SignatureAlgorithmRS384,
 			h:    crypto.SHA384,
 		},
 		{
 			name: "RS256",
-			alg:  azkeys.JSONWebKeySignatureAlgorithmRS512,
+			alg:  azkeys.SignatureAlgorithmRS512,
 			h:    crypto.SHA512,
 		},
 		{
 			name: "unsupported",
-			alg:  azkeys.JSONWebKeySignatureAlgorithm("unsupported"),
+			alg:  azkeys.SignatureAlgorithm("unsupported"),
 			err:  internal.ErrUnsupported,
 		},
 	}
@@ -258,17 +258,17 @@ func TestGetHash(t *testing.T) {
 
 func TestSupportsAlgorithm(t *testing.T) {
 	require.True(t, supportsAlgorithm(
-		azkeys.JSONWebKeyEncryptionAlgorithmA128CBC,
-		azkeys.JSONWebKeyEncryptionAlgorithmA128CBC,
-		azkeys.JSONWebKeyEncryptionAlgorithmA192CBC,
-		azkeys.JSONWebKeyEncryptionAlgorithmA256CBC,
+		azkeys.EncryptionAlgorithmA128CBC,
+		azkeys.EncryptionAlgorithmA128CBC,
+		azkeys.EncryptionAlgorithmA192CBC,
+		azkeys.EncryptionAlgorithmA256CBC,
 	))
 
 	require.False(t, supportsAlgorithm(
-		azkeys.JSONWebKeyEncryptionAlgorithmA128CBCPAD,
-		azkeys.JSONWebKeyEncryptionAlgorithmA128CBC,
-		azkeys.JSONWebKeyEncryptionAlgorithmA192CBC,
-		azkeys.JSONWebKeyEncryptionAlgorithmA256CBC,
+		azkeys.EncryptionAlgorithmA128CBCPAD,
+		azkeys.EncryptionAlgorithmA128CBC,
+		azkeys.EncryptionAlgorithmA192CBC,
+		azkeys.EncryptionAlgorithmA256CBC,
 	))
 }
 
