@@ -1,8 +1,13 @@
 coverage:
   status:
+    project:
+      default:
+        target: 80%
+        threshold: 2%
+
     patch:
       default:
-        informational: true
+        threshold: 1%
 
 ignore:
 - internal/test/
