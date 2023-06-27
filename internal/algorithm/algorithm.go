@@ -13,11 +13,11 @@ import (
 	_ "github.com/heaths/azcrypto/internal/test"
 )
 
-type EncryptAlgorithm = azkeys.JSONWebKeyEncryptionAlgorithm
-type EncryptAESCBCAlgorithm = azkeys.JSONWebKeyEncryptionAlgorithm
-type EncryptAESGCMAlgorithm = azkeys.JSONWebKeyEncryptionAlgorithm
-type SignAlgorithm = azkeys.JSONWebKeySignatureAlgorithm
-type WrapKeyAlgorithm = azkeys.JSONWebKeyEncryptionAlgorithm
+type EncryptAlgorithm = azkeys.EncryptionAlgorithm
+type EncryptAESCBCAlgorithm = azkeys.EncryptionAlgorithm
+type EncryptAESGCMAlgorithm = azkeys.EncryptionAlgorithm
+type SignAlgorithm = azkeys.SignatureAlgorithm
+type WrapKeyAlgorithm = azkeys.EncryptionAlgorithm
 
 type AESEncrypter interface {
 	EncryptAESCBC(algorithm EncryptAESCBCAlgorithm, plaintext, iv []byte) (EncryptResult, error)
@@ -60,15 +60,15 @@ func NewAlgorithm(key azkeys.JSONWebKey) (any, error) {
 
 	switch *key.Kty {
 	// ECDsa
-	case azkeys.JSONWebKeyTypeEC, azkeys.JSONWebKeyTypeECHSM:
+	case azkeys.KeyTypeEC, azkeys.KeyTypeECHSM:
 		return newECDsa(key)
 
 	// RSA
-	case azkeys.JSONWebKeyTypeRSA, azkeys.JSONWebKeyTypeRSAHSM:
+	case azkeys.KeyTypeRSA, azkeys.KeyTypeRSAHSM:
 		return newRSA(key)
 
 	// oct
-	case azkeys.JSONWebKeyTypeOct, azkeys.JSONWebKeyTypeOctHSM:
+	case azkeys.KeyTypeOct, azkeys.KeyTypeOctHSM:
 		return newAES(key)
 
 	default:
@@ -78,20 +78,20 @@ func NewAlgorithm(key azkeys.JSONWebKey) (any, error) {
 
 func GetHash(algorithm SignAlgorithm) (crypto.Hash, error) {
 	switch algorithm {
-	case azkeys.JSONWebKeySignatureAlgorithmPS256,
-		azkeys.JSONWebKeySignatureAlgorithmRS256,
-		azkeys.JSONWebKeySignatureAlgorithmES256,
-		azkeys.JSONWebKeySignatureAlgorithmES256K:
+	case azkeys.SignatureAlgorithmPS256,
+		azkeys.SignatureAlgorithmRS256,
+		azkeys.SignatureAlgorithmES256,
+		azkeys.SignatureAlgorithmES256K:
 		return crypto.SHA256, nil
 
-	case azkeys.JSONWebKeySignatureAlgorithmPS384,
-		azkeys.JSONWebKeySignatureAlgorithmRS384,
-		azkeys.JSONWebKeySignatureAlgorithmES384:
+	case azkeys.SignatureAlgorithmPS384,
+		azkeys.SignatureAlgorithmRS384,
+		azkeys.SignatureAlgorithmES384:
 		return crypto.SHA384, nil
 
-	case azkeys.JSONWebKeySignatureAlgorithmPS512,
-		azkeys.JSONWebKeySignatureAlgorithmRS512,
-		azkeys.JSONWebKeySignatureAlgorithmES512:
+	case azkeys.SignatureAlgorithmPS512,
+		azkeys.SignatureAlgorithmRS512,
+		azkeys.SignatureAlgorithmES512:
 		return crypto.SHA512, nil
 
 	default:

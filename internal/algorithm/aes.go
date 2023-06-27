@@ -31,7 +31,7 @@ type AES struct {
 }
 
 func newAES(key azkeys.JSONWebKey) (AES, error) {
-	if *key.Kty != azkeys.JSONWebKeyTypeOct && *key.Kty != azkeys.JSONWebKeyTypeOctHSM {
+	if *key.Kty != azkeys.KeyTypeOct && *key.Kty != azkeys.KeyTypeOctHSM {
 		return AES{}, fmt.Errorf("AES does not support key type %q", *key.Kty)
 	}
 
@@ -60,9 +60,9 @@ func (a AES) EncryptAESCBC(algorithm EncryptAESCBCAlgorithm, plaintext, iv []byt
 	// TODO: Consider implementing local PKCS7 padding support should we need local encryption support.
 	if !supportsAlgorithm(
 		algorithm,
-		azkeys.JSONWebKeyEncryptionAlgorithmA128CBC,
-		azkeys.JSONWebKeyEncryptionAlgorithmA192CBC,
-		azkeys.JSONWebKeyEncryptionAlgorithmA256CBC,
+		azkeys.EncryptionAlgorithmA128CBC,
+		azkeys.EncryptionAlgorithmA192CBC,
+		azkeys.EncryptionAlgorithmA256CBC,
 	) {
 		return EncryptResult{}, internal.ErrUnsupported
 	}
@@ -92,9 +92,9 @@ func (a AES) DecryptAESCBC(algorithm EncryptAESCBCAlgorithm, ciphertext, iv []by
 	// TODO: Consider implementing local PKCS7 padding support should we need local encryption support.
 	if !supportsAlgorithm(
 		algorithm,
-		azkeys.JSONWebKeyEncryptionAlgorithmA128CBC,
-		azkeys.JSONWebKeyEncryptionAlgorithmA192CBC,
-		azkeys.JSONWebKeyEncryptionAlgorithmA256CBC,
+		azkeys.EncryptionAlgorithmA128CBC,
+		azkeys.EncryptionAlgorithmA192CBC,
+		azkeys.EncryptionAlgorithmA256CBC,
 	) {
 		return DecryptResult{}, internal.ErrUnsupported
 	}
@@ -122,9 +122,9 @@ func (a AES) DecryptAESCBC(algorithm EncryptAESCBCAlgorithm, ciphertext, iv []by
 func (a AES) EncryptAESGCM(algorithm EncryptAESGCMAlgorithm, plaintext, nonce, additionalAuthenticatedData []byte) (EncryptResult, error) {
 	if !supportsAlgorithm(
 		algorithm,
-		azkeys.JSONWebKeyEncryptionAlgorithmA128GCM,
-		azkeys.JSONWebKeyEncryptionAlgorithmA192GCM,
-		azkeys.JSONWebKeyEncryptionAlgorithmA256GCM,
+		azkeys.EncryptionAlgorithmA128GCM,
+		azkeys.EncryptionAlgorithmA192GCM,
+		azkeys.EncryptionAlgorithmA256GCM,
 	) {
 		return EncryptResult{}, internal.ErrUnsupported
 	}
@@ -152,9 +152,9 @@ func (a AES) EncryptAESGCM(algorithm EncryptAESGCMAlgorithm, plaintext, nonce, a
 func (a AES) DecryptAESGCM(algorithm EncryptAESGCMAlgorithm, ciphertext, nonce, authenticationTag, additionalAuthenticatedData []byte) (DecryptResult, error) {
 	if !supportsAlgorithm(
 		algorithm,
-		azkeys.JSONWebKeyEncryptionAlgorithmA128GCM,
-		azkeys.JSONWebKeyEncryptionAlgorithmA192GCM,
-		azkeys.JSONWebKeyEncryptionAlgorithmA256GCM,
+		azkeys.EncryptionAlgorithmA128GCM,
+		azkeys.EncryptionAlgorithmA192GCM,
+		azkeys.EncryptionAlgorithmA256GCM,
 	) {
 		return DecryptResult{}, internal.ErrUnsupported
 	}
@@ -187,9 +187,9 @@ func (a AES) DecryptAESGCM(algorithm EncryptAESGCMAlgorithm, ciphertext, nonce, 
 func (a AES) WrapKey(algorithm WrapKeyAlgorithm, key []byte) (WrapKeyResult, error) {
 	if !supportsAlgorithm(
 		algorithm,
-		azkeys.JSONWebKeyEncryptionAlgorithmA128KW,
-		azkeys.JSONWebKeyEncryptionAlgorithmA192KW,
-		azkeys.JSONWebKeyEncryptionAlgorithmA256KW,
+		azkeys.EncryptionAlgorithmA128KW,
+		azkeys.EncryptionAlgorithmA192KW,
+		azkeys.EncryptionAlgorithmA256KW,
 	) {
 		return WrapKeyResult{}, internal.ErrUnsupported
 	}
@@ -213,9 +213,9 @@ func (a AES) WrapKey(algorithm WrapKeyAlgorithm, key []byte) (WrapKeyResult, err
 func (a AES) UnwrapKey(algorithm WrapKeyAlgorithm, encryptedKey []byte) (UnwrapKeyResult, error) {
 	if !supportsAlgorithm(
 		algorithm,
-		azkeys.JSONWebKeyEncryptionAlgorithmA128KW,
-		azkeys.JSONWebKeyEncryptionAlgorithmA192KW,
-		azkeys.JSONWebKeyEncryptionAlgorithmA256KW,
+		azkeys.EncryptionAlgorithmA128KW,
+		azkeys.EncryptionAlgorithmA192KW,
+		azkeys.EncryptionAlgorithmA256KW,
 	) {
 		return UnwrapKeyResult{}, internal.ErrUnsupported
 	}
@@ -238,22 +238,22 @@ func (a AES) UnwrapKey(algorithm WrapKeyAlgorithm, encryptedKey []byte) (UnwrapK
 
 func requiresKeySize[T ~string](algorithm T, a AES) int {
 	switch algorithm {
-	case T(azkeys.JSONWebKeyEncryptionAlgorithmA128CBC),
-		T(azkeys.JSONWebKeyEncryptionAlgorithmA128CBCPAD),
-		T(azkeys.JSONWebKeyEncryptionAlgorithmA128GCM),
-		T(azkeys.JSONWebKeyEncryptionAlgorithmA128KW):
+	case T(azkeys.EncryptionAlgorithmA128CBC),
+		T(azkeys.EncryptionAlgorithmA128CBCPAD),
+		T(azkeys.EncryptionAlgorithmA128GCM),
+		T(azkeys.EncryptionAlgorithmA128KW):
 		return 16
 
-	case T(azkeys.JSONWebKeyEncryptionAlgorithmA192CBC),
-		T(azkeys.JSONWebKeyEncryptionAlgorithmA192CBCPAD),
-		T(azkeys.JSONWebKeyEncryptionAlgorithmA192GCM),
-		T(azkeys.JSONWebKeyEncryptionAlgorithmA192KW):
+	case T(azkeys.EncryptionAlgorithmA192CBC),
+		T(azkeys.EncryptionAlgorithmA192CBCPAD),
+		T(azkeys.EncryptionAlgorithmA192GCM),
+		T(azkeys.EncryptionAlgorithmA192KW):
 		return 24
 
-	case T(azkeys.JSONWebKeyEncryptionAlgorithmA256CBC),
-		T(azkeys.JSONWebKeyEncryptionAlgorithmA256CBCPAD),
-		T(azkeys.JSONWebKeyEncryptionAlgorithmA256GCM),
-		T(azkeys.JSONWebKeyEncryptionAlgorithmA256KW):
+	case T(azkeys.EncryptionAlgorithmA256CBC),
+		T(azkeys.EncryptionAlgorithmA256CBCPAD),
+		T(azkeys.EncryptionAlgorithmA256GCM),
+		T(azkeys.EncryptionAlgorithmA256KW):
 		return 32
 
 	default:

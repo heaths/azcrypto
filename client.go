@@ -175,7 +175,7 @@ func (client *Client) Encrypt(ctx context.Context, algorithm EncryptAlgorithm, p
 		}
 	}
 
-	parameters := azkeys.KeyOperationsParameters{
+	parameters := azkeys.KeyOperationParameters{
 		Algorithm: &algorithm,
 		Value:     plaintext,
 	}
@@ -260,7 +260,7 @@ func (client *Client) EncryptAESCBC(ctx context.Context, algorithm EncryptAESCBC
 		}
 	}
 
-	parameters := azkeys.KeyOperationsParameters{
+	parameters := azkeys.KeyOperationParameters{
 		Algorithm: &algorithm,
 		Value:     plaintext,
 		IV:        iv,
@@ -346,10 +346,10 @@ func (client *Client) EncryptAESGCM(ctx context.Context, algorithm EncryptAESCBC
 		}
 	}
 
-	parameters := azkeys.KeyOperationsParameters{
-		Algorithm: &algorithm,
-		Value:     plaintext,
-		AAD:       additionalAuthenticatedData,
+	parameters := azkeys.KeyOperationParameters{
+		Algorithm:                   &algorithm,
+		Value:                       plaintext,
+		AdditionalAuthenticatedData: additionalAuthenticatedData,
 	}
 
 	response, err := client.remoteClient.Encrypt(
@@ -391,7 +391,7 @@ type DecryptResult = alg.DecryptResult
 // Decrypt decrypts the ciphertext using the specified algorithm.
 func (client *Client) Decrypt(ctx context.Context, algorithm EncryptAlgorithm, ciphertext []byte, options *DecryptOptions) (DecryptResult, error) {
 	// Decrypting requires access to a private key, which Key Vault does not provide by default.
-	parameters := azkeys.KeyOperationsParameters{
+	parameters := azkeys.KeyOperationParameters{
 		Algorithm: &algorithm,
 		Value:     ciphertext,
 	}
@@ -449,7 +449,7 @@ func (client *Client) DecryptAESCBC(ctx context.Context, algorithm EncryptAESCBC
 		}
 	}
 
-	parameters := azkeys.KeyOperationsParameters{
+	parameters := azkeys.KeyOperationParameters{
 		Algorithm: &algorithm,
 		Value:     ciphertext,
 		IV:        iv,
@@ -508,12 +508,12 @@ func (client *Client) DecryptAESGCM(ctx context.Context, algorithm EncryptAESGCM
 		}
 	}
 
-	parameters := azkeys.KeyOperationsParameters{
-		Algorithm: &algorithm,
-		Value:     ciphertext,
-		IV:        nonce,
-		Tag:       authenticationTag,
-		AAD:       additionalAuthenticatedData,
+	parameters := azkeys.KeyOperationParameters{
+		Algorithm:                   &algorithm,
+		Value:                       ciphertext,
+		IV:                          nonce,
+		AuthenticationTag:           authenticationTag,
+		AdditionalAuthenticatedData: additionalAuthenticatedData,
 	}
 
 	if options == nil {
@@ -706,7 +706,7 @@ func (client *Client) WrapKey(ctx context.Context, algorithm WrapKeyAlgorithm, k
 		}
 	}
 
-	parameters := azkeys.KeyOperationsParameters{
+	parameters := azkeys.KeyOperationParameters{
 		Algorithm: &algorithm,
 		Value:     key,
 	}
@@ -760,7 +760,7 @@ func (client *Client) UnwrapKey(ctx context.Context, algorithm WrapKeyAlgorithm,
 		}
 	}
 
-	parameters := azkeys.KeyOperationsParameters{
+	parameters := azkeys.KeyOperationParameters{
 		Algorithm: &algorithm,
 		Value:     encryptedKey,
 	}
