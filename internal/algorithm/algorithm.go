@@ -7,6 +7,7 @@ import (
 	"crypto"
 	_ "crypto/sha256"
 	_ "crypto/sha512"
+	"io"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azkeys"
 	"github.com/heaths/azcrypto/internal"
@@ -31,6 +32,7 @@ type Encrypter interface {
 }
 
 type Signer interface {
+	Sign(algorithm SignAlgorithm, digest []byte) (SignResult, error)
 	Verify(algorithm SignAlgorithm, digest, signature []byte) (VerifyResult, error)
 }
 
@@ -53,7 +55,7 @@ func As[T any](algorithm any, target *T) bool {
 	return false
 }
 
-func NewAlgorithm(key azkeys.JSONWebKey) (any, error) {
+func NewAlgorithm(key azkeys.JSONWebKey, rand io.Reader) (any, error) {
 	if key.Kty == nil {
 		return nil, internal.ErrUnsupported
 	}
@@ -61,7 +63,7 @@ func NewAlgorithm(key azkeys.JSONWebKey) (any, error) {
 	switch *key.Kty {
 	// ECDsa
 	case azkeys.KeyTypeEC, azkeys.KeyTypeECHSM:
-		return newECDsa(key)
+		return newECDsa(key, rand)
 
 	// RSA
 	case azkeys.KeyTypeRSA, azkeys.KeyTypeRSAHSM:

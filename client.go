@@ -53,6 +53,10 @@ func NewClient(keyID string, credential azcore.TokenCredential, options *ClientO
 	if options == nil {
 		options = &ClientOptions{}
 	}
+	_rand := options.Rand
+	if _rand == nil {
+		_rand = rand.Reader
+	}
 
 	vaultURL, name, version := internal.ParseID(&keyID)
 	if vaultURL == nil || name == nil {
@@ -72,10 +76,7 @@ func NewClient(keyID string, credential azcore.TokenCredential, options *ClientO
 		keyName:      *name,
 		keyVersion:   *version,
 		remoteClient: remoteClient,
-		rand:         options.Rand,
-	}
-	if client.rand == nil {
-		client.rand = rand.Reader
+		rand:         _rand,
 	}
 
 	if options.remoteOnly {
@@ -92,13 +93,17 @@ func NewClientFromJSONWebKey(key azkeys.JSONWebKey, options *ClientOptions) (*Cl
 	if options == nil {
 		options = &ClientOptions{}
 	}
+	_rand := options.Rand
+	if _rand == nil {
+		_rand = rand.Reader
+	}
 
 	var keyID string
 	if key.KID != nil {
 		keyID = string(*key.KID)
 	}
 
-	localClient, err := alg.NewAlgorithm(key)
+	localClient, err := alg.NewAlgorithm(key, _rand)
 	if err != nil {
 		return nil, fmt.Errorf("bad key: %w", err)
 	}
@@ -106,10 +111,7 @@ func NewClientFromJSONWebKey(key azkeys.JSONWebKey, options *ClientOptions) (*Cl
 	client := &Client{
 		keyID:       string(keyID),
 		localClient: localClient,
-		rand:        options.Rand,
-	}
-	if client.rand == nil {
-		client.rand = rand.Reader
+		rand:        _rand,
 	}
 	client._init.Do(func() {})
 
@@ -133,7 +135,7 @@ func (client *Client) init(ctx context.Context) {
 			return
 		}
 
-		alg, err := alg.NewAlgorithm(*key)
+		alg, err := alg.NewAlgorithm(*key, client.rand)
 		if err != nil {
 			return
 		}
@@ -555,7 +557,16 @@ type SignResult = alg.SignResult
 
 // Sign signs the specified digest using the specified algorithm.
 func (client *Client) Sign(ctx context.Context, algorithm SignAlgorithm, digest []byte, options *SignOptions) (SignResult, error) {
-	// Signing requires access to a private key, which Key Vault does not provide by default.
+	client.init(ctx)
+
+	var signer alg.Signer
+	if alg.As(client.localClient, &signer) {
+		result, err := signer.Sign(algorithm, digest)
+		if client.localOnly() || !errors.Is(err, internal.ErrUnsupported) {
+			return result, err
+		}
+	}
+
 	parameters := azkeys.SignParameters{
 		Algorithm: &algorithm,
 		Value:     digest,

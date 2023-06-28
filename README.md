@@ -58,6 +58,8 @@ func main() {
 }
 ```
 
+You can also create a `Client` from a JSON Web Key ([JWK]) using `NewClientFromJSONWebKey`. No attempt to connect to Azure Key Vault or Managed HSM will be made.
+
 ## Key concepts
 
 The `Client` will attempt to download the specified public key when first used. This will improve throughput while reducing the risk of getting throttled by Key Vault's [rate limits].
@@ -196,5 +198,6 @@ Licensed under the [MIT](LICENSE.txt) license.
 [azkeys]: https://pkg.go.dev/github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azkeys
 [CryptographyClient]: https://learn.microsoft.com/dotnet/api/azure.security.keyvault.keys.cryptography.cryptographyclient
 [examples]: https://pkg.go.dev/github.com/heaths/azcrypto#pkg-examples
+[JWK]: https://www.rfc-editor.org/rfc/rfc7517
 [managed identity]: https://docs.microsoft.com/azure/active-directory/managed-identities-azure-resources/overview
 [rate limits]: https://learn.microsoft.com/azure/key-vault/general/service-limits
