@@ -95,7 +95,7 @@ func TestClient_EncryptDecrypt(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			client := test.Recorded(t, testClient(t, tt.key, tt.permission))
 
-			var plaintext = []byte("plaintext")
+			plaintext := []byte("plaintext")
 			encrypted, err := client.Encrypt(context.Background(), tt.alg, plaintext, nil)
 			if tt.err != nil {
 				if !test.RequireIfResponseError(t, err, tt.err) {
@@ -112,6 +112,34 @@ func TestClient_EncryptDecrypt(t *testing.T) {
 			require.Equal(t, tt.permission, client.localClient != nil)
 		})
 	}
+}
+
+func TestClient_EncryptDecrypt_local(t *testing.T) {
+	t.Parallel()
+
+	const jwk = `{
+		"kty": "RSA",
+		"e": "AQAB",
+		"n": "44GgROme67hskskh-3UYSZ0rg9z9xvf2WkkglOMoaZtCTZEN3s5vMqV81RaSlo9EerhpONCfs9QItHHum69US0sj5sXUE6k_wp7aNfx05aFbpDvoF27a0_mTLCcvChRGUucRUaNldycC4UgD9yQFB3o2Be08oxD9CCbwiBjZAmPV39kD4XRTLNfrmKLfxbzn_n-zGmhig8_P9Ww7oWo_I4rl_hHXSSL-xqVmVh-Vm2_JRvuK0AGE8QBI7W72k3wT0NDie3k0L9vudOg6YOwLD6uCRmxhm4anTeF-F48RymMtbAxZpsCf0pFSyXHQ0Rk_Tef1NlCSlRk4J0mIQgQAMQ",
+		"d": "hHZe6IDVxQ12Oejd3lkJMSNPyNEM-aI6T8swK0AvsX1yl1MTrlynpedwzWj9JKh6CLICoc_mjH-yKc4ETaVCASzY1G7u0hvDQf_XsYMyVNkkUHWI5svmoXE43YZa_xVa9L4Q-WWXmE6ggKa7mFPikb34Ym8E1TT4_pwdhEBjad26Cymm9jPB4be8wiKjcTDiwkGtEwmZ2K6hLTITdolsgWOXlCKel2W7y_yjz8JWgTB6lFnEvBXNjN0RZq9z7fSAJP-cuMw2y0AcPrw2m6wuYuB9m0qBpMAUokoFwhvYpUQi89wW_yKxmxBSk4y0SWmq50Y-s2vnhl5aIFMBJGDV-Q",
+		"p": "8HlC-Z4XXN3FfKOLeJecbOQuAgeVBT8cECMk7f0RXAlXOSYQzH_5n91bE9GNVdiWBT5nkquz0Cg2DJzDHiUY3jal3g-Ae9kyXbrspas1TXF4OTT7Zc3mp_vkSoPegFKUqUe8wHeRgdW3Jr7HPh-2JFRSEw68wRWimhd4J1uFHsc",
+		"q": "8jIHvhPKuE7tTYw1MZA8f23bIrtSsbf8SZIXo3Vuq7ijwwMPji_mdgutbaH7eG2WNU1DCeh4M_6y7Ux-GYZ_IaBXhrvNP7OrTLSczSIBHZ2r0Ku7om5-dOz2GmQBU1J_7RVNf9tFR02TI977gsdMgeyTaikdzTc8U6ev_CZI0Uc"
+	}`
+
+	var key azkeys.JSONWebKey
+	err := json.Unmarshal([]byte(jwk), &key)
+	require.NoError(t, err)
+
+	client, err := NewClientFromJSONWebKey(key, nil)
+	require.NoError(t, err)
+
+	plaintext := []byte("plaintext")
+	encrypted, err := client.Encrypt(context.Background(), EncryptAlgorithmRSAOAEP256, plaintext, nil)
+	require.NoError(t, err)
+
+	decrypted, err := client.Decrypt(context.Background(), EncryptAlgorithmRSAOAEP256, encrypted.Ciphertext, nil)
+	require.NoError(t, err)
+	require.Equal(t, plaintext, decrypted.Plaintext)
 }
 
 func TestClient_EncryptDecryptAESCBC(t *testing.T) {
@@ -186,6 +214,8 @@ func TestClient_EncryptDecryptAESCBC(t *testing.T) {
 }
 
 func TestClient_EncryptDecryptAESCBC_local(t *testing.T) {
+	t.Parallel()
+
 	const jwk = `{
 		"kty": "oct",
 		"k": "vzZ5FtPDDpVJCwdwikXfzvz_3RAhWqGg7mcpPqPRlXk"
@@ -294,6 +324,8 @@ func TestClient_EncryptDecryptAESGCM(t *testing.T) {
 }
 
 func TestClient_EncryptDecryptAESGCM_local(t *testing.T) {
+	t.Parallel()
+
 	const jwk = `{
 		"kty": "oct",
 		"k": "vzZ5FtPDDpVJCwdwikXfzvz_3RAhWqGg7mcpPqPRlXk"
@@ -384,7 +416,7 @@ func TestClient_SignVerify(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			client := test.Recorded(t, testClient(t, tt.key, tt.permission))
 
-			var plaintext = []byte("plaintext")
+			plaintext := []byte("plaintext")
 			signed, err := client.SignData(context.Background(), tt.alg, plaintext, nil)
 			if tt.err != nil {
 				if !test.RequireIfResponseError(t, err, tt.err) {
@@ -404,6 +436,8 @@ func TestClient_SignVerify(t *testing.T) {
 }
 
 func TestClient_SignVerify_local(t *testing.T) {
+	t.Parallel()
+
 	const jwk = `{
 		"kty": "EC",
 		"crv": "P-256",
@@ -520,6 +554,8 @@ func TestClient_WrapUnwrapKey(t *testing.T) {
 }
 
 func TestClient_WrapUnwrapKey_local(t *testing.T) {
+	t.Parallel()
+
 	const jwk = `{
 		"kty": "oct",
 		"k": "vzZ5FtPDDpVJCwdwikXfzvz_3RAhWqGg7mcpPqPRlXk"

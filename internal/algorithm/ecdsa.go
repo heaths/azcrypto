@@ -6,6 +6,7 @@ package algorithm
 import (
 	"crypto/ecdsa"
 	"crypto/elliptic"
+	rng "crypto/rand"
 	"errors"
 	"fmt"
 	"io"
@@ -55,6 +56,10 @@ func newECDsa(key azkeys.JSONWebKey, rand io.Reader) (ECDsa, error) {
 		keyID = string(*key.KID)
 	}
 
+	if rand == nil {
+		rand = rng.Reader
+	}
+
 	return ECDsa{
 		keyID: keyID,
 		key:   _key,
@@ -85,7 +90,7 @@ func (c ECDsa) Sign(algorithm SignAlgorithm, digest []byte) (SignResult, error) 
 		return SignResult{}, internal.ErrUnsupported
 	}
 
-	if c.key.D == nil {
+	if !c.hasPrivateKey() {
 		return SignResult{}, internal.ErrUnsupported
 	}
 
@@ -126,4 +131,8 @@ func (c ECDsa) Verify(algorithm SignAlgorithm, digest, signature []byte) (Verify
 		KeyID:     c.keyID,
 		Valid:     ecdsa.Verify(&c.key.PublicKey, digest, r, s),
 	}, nil
+}
+
+func (c ECDsa) hasPrivateKey() bool {
+	return c.key.D != nil
 }

@@ -96,7 +96,7 @@ func TestNewECDsa(t *testing.T) {
 			}
 			require.NoError(t, err)
 			require.Equal(t, tt.keyID, alg.keyID)
-			require.Nil(t, alg.rand)
+			require.NotNil(t, alg.rand)
 
 			if len(tt.key.D) > 0 {
 				require.NotNil(t, alg.key.D)
