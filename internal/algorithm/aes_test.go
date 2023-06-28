@@ -80,6 +80,12 @@ func TestNewAES(t *testing.T) {
 			require.NoError(t, err)
 			require.Equal(t, tt.keyID, alg.keyID)
 			require.Equal(t, tt.blockSize, alg.block.BlockSize())
+
+			var encrypter AESEncrypter
+			require.Implements(t, &encrypter, alg)
+
+			var wrapper KeyWrapper
+			require.Implements(t, &wrapper, alg)
 		})
 	}
 }
