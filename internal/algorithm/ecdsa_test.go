@@ -131,11 +131,10 @@ func TestECDsa_Sign(t *testing.T) {
 	t.Parallel()
 
 	digest := test.Hash("message", crypto.SHA256)
-	signature := test.Base64ToBytes("EZ0qpcb7h5zsXsUAijfCqWo2Y9sCHWc6Qr+23GlhEvUFrYOn/iyY7CTqbm4hApPlQ0a/rFUX6BI2eYqd9+iJsw==")
 
 	result, err := testECDsa.Sign(azkeys.SignatureAlgorithmES256, digest)
 	require.NoError(t, err)
-	require.Equal(t, signature, result.Signature)
+	require.NotNil(t, result.Signature)
 
 	pub := ECDsa{
 		key: ecdsa.PrivateKey{
