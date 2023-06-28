@@ -71,7 +71,7 @@ func fromCurve(crv azkeys.CurveName) (elliptic.Curve, error) {
 	case azkeys.CurveNameP521:
 		return elliptic.P521(), nil
 	default:
-		return nil, fmt.Errorf("unsupported crv: %s", crv)
+		return nil, internal.ErrUnsupported
 	}
 }
 

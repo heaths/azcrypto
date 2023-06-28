@@ -45,7 +45,7 @@ func TestNewECDsa(t *testing.T) {
 				Kty: to.Ptr(azkeys.KeyTypeEC),
 				Crv: to.Ptr(azkeys.CurveName("invalid")),
 			},
-			errMsg: "unsupported crv: invalid",
+			errMsg: "operation not supported",
 		},
 		{
 			name: "missing x",
