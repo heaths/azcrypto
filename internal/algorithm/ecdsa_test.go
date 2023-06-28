@@ -40,6 +40,14 @@ func TestNewECDsa(t *testing.T) {
 			errMsg: "ECDsa requires curve name",
 		},
 		{
+			name: "unsupported crv",
+			key: azkeys.JSONWebKey{
+				Kty: to.Ptr(azkeys.KeyTypeEC),
+				Crv: to.Ptr(azkeys.CurveName("invalid")),
+			},
+			errMsg: "unsupported crv: invalid",
+		},
+		{
 			name: "missing x",
 			key: azkeys.JSONWebKey{
 				Kty: to.Ptr(azkeys.KeyTypeEC),
@@ -67,6 +75,16 @@ func TestNewECDsa(t *testing.T) {
 			},
 			keyID: "kid",
 		},
+		{
+			name: "with private key",
+			key: azkeys.JSONWebKey{
+				Kty: to.Ptr(azkeys.KeyTypeEC),
+				Crv: to.Ptr(azkeys.CurveNameP256),
+				X:   []byte{0},
+				Y:   []byte{1},
+				D:   []byte{2},
+			},
+		},
 	}
 
 	for _, tt := range tests {
@@ -79,6 +97,10 @@ func TestNewECDsa(t *testing.T) {
 			require.NoError(t, err)
 			require.Equal(t, tt.keyID, alg.keyID)
 			require.Nil(t, alg.rand)
+
+			if len(tt.key.D) > 0 {
+				require.NotNil(t, alg.key.D)
+			}
 		})
 	}
 }

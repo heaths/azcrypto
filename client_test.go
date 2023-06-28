@@ -403,6 +403,32 @@ func TestClient_SignVerify(t *testing.T) {
 	}
 }
 
+func TestClient_SignVerify_local(t *testing.T) {
+	const jwk = `{
+		"kty": "EC",
+		"crv": "P-256",
+		"d": "sgNdWgsMTntK5VH3EK5cHFO1JFjwDavLFtak38zeceo",
+		"x": "5qdQRu-fvx0HHIviw8nGheW8mkJTENsmIHIc6eLwu_g",
+		"y": "6-uNICVVURJXT9cSId4nKOSe12qgI7yRogvy11ofnsw"
+	}`
+
+	var key azkeys.JSONWebKey
+	err := json.Unmarshal([]byte(jwk), &key)
+	require.NoError(t, err)
+
+	client, err := NewClientFromJSONWebKey(key, nil)
+	require.NoError(t, err)
+
+	message := []byte("message")
+	signed, err := client.SignData(context.Background(), SignAlgorithmES256, message, nil)
+	require.NoError(t, err)
+
+	verified, err := client.VerifyData(context.Background(), SignAlgorithmES256, message, signed.Signature, nil)
+	require.NoError(t, err)
+	require.True(t, verified.Valid)
+
+}
+
 func TestClient_WrapUnwrapKey(t *testing.T) {
 	tests := []struct {
 		name       string

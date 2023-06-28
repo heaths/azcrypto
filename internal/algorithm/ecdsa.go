@@ -29,13 +29,13 @@ func newECDsa(key azkeys.JSONWebKey, rand io.Reader) (ECDsa, error) {
 	if key.Crv == nil {
 		return ECDsa{}, errors.New("ECDsa requires curve name")
 	}
-	if len(key.X) == 0 || len(key.Y) == 0 {
-		return ECDsa{}, errors.New("ECDsa requires public key coordinates X, Y")
-	}
-
 	curve, err := fromCurve(*key.Crv)
 	if err != nil {
 		return ECDsa{}, err
+	}
+
+	if len(key.X) == 0 || len(key.Y) == 0 {
+		return ECDsa{}, errors.New("ECDsa requires public key coordinates X, Y")
 	}
 
 	_key := ecdsa.PrivateKey{
@@ -71,7 +71,7 @@ func fromCurve(crv azkeys.CurveName) (elliptic.Curve, error) {
 	case azkeys.CurveNameP521:
 		return elliptic.P521(), nil
 	default:
-		return nil, internal.ErrUnsupported
+		return nil, fmt.Errorf("unsupported crv: %s", crv)
 	}
 }
 

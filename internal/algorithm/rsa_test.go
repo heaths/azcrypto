@@ -112,6 +112,11 @@ func TestRSA_Encrypt(t *testing.T) {
 	}
 }
 
+func TestRSA_Sign(t *testing.T) {
+	_, err := testRSA.Sign(azkeys.SignatureAlgorithmRS256, nil)
+	require.ErrorIs(t, err, internal.ErrUnsupported)
+}
+
 func TestRSA_Verify(t *testing.T) {
 	t.Parallel()
 
