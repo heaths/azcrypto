@@ -7,14 +7,12 @@ import (
 	"crypto"
 	_ "crypto/sha256"
 	_ "crypto/sha512"
-	"encoding/base64"
-	"encoding/hex"
-	"math/big"
 	"testing"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azkeys"
 	"github.com/heaths/azcrypto/internal"
+	"github.com/heaths/azcrypto/internal/test"
 	"github.com/stretchr/testify/require"
 )
 
@@ -81,7 +79,7 @@ func TestNewAlgorithm(t *testing.T) {
 			name: "oct",
 			key: azkeys.JSONWebKey{
 				Kty: to.Ptr(azkeys.KeyTypeOct),
-				K:   base64ToBytes("9M09IArT3CEMYXEKBNdhgw=="), // cspell:disable-line,
+				K:   test.Base64ToBytes("9M09IArT3CEMYXEKBNdhgw=="), // cspell:disable-line,
 			},
 			alg: AES{},
 		},
@@ -89,7 +87,7 @@ func TestNewAlgorithm(t *testing.T) {
 			name: "oct-hsm",
 			key: azkeys.JSONWebKey{
 				Kty: to.Ptr(azkeys.KeyTypeOctHSM),
-				K:   base64ToBytes("9M09IArT3CEMYXEKBNdhgw=="), // cspell:disable-line,
+				K:   test.Base64ToBytes("9M09IArT3CEMYXEKBNdhgw=="), // cspell:disable-line,
 			},
 			alg: AES{},
 		},
@@ -97,7 +95,7 @@ func TestNewAlgorithm(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			alg, err := NewAlgorithm(tt.key)
+			alg, err := NewAlgorithm(tt.key, nil)
 			if tt.err != nil {
 				require.ErrorIs(t, err, tt.err)
 				return
@@ -151,7 +149,7 @@ func TestAs(t *testing.T) {
 			name: "oct",
 			key: azkeys.JSONWebKey{
 				Kty: to.Ptr(azkeys.KeyTypeOct),
-				K:   base64ToBytes("9M09IArT3CEMYXEKBNdhgw=="), // cspell:disable-line,
+				K:   test.Base64ToBytes("9M09IArT3CEMYXEKBNdhgw=="), // cspell:disable-line,
 			},
 			alg: aesEncrypter,
 		},
@@ -159,7 +157,7 @@ func TestAs(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			alg, err := NewAlgorithm(tt.key)
+			alg, err := NewAlgorithm(tt.key, nil)
 			require.NoError(t, err)
 			require.True(t, As(alg, &tt.alg))
 
@@ -270,38 +268,4 @@ func TestSupportsAlgorithm(t *testing.T) {
 		azkeys.EncryptionAlgorithmA192CBC,
 		azkeys.EncryptionAlgorithmA256CBC,
 	))
-}
-
-// base64ToBigInt decodes a base64 string to a big.Int.
-func base64ToBigInt(s string) *big.Int {
-	b, err := base64.StdEncoding.DecodeString(s)
-	if err != nil {
-		panic(err)
-	}
-	return new(big.Int).SetBytes(b)
-}
-
-// base64ToBytes decodes a base64 string to a []byte.
-func base64ToBytes(s string) []byte {
-	dst, err := base64.StdEncoding.DecodeString(s)
-	if err != nil {
-		panic(err)
-	}
-	return dst
-}
-
-// hexToBytes decodes a hexadecimal string to a []byte.
-func hexToBytes(s string) []byte {
-	dst, err := hex.DecodeString(s)
-	if err != nil {
-		panic(err)
-	}
-	return dst
-}
-
-// hash a plaintext string using SHA256.
-func hash(plaintext string, hash crypto.Hash) []byte {
-	h := hash.New()
-	h.Write([]byte(plaintext))
-	return h.Sum(nil)
 }

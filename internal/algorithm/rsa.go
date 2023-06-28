@@ -84,6 +84,10 @@ func (r RSA) Encrypt(algorithm EncryptAlgorithm, plaintext []byte) (EncryptResul
 	}, nil
 }
 
+func (r RSA) Sign(algorithm SignAlgorithm, digest []byte) (SignResult, error) {
+	return SignResult{}, internal.ErrUnsupported
+}
+
 func (r RSA) Verify(algorithm SignAlgorithm, digest, signature []byte) (VerifyResult, error) {
 	var err error
 	switch algorithm {

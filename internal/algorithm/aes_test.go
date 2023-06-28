@@ -10,6 +10,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azkeys"
+	"github.com/heaths/azcrypto/internal/test"
 	"github.com/stretchr/testify/require"
 )
 
@@ -42,7 +43,7 @@ func TestNewAES(t *testing.T) {
 			key: azkeys.JSONWebKey{
 				Kty: to.Ptr(azkeys.KeyTypeOct),
 				KID: to.Ptr(azkeys.ID("aes128")),
-				K:   base64ToBytes("9M09IArT3CEMYXEKBNdhgw=="), // cspell:disable-line
+				K:   test.Base64ToBytes("9M09IArT3CEMYXEKBNdhgw=="), // cspell:disable-line
 			},
 			keyID:     "aes128",
 			blockSize: 16,
@@ -52,7 +53,7 @@ func TestNewAES(t *testing.T) {
 			key: azkeys.JSONWebKey{
 				Kty: to.Ptr(azkeys.KeyTypeOct),
 				KID: to.Ptr(azkeys.ID("aes192")),
-				K:   base64ToBytes("j47gBb9et5ytAdDV/YOOPke2DBjTLIOD"), // cspell:disable-line
+				K:   test.Base64ToBytes("j47gBb9et5ytAdDV/YOOPke2DBjTLIOD"), // cspell:disable-line
 			},
 			keyID:     "aes192",
 			blockSize: 16,
@@ -62,7 +63,7 @@ func TestNewAES(t *testing.T) {
 			key: azkeys.JSONWebKey{
 				Kty: to.Ptr(azkeys.KeyTypeOct),
 				KID: to.Ptr(azkeys.ID("aes256")),
-				K:   base64ToBytes("vzZ5FtPDDpVJCwdwikXfzvz/3RAhWqGg7mcpPqPRlXk="), // cspell:disable-line
+				K:   test.Base64ToBytes("vzZ5FtPDDpVJCwdwikXfzvz/3RAhWqGg7mcpPqPRlXk="), // cspell:disable-line
 			},
 			keyID:     "aes256",
 			blockSize: 16,
@@ -86,7 +87,7 @@ func TestNewAES(t *testing.T) {
 func TestAES_EncryptAESCBC(t *testing.T) {
 	t.Parallel()
 
-	iv := base64ToBytes("AAECAwQFBgcICQoLDA0ODw==") // cspell:disable-line
+	iv := test.Base64ToBytes("AAECAwQFBgcICQoLDA0ODw==") // cspell:disable-line
 	tests := []struct {
 		name       string
 		kty        EncryptAESGCMAlgorithm
@@ -97,14 +98,14 @@ func TestAES_EncryptAESCBC(t *testing.T) {
 		{
 			name:       "a128cbc",
 			kty:        azkeys.EncryptionAlgorithmA128CBC,
-			plaintext:  base64ToBytes("YWJjZGVmZ2hpamtsbW5vcA=="), // cspell:disable-line
-			ciphertext: base64ToBytes("fNAMESgFNBfTvYpyoT0/AQ=="), // cspell:disable-line
+			plaintext:  test.Base64ToBytes("YWJjZGVmZ2hpamtsbW5vcA=="), // cspell:disable-line
+			ciphertext: test.Base64ToBytes("fNAMESgFNBfTvYpyoT0/AQ=="), // cspell:disable-line
 		},
 		{
 			name:       "a256cbc",
 			kty:        azkeys.EncryptionAlgorithmA256CBC,
-			plaintext:  base64ToBytes("YWJjZGVmZ2hpamtsbW5vcA=="), // cspell:disable-line
-			ciphertext: base64ToBytes("fNAMESgFNBfTvYpyoT0/AQ=="), // cspell:disable-line
+			plaintext:  test.Base64ToBytes("YWJjZGVmZ2hpamtsbW5vcA=="), // cspell:disable-line
+			ciphertext: test.Base64ToBytes("fNAMESgFNBfTvYpyoT0/AQ=="), // cspell:disable-line
 		},
 		{
 			name:      "invalid block size",
@@ -142,7 +143,7 @@ func TestAES_EncryptAESCBC(t *testing.T) {
 func TestAES_DecryptAESCBC(t *testing.T) {
 	t.Parallel()
 
-	iv := base64ToBytes("AAECAwQFBgcICQoLDA0ODw==") // cspell:disable-line
+	iv := test.Base64ToBytes("AAECAwQFBgcICQoLDA0ODw==") // cspell:disable-line
 	tests := []struct {
 		name       string
 		kty        EncryptAESGCMAlgorithm
@@ -153,14 +154,14 @@ func TestAES_DecryptAESCBC(t *testing.T) {
 		{
 			name:       "a128cbc",
 			kty:        azkeys.EncryptionAlgorithmA128CBC,
-			plaintext:  base64ToBytes("YWJjZGVmZ2hpamtsbW5vcA=="), // cspell:disable-line
-			ciphertext: base64ToBytes("fNAMESgFNBfTvYpyoT0/AQ=="), // cspell:disable-line
+			plaintext:  test.Base64ToBytes("YWJjZGVmZ2hpamtsbW5vcA=="), // cspell:disable-line
+			ciphertext: test.Base64ToBytes("fNAMESgFNBfTvYpyoT0/AQ=="), // cspell:disable-line
 		},
 		{
 			name:       "a256cbc",
 			kty:        azkeys.EncryptionAlgorithmA256CBC,
-			plaintext:  base64ToBytes("YWJjZGVmZ2hpamtsbW5vcA=="), // cspell:disable-line
-			ciphertext: base64ToBytes("fNAMESgFNBfTvYpyoT0/AQ=="), // cspell:disable-line
+			plaintext:  test.Base64ToBytes("YWJjZGVmZ2hpamtsbW5vcA=="), // cspell:disable-line
+			ciphertext: test.Base64ToBytes("fNAMESgFNBfTvYpyoT0/AQ=="), // cspell:disable-line
 		},
 		{
 			name:       "invalid block size",
@@ -194,7 +195,7 @@ func TestAES_DecryptAESCBC(t *testing.T) {
 func TestAES_EncryptAESGCM(t *testing.T) {
 	t.Parallel()
 
-	nonce := base64ToBytes("AAECAwQFBgcICQoL") // cspell:disable-line
+	nonce := test.Base64ToBytes("AAECAwQFBgcICQoL") // cspell:disable-line
 	tests := []struct {
 		name       string
 		kty        EncryptAESGCMAlgorithm
@@ -206,15 +207,15 @@ func TestAES_EncryptAESGCM(t *testing.T) {
 		{
 			name:       "a128gcm",
 			kty:        azkeys.EncryptionAlgorithmA128GCM,
-			ciphertext: base64ToBytes("+2sRgggQxsWv"),             // cspell:disable-line
-			tag:        base64ToBytes("IrJDF0jD+BZ56+BPnRH7rg=="), // cspell:disable-line
+			ciphertext: test.Base64ToBytes("+2sRgggQxsWv"),             // cspell:disable-line
+			tag:        test.Base64ToBytes("IrJDF0jD+BZ56+BPnRH7rg=="), // cspell:disable-line
 		},
 		{
 			name:       "a256gcm with aad",
 			kty:        azkeys.EncryptionAlgorithmA256GCM,
 			aad:        []byte("additionalAuthenticatedData"),
-			ciphertext: base64ToBytes("+2sRgggQxsWv"),             // cspell:disable-line
-			tag:        base64ToBytes("Xora0uL34SJwoNUA5FOkAg=="), // cspell:disable-line
+			ciphertext: test.Base64ToBytes("+2sRgggQxsWv"),             // cspell:disable-line
+			tag:        test.Base64ToBytes("Xora0uL34SJwoNUA5FOkAg=="), // cspell:disable-line
 		},
 		{
 			name:   "unsupported",
@@ -245,7 +246,7 @@ func TestAES_EncryptAESGCM(t *testing.T) {
 func TestAES_DecryptAESGCM(t *testing.T) {
 	t.Parallel()
 
-	nonce := base64ToBytes("AAECAwQFBgcICQoL") // cspell:disable-line
+	nonce := test.Base64ToBytes("AAECAwQFBgcICQoL") // cspell:disable-line
 	tests := []struct {
 		name       string
 		kty        EncryptAESGCMAlgorithm
@@ -257,15 +258,15 @@ func TestAES_DecryptAESGCM(t *testing.T) {
 		{
 			name:       "a128gcm",
 			kty:        azkeys.EncryptionAlgorithmA128GCM,
-			ciphertext: base64ToBytes("+2sRgggQxsWv"),             // cspell:disable-line
-			tag:        base64ToBytes("IrJDF0jD+BZ56+BPnRH7rg=="), // cspell:disable-line
+			ciphertext: test.Base64ToBytes("+2sRgggQxsWv"),             // cspell:disable-line
+			tag:        test.Base64ToBytes("IrJDF0jD+BZ56+BPnRH7rg=="), // cspell:disable-line
 		},
 		{
 			name:       "a256gcm with aad",
 			kty:        azkeys.EncryptionAlgorithmA256GCM,
 			aad:        []byte("additionalAuthenticatedData"),
-			ciphertext: base64ToBytes("+2sRgggQxsWv"),             // cspell:disable-line
-			tag:        base64ToBytes("Xora0uL34SJwoNUA5FOkAg=="), // cspell:disable-line
+			ciphertext: test.Base64ToBytes("+2sRgggQxsWv"),             // cspell:disable-line
+			tag:        test.Base64ToBytes("Xora0uL34SJwoNUA5FOkAg=="), // cspell:disable-line
 		},
 		{
 			name:   "unsupported",
@@ -320,8 +321,8 @@ func TestAES_WrapKey(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			plaintext := hexToBytes(tt.plaintext)
-			ciphertext := hexToBytes(tt.ciphertext)
+			plaintext := test.HexToBytes(tt.plaintext)
+			ciphertext := test.HexToBytes(tt.ciphertext)
 
 			result, err := testAES.WrapKey(tt.alg, plaintext)
 			if tt.errMsg != "" {
@@ -367,8 +368,8 @@ func TestAES_UnwrapKey(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			plaintext := hexToBytes(tt.plaintext)
-			ciphertext := hexToBytes(tt.ciphertext)
+			plaintext := test.HexToBytes(tt.plaintext)
+			ciphertext := test.HexToBytes(tt.ciphertext)
 
 			result, err := testAES.UnwrapKey(tt.alg, ciphertext)
 			if tt.errMsg != "" {
@@ -462,9 +463,9 @@ func TestWrap(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			kek := hexToBytes(tt.kek)
-			plaintext := hexToBytes(tt.plaintext)
-			expected := hexToBytes(tt.ciphertext)
+			kek := test.HexToBytes(tt.kek)
+			plaintext := test.HexToBytes(tt.plaintext)
+			expected := test.HexToBytes(tt.ciphertext)
 
 			block, err := aes.NewCipher(kek)
 			require.NoError(t, err)
@@ -543,9 +544,9 @@ func TestUnwrap(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			kek := hexToBytes(tt.kek)
-			expected := hexToBytes(tt.plaintext)
-			ciphertext := hexToBytes(tt.ciphertext)
+			kek := test.HexToBytes(tt.kek)
+			expected := test.HexToBytes(tt.plaintext)
+			ciphertext := test.HexToBytes(tt.ciphertext)
 
 			block, err := aes.NewCipher(kek)
 			require.NoError(t, err)
@@ -564,7 +565,7 @@ func TestUnwrap(t *testing.T) {
 var testAES AES
 
 func init() {
-	key := base64ToBytes("vzZ5FtPDDpVJCwdwikXfzvz/3RAhWqGg7mcpPqPRlXk=") // cspell:disable-line
+	key := test.Base64ToBytes("vzZ5FtPDDpVJCwdwikXfzvz/3RAhWqGg7mcpPqPRlXk=") // cspell:disable-line
 	block, err := aes.NewCipher(key)
 	if err != nil {
 		panic(err)
@@ -579,7 +580,7 @@ func init() {
 func TestRequiresKeySize(t *testing.T) {
 	t.Parallel()
 
-	key := base64ToBytes("JQJjdiDye/kYCCsXmBWgGw==") // cspell:disable-line
+	key := test.Base64ToBytes("JQJjdiDye/kYCCsXmBWgGw==") // cspell:disable-line
 	block, err := aes.NewCipher(key)
 	require.NoError(t, err)
 
@@ -588,7 +589,7 @@ func TestRequiresKeySize(t *testing.T) {
 		block:   block,
 		keySize: 16,
 	}
-	iv := base64ToBytes("AAECAwQFBgcICQoLDA0ODw==") // cspell:disable-line
+	iv := test.Base64ToBytes("AAECAwQFBgcICQoLDA0ODw==") // cspell:disable-line
 
 	_, err = a.EncryptAESCBC(azkeys.EncryptionAlgorithmA128CBC, nil, iv)
 	require.NoError(t, err)

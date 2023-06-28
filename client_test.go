@@ -7,7 +7,6 @@ package azcrypto
 
 import (
 	"context"
-	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -199,8 +198,8 @@ func TestClient_EncryptDecryptAESCBC_local(t *testing.T) {
 	client, err := NewClientFromJSONWebKey(key, nil)
 	require.NoError(t, err)
 
-	iv := base64ToBytes("AAECAwQFBgcICQoLDA0ODw==")
-	plaintext := base64ToBytes("YWJjZGVmZ2hpamtsbW5vcA==")
+	iv := test.Base64ToBytes("AAECAwQFBgcICQoLDA0ODw==")
+	plaintext := test.Base64ToBytes("YWJjZGVmZ2hpamtsbW5vcA==")
 	encrypted, err := client.EncryptAESCBC(
 		context.Background(),
 		EncryptAESCBCAlgorithmA128CBC,
@@ -209,7 +208,7 @@ func TestClient_EncryptDecryptAESCBC_local(t *testing.T) {
 		nil,
 	)
 	require.NoError(t, err)
-	require.Equal(t, base64ToBytes("fNAMESgFNBfTvYpyoT0/AQ=="), encrypted.Ciphertext) // cspell:disable-line
+	require.Equal(t, test.Base64ToBytes("fNAMESgFNBfTvYpyoT0/AQ=="), encrypted.Ciphertext) // cspell:disable-line
 
 	decrypted, err := client.DecryptAESCBC(
 		context.Background(),
@@ -305,7 +304,7 @@ func TestClient_EncryptDecryptAESGCM_local(t *testing.T) {
 	require.NoError(t, err)
 
 	options := ClientOptions{
-		Rand: new(rng),
+		Rand: new(test.Rand),
 	}
 	client, err := NewClientFromJSONWebKey(key, &options)
 	require.NoError(t, err)
@@ -319,8 +318,8 @@ func TestClient_EncryptDecryptAESGCM_local(t *testing.T) {
 		nil,
 	)
 	require.NoError(t, err)
-	require.Equal(t, base64ToBytes("+2sRgggQxsWv"), encrypted.Ciphertext)                    // cspell:disable-line
-	require.Equal(t, base64ToBytes("IrJDF0jD+BZ56+BPnRH7rg=="), encrypted.AuthenticationTag) // cspell:disable-line
+	require.Equal(t, test.Base64ToBytes("+2sRgggQxsWv"), encrypted.Ciphertext)                    // cspell:disable-line
+	require.Equal(t, test.Base64ToBytes("IrJDF0jD+BZ56+BPnRH7rg=="), encrypted.AuthenticationTag) // cspell:disable-line
 
 	decrypted, err := client.DecryptAESGCM(
 		context.Background(),
@@ -475,7 +474,7 @@ func TestClient_WrapUnwrapKey(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			client := test.Recorded(t, testClient(t, tt.key, tt.permission))
 
-			key := base64ToBytes("XuzMCMA534jyOTYaJ+rYvw==")
+			key := test.Base64ToBytes("XuzMCMA534jyOTYaJ+rYvw==")
 			wrapped, err := client.WrapKey(context.Background(), tt.alg, key, nil)
 			if tt.err != nil {
 				if !test.RequireIfResponseError(t, err, tt.err) {
@@ -507,10 +506,10 @@ func TestClient_WrapUnwrapKey_local(t *testing.T) {
 	client, err := NewClientFromJSONWebKey(kek, nil)
 	require.NoError(t, err)
 
-	key := base64ToBytes("ABEiM0RVZneImaq7zN3u/w==")
+	key := test.Base64ToBytes("ABEiM0RVZneImaq7zN3u/w==")
 	encrypted, err := client.WrapKey(context.Background(), WrapKeyAlgorithmA128KW, key, nil)
 	require.NoError(t, err)
-	require.Equal(t, base64ToBytes("9B0z+bmn6gvzZFQyyMidxPG+jMMkCKkz"), encrypted.EncryptedKey) // cspell:disable-line
+	require.Equal(t, test.Base64ToBytes("9B0z+bmn6gvzZFQyyMidxPG+jMMkCKkz"), encrypted.EncryptedKey) // cspell:disable-line
 
 	decrypted, err := client.UnwrapKey(context.Background(), WrapKeyAlgorithmA128KW, encrypted.EncryptedKey, nil)
 	require.NoError(t, err)
@@ -545,7 +544,7 @@ func testClient(t *testing.T, keyName string, permission bool) test.ClientFactor
 					Transport: recording.GetTransport(),
 				},
 			},
-			Rand:       new(rng),
+			Rand:       new(test.Rand),
 			remoteOnly: test.IsRemoteOnly(),
 		})
 	}
@@ -558,23 +557,4 @@ func requireManagedHSM(t *testing.T) {
 			t.Skip("Managed HSM has not been provisioned")
 		}
 	}
-}
-
-// base64ToBytes decodes a base64 string to a []byte.
-func base64ToBytes(s string) []byte {
-	dst, err := base64.StdEncoding.DecodeString(s)
-	if err != nil {
-		panic(err)
-	}
-	return dst
-}
-
-// rng is a mock RNG used only for testing.
-type rng struct{}
-
-func (r *rng) Read(b []byte) (int, error) {
-	for i := range b {
-		b[i] = byte(i)
-	}
-	return len(b), nil
 }

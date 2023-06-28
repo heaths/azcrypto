@@ -7,12 +7,12 @@ import (
 	"crypto"
 	"crypto/ecdsa"
 	"crypto/elliptic"
-	"encoding/hex"
 	"testing"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azkeys"
 	"github.com/heaths/azcrypto/internal"
+	"github.com/heaths/azcrypto/internal/test"
 	"github.com/stretchr/testify/require"
 )
 
@@ -40,11 +40,30 @@ func TestNewECDsa(t *testing.T) {
 			errMsg: "ECDsa requires curve name",
 		},
 		{
+			name: "missing x",
+			key: azkeys.JSONWebKey{
+				Kty: to.Ptr(azkeys.KeyTypeEC),
+				Crv: to.Ptr(azkeys.CurveNameP256),
+			},
+			errMsg: "ECDsa requires public key coordinates X, Y",
+		},
+		{
+			name: "missing x",
+			key: azkeys.JSONWebKey{
+				Kty: to.Ptr(azkeys.KeyTypeEC),
+				Crv: to.Ptr(azkeys.CurveNameP256),
+				X:   []byte{0},
+			},
+			errMsg: "ECDsa requires public key coordinates X, Y",
+		},
+		{
 			name: "with keyID",
 			key: azkeys.JSONWebKey{
 				Kty: to.Ptr(azkeys.KeyTypeEC),
 				Crv: to.Ptr(azkeys.CurveNameP256),
 				KID: to.Ptr(azkeys.ID("kid")),
+				X:   []byte{0},
+				Y:   []byte{1},
 			},
 			keyID: "kid",
 		},
@@ -52,13 +71,14 @@ func TestNewECDsa(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			alg, err := newECDsa(tt.key)
+			alg, err := newECDsa(tt.key, nil)
 			if tt.errMsg != "" {
 				require.EqualError(t, err, tt.errMsg)
 				return
 			}
 			require.NoError(t, err)
 			require.Equal(t, tt.keyID, alg.keyID)
+			require.Nil(t, alg.rand)
 		})
 	}
 }
@@ -107,12 +127,33 @@ func TestFromCurve(t *testing.T) {
 	}
 }
 
+func TestECDsa_Sign(t *testing.T) {
+	t.Parallel()
+
+	digest := test.Hash("message", crypto.SHA256)
+	signature := test.Base64ToBytes("EZ0qpcb7h5zsXsUAijfCqWo2Y9sCHWc6Qr+23GlhEvUFrYOn/iyY7CTqbm4hApPlQ0a/rFUX6BI2eYqd9+iJsw==")
+
+	result, err := testECDsa.Sign(azkeys.SignatureAlgorithmES256, digest)
+	require.NoError(t, err)
+	require.Equal(t, signature, result.Signature)
+
+	pub := ECDsa{
+		key: ecdsa.PrivateKey{
+			PublicKey: testECDsa.key.PublicKey,
+		},
+	}
+	_, err = pub.Sign(azkeys.SignatureAlgorithmES256, digest)
+	require.ErrorIs(t, err, internal.ErrUnsupported)
+
+	_, err = testECDsa.Sign(azkeys.SignatureAlgorithmPS256, digest)
+	require.ErrorIs(t, err, internal.ErrUnsupported)
+}
+
 func TestECDsa_Verify(t *testing.T) {
 	t.Parallel()
 
-	digest := hash("message", crypto.SHA256)
-	signature, err := hex.DecodeString("6f1ebd371ccae1a455bb709c5bb2c3e999ede7ed34b8e5e3d3994508f238c33c48f979c986182f6b8f7bd3fb277cc3a6c10f42ee906d18420d6ee7895720fca8")
-	require.NoError(t, err)
+	digest := test.Hash("message", crypto.SHA256)
+	signature := test.Base64ToBytes("EZ0qpcb7h5zsXsUAijfCqWo2Y9sCHWc6Qr+23GlhEvUFrYOn/iyY7CTqbm4hApPlQ0a/rFUX6BI2eYqd9+iJsw==")
 
 	result, err := testECDsa.Verify(azkeys.SignatureAlgorithmES256, digest, signature)
 	require.NoError(t, err)
@@ -126,9 +167,13 @@ func TestECDsa_Verify(t *testing.T) {
 }
 
 var testECDsa = ECDsa{
-	pub: ecdsa.PublicKey{
-		Curve: elliptic.P256(),
-		X:     base64ToBigInt("7WxNBlctcTGSin66Wagm+TjuJNkakZ66/kBWbrEXH7A="),
-		Y:     base64ToBigInt("eezcbUP083FjPhwp+uTTXiJVKI7/j+IMYMl4uYrF95Y="),
+	key: ecdsa.PrivateKey{
+		PublicKey: ecdsa.PublicKey{
+			Curve: elliptic.P256(),
+			X:     test.Base64ToBigInt("5qdQRu+fvx0HHIviw8nGheW8mkJTENsmIHIc6eLwu/g="),
+			Y:     test.Base64ToBigInt("6+uNICVVURJXT9cSId4nKOSe12qgI7yRogvy11ofnsw="),
+		},
+		D: test.Base64ToBigInt("sgNdWgsMTntK5VH3EK5cHFO1JFjwDavLFtak38zeceo="),
 	},
+	rand: new(test.Rand),
 }
