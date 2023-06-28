@@ -53,6 +53,12 @@ func TestNewRSA(t *testing.T) {
 			}
 			require.NoError(t, err)
 			require.Equal(t, tt.keyID, alg.keyID)
+
+			var encrypter Encrypter
+			require.Implements(t, &encrypter, alg)
+
+			var wrapper KeyWrapper
+			require.Implements(t, &wrapper, alg)
 		})
 	}
 }

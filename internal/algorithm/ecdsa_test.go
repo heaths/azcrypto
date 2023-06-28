@@ -101,6 +101,9 @@ func TestNewECDsa(t *testing.T) {
 			if len(tt.key.D) > 0 {
 				require.NotNil(t, alg.key.D)
 			}
+
+			var signer Signer
+			require.Implements(t, &signer, alg)
 		})
 	}
 }
