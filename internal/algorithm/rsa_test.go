@@ -158,6 +158,7 @@ func TestRSA_Decrypt(t *testing.T) {
 
 	tests := []struct {
 		name       string
+		key        *RSA
 		alg        EncryptAlgorithm
 		ciphertext string
 		err        error
@@ -178,6 +179,17 @@ func TestRSA_Decrypt(t *testing.T) {
 			ciphertext: "bcHiz+zwxFCsfv6P8T/kq+3dzkndX6e5ImCBZRHYObXjr6WrmUqoe5ASgxeT/sJtp7W0uSqe2buQO2EOYzyzVuuArCt3JOEiILJCsns2vnukTm9F0x3FpgVW0DysnXcCvYE9MLVvcwVgn5g8tOsQArPexGt4Wr7kLR0nHnBlwqTrlrj5gJvxQYP5xGOIsFcJz9bnsB3MZT1dQS8y6HTGHiEPQsTnh7/RTwPsXsQkRBxGKcAzYDN5IdhrpbxtDs7DlBLUcvcE+6F+lNxxl1x/3zDUY922STb8GFZwbikvL27WrhhF5zE1LEokrm2GBWMx3I6ovRWUED+9vepdLV+W+A==",
 		},
 		{
+			name: "missing private key",
+			key: &RSA{
+				key: rsa.PrivateKey{
+					PublicKey: testRSA.key.PublicKey,
+				},
+				rand: testRSA.rand,
+			},
+			alg: azkeys.EncryptionAlgorithmRSAOAEP,
+			err: internal.ErrUnsupported,
+		},
+		{
 			name: "unsupported",
 			alg:  azkeys.EncryptionAlgorithmA128CBC,
 			err:  internal.ErrUnsupported,
@@ -187,7 +199,12 @@ func TestRSA_Decrypt(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			ciphertext := test.Base64ToBytes(tt.ciphertext)
-			result, err := testRSA.Decrypt(tt.alg, ciphertext)
+			rsa := tt.key
+			if rsa == nil {
+				rsa = &testRSA
+			}
+
+			result, err := rsa.Decrypt(tt.alg, ciphertext)
 			if tt.err != nil {
 				require.ErrorIs(t, err, tt.err)
 				return
@@ -203,6 +220,7 @@ func TestRSA_Sign(t *testing.T) {
 
 	tests := []struct {
 		name      string
+		key       *RSA
 		alg       SignAlgorithm
 		hash      crypto.Hash
 		signature string
@@ -245,6 +263,17 @@ func TestRSA_Sign(t *testing.T) {
 			signature: "YOWlOknuzqU+6RYqADFJC528uijy72Bk/oY0tzKkk89QhbpDmsFRFUYBJPnCTMZHKxIOtoYvu5CaQORNL+qTYgBTXCPBTMXPElTtNxyUYKPlrFeIs2gO94ZWbI/fNbHYr+ugxqXNS2ccbMn38UYzrx/DiH6hPXwBDmVdM4a2c1/nONg3CHipRJwCdiYyRSrVt1ucAfzQJJ++POmayDmxLTuERTQLZy5nTj1TsJx+NL2o0Co7Nc7Si3kvS77Oc56DBnjGU2AVqIMjxWKloaNh7i9GrZklCeUyCJ/Aj6OcW/MKli7BSdH+bF1UEql0fWdvHfL78OfdZYJr+hLIUZ7Gag==",
 		},
 		{
+			name: "missing private key",
+			key: &RSA{
+				key: rsa.PrivateKey{
+					PublicKey: testRSA.key.PublicKey,
+				},
+			},
+			alg:  azkeys.SignatureAlgorithmPS256,
+			hash: crypto.SHA256,
+			err:  internal.ErrUnsupported,
+		},
+		{
 			name: "unsupported",
 			alg:  azkeys.SignatureAlgorithmES256,
 			hash: crypto.SHA256,
@@ -255,7 +284,12 @@ func TestRSA_Sign(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			expected := test.Base64ToBytes(tt.signature)
-			result, err := testRSA.Sign(tt.alg, test.Hash("message", tt.hash))
+			rsa := tt.key
+			if rsa == nil {
+				rsa = &testRSA
+			}
+
+			result, err := rsa.Sign(tt.alg, test.Hash("message", tt.hash))
 			if tt.err != nil {
 				require.ErrorIs(t, err, tt.err)
 				return
@@ -387,6 +421,7 @@ func TestRSA_UnwrapKey(t *testing.T) {
 	key := test.Base64ToBytes("bW9jayBhZXMtMTI4IGtleQ==")
 	tests := []struct {
 		name      string
+		key       *RSA
 		alg       WrapKeyAlgorithm
 		encrypted string
 		err       error
@@ -407,6 +442,16 @@ func TestRSA_UnwrapKey(t *testing.T) {
 			encrypted: "S4pzhGlZsdNskUwheWQSxaAR7ELBNimilET33Zz1261q9TFXo3XiTsFmOfVA1+xlzC59T3T1t7d+x4c8bEBEACY/x5YKxB/a64hxLc3SUdx+MxhNrZgiuRFK28s0zD3ReKrGuPcUPJhn6SROSmO2AQ2J5EHKCVgOmct1huxZMpRPlxJuFZ3bLk4eKuixoHt1hXPmA1oHeVagDhlm1+dbAFDhYbLkZnEl19/uNgO+oqOxR54lJqWQNPNSY4hRn7WGv60eIqMHZ44dtjBAwNWQA833zRCI8ihPSnz4miULlWS9BEfk2khKsqkVYotFNEjKIzp5fJNFIuxFnu8M1eGp8Q==",
 		},
 		{
+			name: "missing private key",
+			key: &RSA{
+				key: rsa.PrivateKey{
+					PublicKey: testRSA.key.PublicKey,
+				},
+			},
+			alg: azkeys.EncryptionAlgorithmA128CBC,
+			err: internal.ErrUnsupported,
+		},
+		{
 			name: "unsupported",
 			alg:  azkeys.EncryptionAlgorithmA128CBC,
 			err:  internal.ErrUnsupported,
@@ -416,7 +461,12 @@ func TestRSA_UnwrapKey(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			encrypted := test.Base64ToBytes(tt.encrypted)
-			result, err := testRSA.UnwrapKey(tt.alg, encrypted)
+			rsa := tt.key
+			if rsa == nil {
+				rsa = &testRSA
+			}
+
+			result, err := rsa.UnwrapKey(tt.alg, encrypted)
 			if err != nil {
 				require.ErrorIs(t, err, tt.err)
 				return
