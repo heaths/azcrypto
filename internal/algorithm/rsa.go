@@ -5,11 +5,13 @@ package algorithm
 
 import (
 	"crypto"
-	"crypto/rand"
+	rng "crypto/rand"
 	"crypto/rsa"
+	_ "crypto/sha1"
 	_ "crypto/sha256"
 	"encoding/binary"
 	"fmt"
+	"io"
 	"math/big"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azkeys"
@@ -18,12 +20,44 @@ import (
 
 type RSA struct {
 	keyID string
-	pub   rsa.PublicKey
+	key   rsa.PrivateKey
+	rand  io.Reader
 }
 
-func newRSA(key azkeys.JSONWebKey) (RSA, error) {
+func newRSA(key azkeys.JSONWebKey, rand io.Reader) (RSA, error) {
 	if *key.Kty != azkeys.KeyTypeRSA && *key.Kty != azkeys.KeyTypeRSAHSM {
 		return RSA{}, fmt.Errorf("RSA does not support key type %q", *key.Kty)
+	}
+
+	if len(key.E) == 0 {
+		return RSA{}, fmt.Errorf("RSA requires public exponent E")
+	}
+
+	if len(key.N) == 0 {
+		return RSA{}, fmt.Errorf("RSA requires modulus N")
+	}
+
+	eb := ensureBytes(key.E, 4)
+	eu := binary.BigEndian.Uint32(eb)
+
+	_key := rsa.PrivateKey{
+		PublicKey: rsa.PublicKey{
+			N: new(big.Int).SetBytes(key.N),
+			E: int(eu),
+		},
+	}
+
+	if len(key.D) > 0 {
+		l := len(key.N)
+		_key.D = ensureBigInt(key.D, l)
+
+		l /= 2
+		_key.Primes = make([]*big.Int, 2)
+		_key.Primes[0] = ensureBigInt(key.P, l)
+		_key.Primes[1] = ensureBigInt(key.Q, l)
+
+		// We could set DP, DQ, and QI but Precompute does more.
+		_key.Precompute()
 	}
 
 	var keyID string
@@ -31,15 +65,14 @@ func newRSA(key azkeys.JSONWebKey) (RSA, error) {
 		keyID = string(*key.KID)
 	}
 
-	eb := ensureSize(key.E, 4)
-	eu := binary.BigEndian.Uint32(eb)
+	if rand == nil {
+		rand = rng.Reader
+	}
 
 	return RSA{
 		keyID: keyID,
-		pub: rsa.PublicKey{
-			N: new(big.Int).SetBytes(key.N),
-			E: int(eu),
-		},
+		key:   _key,
+		rand:  rand,
 	}, nil
 }
 
@@ -64,10 +97,10 @@ func (r RSA) Encrypt(algorithm EncryptAlgorithm, plaintext []byte) (EncryptResul
 	case azkeys.EncryptionAlgorithmRSAOAEP,
 		azkeys.EncryptionAlgorithmRSAOAEP256:
 		hash := getHash()
-		ciphertext, err = rsa.EncryptOAEP(hash.New(), rand.Reader, &r.pub, plaintext, nil)
+		ciphertext, err = rsa.EncryptOAEP(hash.New(), r.rand, &r.key.PublicKey, plaintext, nil)
 
 	case azkeys.EncryptionAlgorithmRSA15:
-		ciphertext, err = rsa.EncryptPKCS1v15(rand.Reader, &r.pub, plaintext)
+		ciphertext, err = rsa.EncryptPKCS1v15(r.rand, &r.key.PublicKey, plaintext)
 
 	default:
 		return EncryptResult{}, internal.ErrUnsupported
@@ -84,8 +117,93 @@ func (r RSA) Encrypt(algorithm EncryptAlgorithm, plaintext []byte) (EncryptResul
 	}, nil
 }
 
+func (r RSA) Decrypt(algorithm EncryptAlgorithm, ciphertext []byte) (DecryptResult, error) {
+	var plaintext []byte
+	var err error
+
+	if !r.hasPrivateKey() {
+		return DecryptResult{}, internal.ErrUnsupported
+	}
+
+	getHash := func() crypto.Hash {
+		switch algorithm {
+		case azkeys.EncryptionAlgorithmRSAOAEP:
+			return crypto.SHA1
+
+		case azkeys.EncryptionAlgorithmRSAOAEP256:
+			return crypto.SHA256
+
+		default:
+			panic("unexpected EncryptAlgorithm")
+		}
+	}
+
+	switch algorithm {
+	case azkeys.EncryptionAlgorithmRSAOAEP,
+		azkeys.EncryptionAlgorithmRSAOAEP256:
+		hash := getHash()
+		plaintext, err = rsa.DecryptOAEP(hash.New(), r.rand, &r.key, ciphertext, nil)
+
+	case azkeys.EncryptionAlgorithmRSA15:
+		plaintext, err = rsa.DecryptPKCS1v15(r.rand, &r.key, ciphertext)
+
+	default:
+		return DecryptResult{}, internal.ErrUnsupported
+	}
+
+	if err != nil {
+		return DecryptResult{}, err
+	}
+
+	return DecryptResult{
+		Algorithm: algorithm,
+		KeyID:     r.keyID,
+		Plaintext: plaintext,
+	}, nil
+}
+
 func (r RSA) Sign(algorithm SignAlgorithm, digest []byte) (SignResult, error) {
-	return SignResult{}, internal.ErrUnsupported
+	var signature []byte
+	var err error
+
+	if !r.hasPrivateKey() {
+		return SignResult{}, internal.ErrUnsupported
+	}
+
+	switch algorithm {
+	case azkeys.SignatureAlgorithmPS256,
+		azkeys.SignatureAlgorithmPS384,
+		azkeys.SignatureAlgorithmPS512:
+		var hash crypto.Hash
+		hash, err = GetHash(algorithm)
+		if err != nil {
+			return SignResult{}, err
+		}
+		signature, err = rsa.SignPSS(r.rand, &r.key, hash, digest, nil)
+
+	case azkeys.SignatureAlgorithmRS256,
+		azkeys.SignatureAlgorithmRS384,
+		azkeys.SignatureAlgorithmRS512:
+		var hash crypto.Hash
+		hash, err = GetHash(algorithm)
+		if err != nil {
+			return SignResult{}, err
+		}
+		signature, err = rsa.SignPKCS1v15(r.rand, &r.key, hash, digest)
+
+	default:
+		return SignResult{}, internal.ErrUnsupported
+	}
+
+	if err != nil {
+		return SignResult{}, err
+	}
+
+	return SignResult{
+		Algorithm: algorithm,
+		KeyID:     r.keyID,
+		Signature: signature,
+	}, nil
 }
 
 func (r RSA) Verify(algorithm SignAlgorithm, digest, signature []byte) (VerifyResult, error) {
@@ -99,7 +217,7 @@ func (r RSA) Verify(algorithm SignAlgorithm, digest, signature []byte) (VerifyRe
 		if err != nil {
 			return VerifyResult{}, err
 		}
-		err = rsa.VerifyPSS(&r.pub, hash, digest, signature, nil)
+		err = rsa.VerifyPSS(&r.key.PublicKey, hash, digest, signature, nil)
 
 	case azkeys.SignatureAlgorithmRS256,
 		azkeys.SignatureAlgorithmRS384,
@@ -109,7 +227,7 @@ func (r RSA) Verify(algorithm SignAlgorithm, digest, signature []byte) (VerifyRe
 		if err != nil {
 			return VerifyResult{}, err
 		}
-		err = rsa.VerifyPKCS1v15(&r.pub, hash, digest, signature)
+		err = rsa.VerifyPKCS1v15(&r.key.PublicKey, hash, digest, signature)
 
 	default:
 		return VerifyResult{}, internal.ErrUnsupported
@@ -143,10 +261,10 @@ func (r RSA) WrapKey(algorithm WrapKeyAlgorithm, key []byte) (WrapKeyResult, err
 	case azkeys.EncryptionAlgorithmRSAOAEP,
 		azkeys.EncryptionAlgorithmRSAOAEP256:
 		hash := getHash()
-		encryptedKey, err = rsa.EncryptOAEP(hash.New(), rand.Reader, &r.pub, key, nil)
+		encryptedKey, err = rsa.EncryptOAEP(hash.New(), r.rand, &r.key.PublicKey, key, nil)
 
 	case azkeys.EncryptionAlgorithmRSA15:
-		encryptedKey, err = rsa.EncryptPKCS1v15(rand.Reader, &r.pub, key)
+		encryptedKey, err = rsa.EncryptPKCS1v15(r.rand, &r.key.PublicKey, key)
 
 	default:
 		return WrapKeyResult{}, internal.ErrUnsupported
@@ -164,10 +282,60 @@ func (r RSA) WrapKey(algorithm WrapKeyAlgorithm, key []byte) (WrapKeyResult, err
 }
 
 func (r RSA) UnwrapKey(algorithm WrapKeyAlgorithm, encryptedKey []byte) (UnwrapKeyResult, error) {
-	return UnwrapKeyResult{}, internal.ErrUnsupported
+	var key []byte
+	var err error
+
+	if !r.hasPrivateKey() {
+		return UnwrapKeyResult{}, internal.ErrUnsupported
+	}
+
+	getHash := func() crypto.Hash {
+		switch algorithm {
+		case azkeys.EncryptionAlgorithmRSAOAEP:
+			return crypto.SHA1
+
+		case azkeys.EncryptionAlgorithmRSAOAEP256:
+			return crypto.SHA256
+
+		default:
+			panic("unexpected WrapKeyAlgorithm")
+		}
+	}
+
+	switch algorithm {
+	case azkeys.EncryptionAlgorithmRSAOAEP,
+		azkeys.EncryptionAlgorithmRSAOAEP256:
+		hash := getHash()
+		key, err = rsa.DecryptOAEP(hash.New(), r.rand, &r.key, encryptedKey, nil)
+
+	case azkeys.EncryptionAlgorithmRSA15:
+		key, err = rsa.DecryptPKCS1v15(r.rand, &r.key, encryptedKey)
+
+	default:
+		return UnwrapKeyResult{}, internal.ErrUnsupported
+	}
+
+	if err != nil {
+		return UnwrapKeyResult{}, err
+	}
+
+	return UnwrapKeyResult{
+		Algorithm: algorithm,
+		KeyID:     r.keyID,
+		Key:       key,
+	}, nil
 }
 
-func ensureSize(src []byte, size int) []byte {
+func (r RSA) hasPrivateKey() bool {
+	return r.key.D != nil
+}
+
+func ensureBigInt(src []byte, size int) *big.Int {
+	b := ensureBytes(src, size)
+	return new(big.Int).SetBytes(b)
+}
+
+func ensureBytes(src []byte, size int) []byte {
 	l := len(src)
 	if l < size {
 		dst := make([]byte, size)

@@ -29,6 +29,7 @@ type AESEncrypter interface {
 
 type Encrypter interface {
 	Encrypt(algorithm EncryptAlgorithm, plaintext []byte) (EncryptResult, error)
+	Decrypt(algorithm EncryptAlgorithm, ciphertext []byte) (DecryptResult, error)
 }
 
 type Signer interface {
@@ -67,7 +68,7 @@ func NewAlgorithm(key azkeys.JSONWebKey, rand io.Reader) (any, error) {
 
 	// RSA
 	case azkeys.KeyTypeRSA, azkeys.KeyTypeRSAHSM:
-		return newRSA(key)
+		return newRSA(key, rand)
 
 	// oct
 	case azkeys.KeyTypeOct, azkeys.KeyTypeOctHSM:

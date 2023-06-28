@@ -5,7 +5,7 @@ package azcrypto
 
 import (
 	"context"
-	"crypto/rand"
+	rng "crypto/rand"
 	"errors"
 	"fmt"
 	"io"
@@ -53,9 +53,9 @@ func NewClient(keyID string, credential azcore.TokenCredential, options *ClientO
 	if options == nil {
 		options = &ClientOptions{}
 	}
-	_rand := options.Rand
-	if _rand == nil {
-		_rand = rand.Reader
+	rand := options.Rand
+	if rand == nil {
+		rand = rng.Reader
 	}
 
 	vaultURL, name, version := internal.ParseID(&keyID)
@@ -76,7 +76,7 @@ func NewClient(keyID string, credential azcore.TokenCredential, options *ClientO
 		keyName:      *name,
 		keyVersion:   *version,
 		remoteClient: remoteClient,
-		rand:         _rand,
+		rand:         rand,
 	}
 
 	if options.remoteOnly {
@@ -93,9 +93,9 @@ func NewClientFromJSONWebKey(key azkeys.JSONWebKey, options *ClientOptions) (*Cl
 	if options == nil {
 		options = &ClientOptions{}
 	}
-	_rand := options.Rand
-	if _rand == nil {
-		_rand = rand.Reader
+	rand := options.Rand
+	if rand == nil {
+		rand = rng.Reader
 	}
 
 	var keyID string
@@ -103,7 +103,7 @@ func NewClientFromJSONWebKey(key azkeys.JSONWebKey, options *ClientOptions) (*Cl
 		keyID = string(*key.KID)
 	}
 
-	localClient, err := alg.NewAlgorithm(key, _rand)
+	localClient, err := alg.NewAlgorithm(key, rand)
 	if err != nil {
 		return nil, fmt.Errorf("bad key: %w", err)
 	}
@@ -111,7 +111,7 @@ func NewClientFromJSONWebKey(key azkeys.JSONWebKey, options *ClientOptions) (*Cl
 	client := &Client{
 		keyID:       string(keyID),
 		localClient: localClient,
-		rand:        _rand,
+		rand:        rand,
 	}
 	client._init.Do(func() {})
 
@@ -393,6 +393,18 @@ type DecryptResult = alg.DecryptResult
 // Decrypt decrypts the ciphertext using the specified algorithm.
 func (client *Client) Decrypt(ctx context.Context, algorithm EncryptAlgorithm, ciphertext []byte, options *DecryptOptions) (DecryptResult, error) {
 	// Decrypting requires access to a private key, which Key Vault does not provide by default.
+	var encrypter alg.Encrypter
+	if alg.As(client.localClient, &encrypter) {
+		result, err := encrypter.Decrypt(algorithm, ciphertext)
+		if client.localOnly() || !errors.Is(err, internal.ErrUnsupported) {
+			return DecryptResult{
+				Algorithm: result.Algorithm,
+				KeyID:     result.KeyID,
+				Plaintext: result.Plaintext,
+			}, err
+		}
+	}
+
 	parameters := azkeys.KeyOperationParameters{
 		Algorithm: &algorithm,
 		Value:     ciphertext,
@@ -437,8 +449,7 @@ type DecryptAESCBCResult = alg.DecryptResult
 
 // DecryptAESCBC decrypts the ciphertext using the specified algorithm.
 func (client *Client) DecryptAESCBC(ctx context.Context, algorithm EncryptAESCBCAlgorithm, ciphertext, iv []byte, options *DecryptAESCBCOptions) (DecryptAESCBCResult, error) {
-	client.init(ctx)
-
+	// Decrypting requires access to a private key, which Key Vault does not provide by default.
 	var encrypter alg.AESEncrypter
 	if alg.As(client.localClient, &encrypter) {
 		result, err := encrypter.DecryptAESCBC(algorithm, ciphertext, iv)
@@ -496,8 +507,7 @@ type DecryptAESGCMResult = alg.DecryptResult
 
 // DecryptAESGCM decrypts the ciphertext using the specified algorithm.
 func (client *Client) DecryptAESGCM(ctx context.Context, algorithm EncryptAESGCMAlgorithm, ciphertext, nonce, authenticationTag, additionalAuthenticatedData []byte, options *DecryptAESGCMOptions) (DecryptAESGCMResult, error) {
-	client.init(ctx)
-
+	// Decrypting requires access to a private key, which Key Vault does not provide by default.
 	var encrypter alg.AESEncrypter
 	if alg.As(client.localClient, &encrypter) {
 		result, err := encrypter.DecryptAESGCM(algorithm, ciphertext, nonce, authenticationTag, additionalAuthenticatedData)
@@ -557,8 +567,7 @@ type SignResult = alg.SignResult
 
 // Sign signs the specified digest using the specified algorithm.
 func (client *Client) Sign(ctx context.Context, algorithm SignAlgorithm, digest []byte, options *SignOptions) (SignResult, error) {
-	client.init(ctx)
-
+	// Signing requires access to a private key, which Key Vault does not provide by default.
 	var signer alg.Signer
 	if alg.As(client.localClient, &signer) {
 		result, err := signer.Sign(algorithm, digest)
@@ -761,8 +770,7 @@ type UnwrapKeyResult = alg.UnwrapKeyResult
 
 // UnwrapKey decrypts the specified key using the specified algorithm. Asymmetric decryption is typically used to unwrap a symmetric key used for streaming ciphers.
 func (client *Client) UnwrapKey(ctx context.Context, algorithm WrapKeyAlgorithm, encryptedKey []byte, options *UnwrapKeyOptions) (UnwrapKeyResult, error) {
-	client.init(ctx)
-
+	// Unwrapping a key requires access to a private key, which Key Vault does not provide by default.
 	var keyWrapper alg.KeyWrapper
 	if alg.As(client.localClient, &keyWrapper) {
 		result, err := keyWrapper.UnwrapKey(algorithm, encryptedKey)
