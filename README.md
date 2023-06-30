@@ -5,7 +5,7 @@
 [![codecov](https://codecov.io/gh/heaths/azcrypto/branch/main/graph/badge.svg?token=uL62c7z0zO)](https://codecov.io/gh/heaths/azcrypto)
 
 This module provides a cryptography client for the [Azure Key Vault Keys client module for Go][azkeys].
-This project is **not** supported by the Azure SDK team, but does align with the cryptography clients in other supported languages like the [CryptographyClient] I wrote for the Azure SDK for .NET.
+This project is **not** supported by the Azure SDK team, but does align with the cryptography clients in other supported languages like the [CryptographyClient] I wrote for the Azure SDK for .NET. See [related projects](#related-projects) for more information.
 
 ## Getting started
 
@@ -187,6 +187,17 @@ func wrapAndUnwrapKey(client *azcrypto.Client, key []byte) ([]byte, error) {
 ## Examples
 
 Get started with our [examples].
+
+## Related projects
+
+Though **not officially** part of the Azure SDKs, this module was developed using the same [guidelines](https://azure.github.io/azure-sdk/golang_introduction.html).
+Convenience methods have been added to help call cryptographic key operations correctly, as well as support for caching public keys when permitted, and using a [JWK] in scenarios it may be stored as an Azure Key Vault secret.
+
+For more information about the other Key Vault SDKs, see <https://github.com/Azure/azure-sdk-for-go/tree/main/sdk/security/keyvault> or, for individual packages:
+
+* [github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azcertificates](https://pkg.go.dev/github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azcertificates) ([source](https://github.com/Azure/azure-sdk-for-go/tree/main/sdk/security/keyvault/azcertificates))
+* [github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azkeys](https://pkg.go.dev/github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azkeys) ([source](https://github.com/Azure/azure-sdk-for-go/tree/main/sdk/security/keyvault/azkeys))
+* [github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azsecrets](https://pkg.go.dev/github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azsecrets) ([source](https://github.com/Azure/azure-sdk-for-go/tree/main/sdk/security/keyvault/azsecrets))
 
 ## License
 
