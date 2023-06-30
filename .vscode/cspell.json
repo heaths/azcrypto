@@ -4,10 +4,12 @@
   "words": [
     "AESCBC",
     "AESGCM",
+    "azcertificates",
     "azcore",
     "azcrypto",
     "azidentity",
     "azkeys",
+    "azsecrets",
     "CBCPAD",
     "ciphertext",
     "codecov",
