@@ -20,7 +20,12 @@ type EncryptAESGCMAlgorithm = azkeys.EncryptionAlgorithm
 type SignAlgorithm = azkeys.SignatureAlgorithm
 type WrapKeyAlgorithm = azkeys.EncryptionAlgorithm
 
+type Algorithm interface {
+	KeyType() string
+}
+
 type AESEncrypter interface {
+	Algorithm
 	EncryptAESCBC(algorithm EncryptAESCBCAlgorithm, plaintext, iv []byte) (EncryptResult, error)
 	DecryptAESCBC(algorithm EncryptAESCBCAlgorithm, ciphertext, iv []byte) (DecryptResult, error)
 	EncryptAESGCM(algorithm EncryptAESGCMAlgorithm, plaintext, nonce, additionalAuthenticatedData []byte) (EncryptResult, error)
@@ -28,21 +33,24 @@ type AESEncrypter interface {
 }
 
 type Encrypter interface {
+	Algorithm
 	Encrypt(algorithm EncryptAlgorithm, plaintext []byte) (EncryptResult, error)
 	Decrypt(algorithm EncryptAlgorithm, ciphertext []byte) (DecryptResult, error)
 }
 
 type Signer interface {
+	Algorithm
 	Sign(algorithm SignAlgorithm, digest []byte) (SignResult, error)
 	Verify(algorithm SignAlgorithm, digest, signature []byte) (VerifyResult, error)
 }
 
 type KeyWrapper interface {
+	Algorithm
 	WrapKey(algorithm WrapKeyAlgorithm, key []byte) (WrapKeyResult, error)
 	UnwrapKey(algorithm WrapKeyAlgorithm, encryptedKey []byte) (UnwrapKeyResult, error)
 }
 
-func As[T any](algorithm any, target *T) bool {
+func As[T any](algorithm Algorithm, target *T) bool {
 	if algorithm == nil {
 		return false
 	}
@@ -56,7 +64,7 @@ func As[T any](algorithm any, target *T) bool {
 	return false
 }
 
-func NewAlgorithm(key azkeys.JSONWebKey, rand io.Reader) (any, error) {
+func NewAlgorithm(key azkeys.JSONWebKey, rand io.Reader) (Algorithm, error) {
 	if key.Kty == nil {
 		return nil, internal.ErrUnsupported
 	}

@@ -56,6 +56,10 @@ func newAES(key azkeys.JSONWebKey) (AES, error) {
 	}, nil
 }
 
+func (a AES) KeyType() string {
+	return "oct"
+}
+
 func (a AES) EncryptAESCBC(algorithm EncryptAESCBCAlgorithm, plaintext, iv []byte) (EncryptResult, error) {
 	// TODO: Consider implementing local PKCS7 padding support should we need local encryption support.
 	if !supportsAlgorithm(

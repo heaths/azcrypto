@@ -82,6 +82,7 @@ func TestNewRSA(t *testing.T) {
 			}
 			require.NoError(t, err)
 			require.Equal(t, tt.keyID, alg.keyID)
+			require.Equal(t, "RSA", alg.KeyType())
 			require.NotNil(t, alg.rand)
 
 			var encrypter Encrypter

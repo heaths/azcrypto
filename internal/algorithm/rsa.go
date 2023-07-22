@@ -76,6 +76,10 @@ func newRSA(key azkeys.JSONWebKey, rand io.Reader) (RSA, error) {
 	}, nil
 }
 
+func (r RSA) KeyType() string {
+	return "RSA"
+}
+
 func (r RSA) Encrypt(algorithm EncryptAlgorithm, plaintext []byte) (EncryptResult, error) {
 	var ciphertext []byte
 	var err error

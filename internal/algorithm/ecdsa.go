@@ -80,6 +80,10 @@ func fromCurve(crv azkeys.CurveName) (elliptic.Curve, error) {
 	}
 }
 
+func (c ECDsa) KeyType() string {
+	return "EC"
+}
+
 func (c ECDsa) Sign(algorithm SignAlgorithm, digest []byte) (SignResult, error) {
 	if !supportsAlgorithm(
 		algorithm,
