@@ -14,12 +14,16 @@ func (client *Client) startSpan(ctx context.Context, name string) (context.Conte
 		return ctx, span{}
 	}
 
+	attrs := []tracing.Attribute{
+		{Key: "azcrypto.kid", Value: client.keyID},
+	}
+	if client.localClient != nil {
+		attrs = append(attrs, tracing.Attribute{Key: "azcrypto.kty", Value: client.localClient.KeyType()})
+	}
 	ctx, s := client.tracer.Start(ctx, "Client."+name, &tracing.SpanOptions{
 		// https://opentelemetry.io/docs/specs/otel/trace/api/#spankind
-		Kind: tracing.SpanKindInternal,
-		Attributes: []tracing.Attribute{
-			{Key: "azcrypto.kid", Value: client.keyID},
-		},
+		Kind:       tracing.SpanKindInternal,
+		Attributes: attrs,
 	})
 
 	return ctx, span{s, client}
@@ -32,7 +36,6 @@ type span struct {
 
 func (s span) SetLocal(algorithm string) {
 	s.Span.AddEvent("azcrypto.local",
-		tracing.Attribute{Key: "azcrypto.kty", Value: s.Client.localClient.KeyType()},
 		tracing.Attribute{Key: "azcrypto.alg", Value: algorithm},
 	)
 }

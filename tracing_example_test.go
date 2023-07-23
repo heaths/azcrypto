@@ -44,13 +44,17 @@ func Example_tracing() {
 		// TODO: handle error
 	}
 
-	client, err := azcrypto.NewClient("https://heathskv.vault.azure.net/keys/test-ec-1", credential, &azcrypto.ClientOptions{
-		ClientOptions: azkeys.ClientOptions{
-			ClientOptions: azcore.ClientOptions{
-				TracingProvider: azotel.NewTracingProvider(provider, nil),
+	client, err := azcrypto.NewClient(
+		"https://{vault-name}.vault.azure.net/keys/{key-name}/{key-version}",
+		credential,
+		&azcrypto.ClientOptions{
+			ClientOptions: azkeys.ClientOptions{
+				ClientOptions: azcore.ClientOptions{
+					TracingProvider: azotel.NewTracingProvider(provider, nil),
+				},
 			},
 		},
-	})
+	)
 	if err != nil {
 		// TODO: handle error
 	}
@@ -66,7 +70,4 @@ func Example_tracing() {
 	}
 
 	fmt.Printf("Valid: %t\n", verified.Valid)
-
-	// Output:
-	// Valid: false
 }
