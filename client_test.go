@@ -465,11 +465,12 @@ func TestClient_SignVerify_local(t *testing.T) {
 
 func TestClient_WrapUnwrapKey(t *testing.T) {
 	tests := []struct {
-		name       string
-		key        string
-		alg        WrapKeyAlgorithm
-		permission bool
-		err        error
+		name              string
+		key               string
+		alg               WrapKeyAlgorithm
+		requireManagedHSM bool
+		permission        bool
+		err               error
 	}{
 		{
 			name: "RSA1_5",
@@ -505,19 +506,22 @@ func TestClient_WrapUnwrapKey(t *testing.T) {
 			permission: true,
 		},
 		{
-			name: "A128KW",
-			key:  "aes128",
-			alg:  WrapKeyAlgorithmA128KW,
+			name:              "A128KW",
+			key:               "aes128",
+			alg:               WrapKeyAlgorithmA128KW,
+			requireManagedHSM: true,
 		},
 		{
-			name: "A192KW",
-			key:  "aes192",
-			alg:  WrapKeyAlgorithmA192KW,
+			name:              "A192KW",
+			key:               "aes192",
+			alg:               WrapKeyAlgorithmA192KW,
+			requireManagedHSM: true,
 		},
 		{
-			name: "A256KW",
-			key:  "aes256",
-			alg:  WrapKeyAlgorithmA256KW,
+			name:              "A256KW",
+			key:               "aes256",
+			alg:               WrapKeyAlgorithmA256KW,
+			requireManagedHSM: true,
 		},
 		{
 			name: "missing",
@@ -532,6 +536,10 @@ func TestClient_WrapUnwrapKey(t *testing.T) {
 	for _, tt := range tests {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			if tt.requireManagedHSM {
+				requireManagedHSM(t)
+			}
+
 			client := test.Recorded(t, testClient(t, tt.key, tt.permission))
 
 			key := test.Base64ToBytes("XuzMCMA534jyOTYaJ+rYvw==")
