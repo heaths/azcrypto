@@ -35,6 +35,9 @@
     "stretchr"
   ],
   "ignorePaths": [
+    ".azure/",
+    ".devcontainer/",
+    ".vscode/",
     "fixtures/",
     "infra/out/",
     "go.mod",
