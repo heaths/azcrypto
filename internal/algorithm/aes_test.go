@@ -79,6 +79,7 @@ func TestNewAES(t *testing.T) {
 			}
 			require.NoError(t, err)
 			require.Equal(t, tt.keyID, alg.keyID)
+			require.Equal(t, "oct", alg.KeyType())
 			require.Equal(t, tt.blockSize, alg.block.BlockSize())
 
 			var encrypter AESEncrypter

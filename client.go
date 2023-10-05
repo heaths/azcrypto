@@ -13,6 +13,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore/tracing"
 	"github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azkeys"
 	"github.com/heaths/azcrypto/internal"
 	alg "github.com/heaths/azcrypto/internal/algorithm"
@@ -26,10 +27,11 @@ type Client struct {
 	keyVersion string
 
 	remoteClient *azkeys.Client
-	localClient  any
+	localClient  alg.Algorithm
 
-	_init sync.Once
-	rand  io.Reader
+	init   sync.Once
+	rand   io.Reader
+	tracer tracing.Tracer
 }
 
 type ClientOptions struct {
@@ -57,6 +59,7 @@ func NewClient(keyID string, credential azcore.TokenCredential, options *ClientO
 	if rand == nil {
 		rand = rng.Reader
 	}
+	tracer := options.TracingProvider.NewTracer("azcrypto.Client", "v0.0.0") // TODO
 
 	vaultURL, name, version := internal.ParseID(&keyID)
 	if vaultURL == nil || name == nil {
@@ -77,10 +80,11 @@ func NewClient(keyID string, credential azcore.TokenCredential, options *ClientO
 		keyVersion:   *version,
 		remoteClient: remoteClient,
 		rand:         rand,
+		tracer:       tracer,
 	}
 
 	if options.remoteOnly {
-		client._init.Do(func() {})
+		client.init.Do(func() {})
 	}
 
 	return client, nil
@@ -97,6 +101,7 @@ func NewClientFromJSONWebKey(key azkeys.JSONWebKey, options *ClientOptions) (*Cl
 	if rand == nil {
 		rand = rng.Reader
 	}
+	tracer := options.TracingProvider.NewTracer("azcrypto.Client", "v0.0.0") // TODO
 
 	var keyID string
 	if key.KID != nil {
@@ -112,8 +117,9 @@ func NewClientFromJSONWebKey(key azkeys.JSONWebKey, options *ClientOptions) (*Cl
 		keyID:       string(keyID),
 		localClient: localClient,
 		rand:        rand,
+		tracer:      tracer,
 	}
-	client._init.Do(func() {})
+	client.init.Do(func() {})
 
 	return client, nil
 }
@@ -123,8 +129,12 @@ func (client *Client) KeyID() string {
 	return client.keyID
 }
 
-func (client *Client) init(ctx context.Context) {
-	client._init.Do(func() {
+func (client *Client) cache(ctx context.Context) {
+	client.init.Do(func() {
+		var err error
+		ctx, span := client.startSpan(ctx, "cache")
+		defer func() { span.End(err) }()
+
 		response, err := client.remoteClient.GetKey(ctx, client.keyName, client.keyVersion, nil)
 		if err != nil {
 			return
@@ -163,12 +173,17 @@ type EncryptResult struct {
 
 // Encrypt encrypts the plaintext using the specified algorithm.
 func (client *Client) Encrypt(ctx context.Context, algorithm EncryptAlgorithm, plaintext []byte, options *EncryptOptions) (EncryptResult, error) {
-	client.init(ctx)
+	var err error
+	ctx, span := client.startSpan(ctx, "Encrypt")
+	defer func() { span.End(err) }()
+
+	client.cache(ctx)
 
 	var encrypter alg.Encrypter
 	if alg.As(client.localClient, &encrypter) {
 		result, err := encrypter.Encrypt(algorithm, plaintext)
 		if client.localOnly() || !errors.Is(err, internal.ErrUnsupported) {
+			span.SetLocal(string(algorithm))
 			return EncryptResult{
 				Algorithm:  result.Algorithm,
 				KeyID:      result.KeyID,
@@ -236,7 +251,11 @@ type EncryptAESCBCResult struct {
 //
 // You should not use CBC without first ensuring the integrity of the ciphertext using an HMAC.
 func (client *Client) EncryptAESCBC(ctx context.Context, algorithm EncryptAESCBCAlgorithm, plaintext, iv []byte, options *EncryptAESCBCOptions) (EncryptAESCBCResult, error) {
-	client.init(ctx)
+	var err error
+	ctx, span := client.startSpan(ctx, "EncryptAESCBC")
+	defer func() { span.End(err) }()
+
+	client.cache(ctx)
 
 	if options == nil {
 		options = &EncryptAESCBCOptions{}
@@ -253,6 +272,7 @@ func (client *Client) EncryptAESCBC(ctx context.Context, algorithm EncryptAESCBC
 	if alg.As(client.localClient, &encrypter) {
 		result, err := encrypter.EncryptAESCBC(algorithm, plaintext, iv)
 		if client.localOnly() || !errors.Is(err, internal.ErrUnsupported) {
+			span.SetLocal(string(algorithm))
 			return EncryptAESCBCResult{
 				Algorithm:  result.Algorithm,
 				KeyID:      result.KeyID,
@@ -322,7 +342,11 @@ type EncryptAESGCMResult struct {
 
 // EncryptAESGCM encrypts the plaintext using the specified algorithm and optional authenticated data which is not encrypted.
 func (client *Client) EncryptAESGCM(ctx context.Context, algorithm EncryptAESCBCAlgorithm, plaintext, additionalAuthenticatedData []byte, options *EncryptAESGCMOptions) (EncryptAESGCMResult, error) {
-	client.init(ctx)
+	var err error
+	ctx, span := client.startSpan(ctx, "EncryptAESGCM")
+	defer func() { span.End(err) }()
+
+	client.cache(ctx)
 
 	if options == nil {
 		options = &EncryptAESGCMOptions{}
@@ -337,6 +361,7 @@ func (client *Client) EncryptAESGCM(ctx context.Context, algorithm EncryptAESCBC
 
 		result, err := encrypter.EncryptAESGCM(algorithm, plaintext, nonce, additionalAuthenticatedData)
 		if client.localOnly() || !errors.Is(err, internal.ErrUnsupported) {
+			span.SetLocal(string(algorithm))
 			return EncryptAESGCMResult{
 				Algorithm:                   result.Algorithm,
 				KeyID:                       result.KeyID,
@@ -392,11 +417,16 @@ type DecryptResult = alg.DecryptResult
 
 // Decrypt decrypts the ciphertext using the specified algorithm.
 func (client *Client) Decrypt(ctx context.Context, algorithm EncryptAlgorithm, ciphertext []byte, options *DecryptOptions) (DecryptResult, error) {
+	var err error
+	ctx, span := client.startSpan(ctx, "Decrypt")
+	defer func() { span.End(err) }()
+
 	// Decrypting requires access to a private key, which Key Vault does not provide by default.
 	var encrypter alg.Encrypter
 	if alg.As(client.localClient, &encrypter) {
 		result, err := encrypter.Decrypt(algorithm, ciphertext)
 		if client.localOnly() || !errors.Is(err, internal.ErrUnsupported) {
+			span.SetLocal(string(algorithm))
 			return DecryptResult{
 				Algorithm: result.Algorithm,
 				KeyID:     result.KeyID,
@@ -449,11 +479,16 @@ type DecryptAESCBCResult = alg.DecryptResult
 
 // DecryptAESCBC decrypts the ciphertext using the specified algorithm.
 func (client *Client) DecryptAESCBC(ctx context.Context, algorithm EncryptAESCBCAlgorithm, ciphertext, iv []byte, options *DecryptAESCBCOptions) (DecryptAESCBCResult, error) {
+	var err error
+	ctx, span := client.startSpan(ctx, "DecryptAESCBC")
+	defer func() { span.End(err) }()
+
 	// Decrypting requires access to a private key, which Key Vault does not provide by default.
 	var encrypter alg.AESEncrypter
 	if alg.As(client.localClient, &encrypter) {
 		result, err := encrypter.DecryptAESCBC(algorithm, ciphertext, iv)
 		if client.localOnly() || !errors.Is(err, internal.ErrUnsupported) {
+			span.SetLocal(string(algorithm))
 			return DecryptAESCBCResult{
 				Algorithm: result.Algorithm,
 				KeyID:     result.KeyID,
@@ -507,11 +542,16 @@ type DecryptAESGCMResult = alg.DecryptResult
 
 // DecryptAESGCM decrypts the ciphertext using the specified algorithm.
 func (client *Client) DecryptAESGCM(ctx context.Context, algorithm EncryptAESGCMAlgorithm, ciphertext, nonce, authenticationTag, additionalAuthenticatedData []byte, options *DecryptAESGCMOptions) (DecryptAESGCMResult, error) {
+	var err error
+	ctx, span := client.startSpan(ctx, "DecryptAESGCM")
+	defer func() { span.End(err) }()
+
 	// Decrypting requires access to a private key, which Key Vault does not provide by default.
 	var encrypter alg.AESEncrypter
 	if alg.As(client.localClient, &encrypter) {
 		result, err := encrypter.DecryptAESGCM(algorithm, ciphertext, nonce, authenticationTag, additionalAuthenticatedData)
 		if client.localOnly() || !errors.Is(err, internal.ErrUnsupported) {
+			span.SetLocal(string(algorithm))
 			return DecryptAESCBCResult{
 				Algorithm: result.Algorithm,
 				KeyID:     result.KeyID,
@@ -567,11 +607,16 @@ type SignResult = alg.SignResult
 
 // Sign signs the specified digest using the specified algorithm.
 func (client *Client) Sign(ctx context.Context, algorithm SignAlgorithm, digest []byte, options *SignOptions) (SignResult, error) {
+	var err error
+	ctx, span := client.startSpan(ctx, "Sign")
+	defer func() { span.End(err) }()
+
 	// Signing requires access to a private key, which Key Vault does not provide by default.
 	var signer alg.Signer
 	if alg.As(client.localClient, &signer) {
 		result, err := signer.Sign(algorithm, digest)
 		if client.localOnly() || !errors.Is(err, internal.ErrUnsupported) {
+			span.SetLocal(string(algorithm))
 			return result, err
 		}
 	}
@@ -617,6 +662,10 @@ type SignDataOptions struct {
 
 // SignData hashes the data using a suitable hash based on the specified algorithm.
 func (client *Client) SignData(ctx context.Context, algorithm SignAlgorithm, data []byte, options *SignDataOptions) (SignResult, error) {
+	var err error
+	ctx, span := client.startSpan(ctx, "SignData")
+	defer func() { span.End(err) }()
+
 	hash, err := alg.GetHash(algorithm)
 	if err != nil {
 		return SignResult{}, err
@@ -643,11 +692,16 @@ type VerifyResult = alg.VerifyResult
 
 // Verify verifies that the specified digest is valid using the specified signature and algorithm.
 func (client *Client) Verify(ctx context.Context, algorithm SignAlgorithm, digest, signature []byte, options *VerifyOptions) (VerifyResult, error) {
-	client.init(ctx)
+	var err error
+	ctx, span := client.startSpan(ctx, "Verify")
+	defer func() { span.End(err) }()
+
+	client.cache(ctx)
 
 	var signer alg.Signer
 	if alg.As(client.localClient, &signer) {
 		result, err := signer.Verify(algorithm, digest, signature)
+		span.SetLocal(string(algorithm))
 		if client.localOnly() || !errors.Is(err, internal.ErrUnsupported) {
 			return result, err
 		}
@@ -690,6 +744,10 @@ type VerifyDataOptions struct {
 
 // VerifyData verifies the digest of the data is valid using a suitable hash based on the specified algorithm.
 func (client *Client) VerifyData(ctx context.Context, algorithm SignAlgorithm, data, signature []byte, options *VerifyDataOptions) (VerifyResult, error) {
+	var err error
+	ctx, span := client.startSpan(ctx, "VerifyData")
+	defer func() { span.End(err) }()
+
 	hash, err := alg.GetHash(algorithm)
 	if err != nil {
 		return VerifyResult{}, err
@@ -716,12 +774,17 @@ type WrapKeyResult = alg.WrapKeyResult
 
 // WrapKey encrypts the specified key using the specified algorithm. Asymmetric encryption is typically used to wrap a symmetric key used for streaming ciphers.
 func (client *Client) WrapKey(ctx context.Context, algorithm WrapKeyAlgorithm, key []byte, options *WrapKeyOptions) (WrapKeyResult, error) {
-	client.init(ctx)
+	var err error
+	ctx, span := client.startSpan(ctx, "WrapKey")
+	defer func() { span.End(err) }()
+
+	client.cache(ctx)
 
 	var keyWrapper alg.KeyWrapper
 	if alg.As(client.localClient, &keyWrapper) {
 		result, err := keyWrapper.WrapKey(algorithm, key)
 		if client.localOnly() || !errors.Is(err, internal.ErrUnsupported) {
+			span.SetLocal(string(algorithm))
 			return result, err
 		}
 	}
@@ -770,11 +833,16 @@ type UnwrapKeyResult = alg.UnwrapKeyResult
 
 // UnwrapKey decrypts the specified key using the specified algorithm. Asymmetric decryption is typically used to unwrap a symmetric key used for streaming ciphers.
 func (client *Client) UnwrapKey(ctx context.Context, algorithm WrapKeyAlgorithm, encryptedKey []byte, options *UnwrapKeyOptions) (UnwrapKeyResult, error) {
+	var err error
+	ctx, span := client.startSpan(ctx, "UnwrapKey")
+	defer func() { span.End(err) }()
+
 	// Unwrapping a key requires access to a private key, which Key Vault does not provide by default.
 	var keyWrapper alg.KeyWrapper
 	if alg.As(client.localClient, &keyWrapper) {
 		result, err := keyWrapper.UnwrapKey(algorithm, encryptedKey)
 		if client.localOnly() || !errors.Is(err, internal.ErrUnsupported) {
+			span.SetLocal(string(algorithm))
 			return result, err
 		}
 	}

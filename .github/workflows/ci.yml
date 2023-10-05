@@ -42,7 +42,7 @@ jobs:
     - name: Set up Go
       uses: actions/setup-go@v4
       with:
-        go-version-file: go.mod
+        go-version: '^1.19'
     - name: Test
       run: GOOS=${{ matrix.goos }} go test ./... -cover -coverprofile=coverage.txt -race -v
     - name: Report coverage
@@ -56,7 +56,7 @@ jobs:
     - name: Set up Go
       uses: actions/setup-go@v4
       with:
-        go-version-file: go.mod
+        go-version: '^1.19'
     - name: Lint
       # cspell:ignore golangci
       uses: golangci/golangci-lint-action@v3
