@@ -10,6 +10,7 @@ import (
 	"testing"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
+	_ "github.com/heaths/azcrypto/internal/test"
 	"github.com/stretchr/testify/require"
 )
 
