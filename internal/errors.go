@@ -5,8 +5,6 @@ package internal
 
 import (
 	"errors"
-
-	_ "github.com/heaths/azcrypto/internal/test"
 )
 
 var (
