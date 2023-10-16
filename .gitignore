@@ -2,4 +2,7 @@
 .env
 /azcrypto
 /azcrypto.exe
+/azk
+/azk.exe
 /infra/out/
+go.work.sum
