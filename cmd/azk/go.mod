@@ -8,6 +8,7 @@ require (
 	github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azkeys v1.1.0-beta.1
 	github.com/Azure/azure-sdk-for-go/sdk/tracing/azotel v0.2.0
 	github.com/heaths/azcrypto v1.0.0
+	github.com/mattn/go-isatty v0.0.20
 	go.opentelemetry.io/otel/exporters/stdout/stdouttrace v1.19.0
 	go.opentelemetry.io/otel/sdk v1.19.0
 )

@@ -15,6 +15,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/sdk/security/keyvault/azkeys"
 	"github.com/Azure/azure-sdk-for-go/sdk/tracing/azotel"
 	"github.com/heaths/azcrypto"
+	"github.com/mattn/go-isatty"
 	"go.opentelemetry.io/otel/exporters/stdout/stdouttrace"
 	"go.opentelemetry.io/otel/sdk/trace"
 )
@@ -136,7 +137,7 @@ func tracingProvider() tracing.Provider {
 		return tracing.Provider{}
 	}
 
-	exp, err := stdouttrace.New(stdouttrace.WithWriter(os.Stderr))
+	exp, err := stdouttrace.New(stdouttrace.WithWriter(colorize(os.Stderr)))
 	if err != nil {
 		exit(err)
 	}
@@ -206,4 +207,25 @@ func encryptionAlgorithm() (azcrypto.EncryptAlgorithm, error) {
 	}
 
 	return "", errors.New("one of pkcs or oaep required")
+}
+
+func colorize(w io.Writer) io.Writer {
+	if f, ok := w.(*os.File); ok && isatty.IsTerminal(f.Fd()) {
+		return colorizer{
+			w: w,
+		}
+	}
+
+	return w
+}
+
+type colorizer struct {
+	w io.Writer
+}
+
+func (v colorizer) Write(p []byte) (int, error) {
+	v.w.Write([]byte("\x1b[2;97m"))
+	defer v.w.Write([]byte("\x1b[m"))
+
+	return v.w.Write(p)
 }
