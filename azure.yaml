@@ -1,7 +1,7 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/Azure/azure-dev/azure-dev-cli_1.0.1/schemas/v1.0/azure.yaml.json
 name: azcrypto
 requiredVersions:
-  azd: '>= 1.0.2'
+  azd: '>= 1.8.2'
 hooks:
   # cspell:ignore postdown,postprovision,newkey,keyout
   postprovision:
