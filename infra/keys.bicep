@@ -31,8 +31,8 @@ resource kvKeys 'Microsoft.KeyVault/vaults/keys@2023-02-01' = [for key in keys: 
   name: '${vaultName}/${key.name}'
   properties: {
     kty: key.kty
-    curveName: contains(key, 'curve') ? key.curve : null
-    keySize: contains(key, 'size') ? key.size : null
+    curveName: key.?curve ?? null
+    keySize: key.?size ?? null
   }
 }]
 
@@ -40,8 +40,8 @@ resource hsmKeys 'Microsoft.KeyVault/managedHSMs/keys@2023-02-01' = [for key in 
   name: '${vaultName}/${key.name}'
   properties: {
     kty: key.kty
-    curveName: contains(key, 'curve') ? key.curve : null
-    keySize: contains(key, 'size') ? key.size : null
+    curveName: key.?curve ?? null
+    keySize: key.?size ?? null
   }
 }]
 
