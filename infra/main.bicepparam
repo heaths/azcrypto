@@ -1,5 +1,6 @@
 using './main.bicep'
 
+// cspell:ignore azcryptokv,eastus2
 param environmentName = readEnvironmentVariable('AZURE_ENV_NAME', 'azcryptokv')
 param location = readEnvironmentVariable('AZURE_LOCATION', 'eastus2')
 param principalId = readEnvironmentVariable('AZURE_PRINCIPAL_ID', '')
