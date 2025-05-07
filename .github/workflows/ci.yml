@@ -38,34 +38,33 @@ jobs:
           goos: darwin
     steps:
     - name: Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
     - name: Set up Go
-      uses: actions/setup-go@v4
+      uses: actions/setup-go@v5
       with:
         go-version-file: go.mod
     - name: Test
       run: GOOS=${{ matrix.goos }} go test ./... -cover -coverprofile=coverage.txt -race -v
     - name: Report coverage
-      uses: codecov/codecov-action@v3
+      uses: codecov/codecov-action@v5
 
   lint:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
     - name: Set up Go
-      uses: actions/setup-go@v4
+      uses: actions/setup-go@v5
       with:
         go-version-file: go.mod
     - name: Lint
       # cspell:ignore golangci
-      uses: golangci/golangci-lint-action@v3
+      uses: golangci/golangci-lint-action@v8
       with:
         only-new-issues: true
-        skip-pkg-cache: true
     - name: Check spelling
       if: ${{ !cancelled() }}
-      uses: streetsidesoftware/cspell-action@v2
+      uses: streetsidesoftware/cspell-action@v6
       with:
         config: .vscode/cspell.json
 
