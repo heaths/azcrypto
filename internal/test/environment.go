@@ -26,7 +26,15 @@ func loadVariables(t *testing.T) {
 	for k, v := range required {
 		if v == "" {
 			loader.Do(func() {
-				if err := dotazure.Load(); err != nil {
+				opts := make([]dotazure.LoadOption, 0, 1)
+				if envFlag != nil {
+					context, err := dotazure.NewAzdContext(dotazure.WithEnvironmentName(*envFlag))
+					if err != nil {
+						t.Fatal(err)
+					}
+					opts = append(opts, dotazure.WithContext(context))
+				}
+				if err := dotazure.Load(opts...); err != nil {
 					t.Fatal(err)
 				}
 			})

@@ -397,11 +397,7 @@ func (client *Client) Decrypt(ctx context.Context, algorithm EncryptAlgorithm, c
 	if alg.As(client.localClient, &encrypter) {
 		result, err := encrypter.Decrypt(algorithm, ciphertext)
 		if client.localOnly() || !errors.Is(err, internal.ErrUnsupported) {
-			return DecryptResult{
-				Algorithm: result.Algorithm,
-				KeyID:     result.KeyID,
-				Plaintext: result.Plaintext,
-			}, err
+			return result, err
 		}
 	}
 
@@ -454,11 +450,7 @@ func (client *Client) DecryptAESCBC(ctx context.Context, algorithm EncryptAESCBC
 	if alg.As(client.localClient, &encrypter) {
 		result, err := encrypter.DecryptAESCBC(algorithm, ciphertext, iv)
 		if client.localOnly() || !errors.Is(err, internal.ErrUnsupported) {
-			return DecryptAESCBCResult{
-				Algorithm: result.Algorithm,
-				KeyID:     result.KeyID,
-				Plaintext: result.Plaintext,
-			}, err
+			return result, err
 		}
 	}
 
@@ -512,11 +504,7 @@ func (client *Client) DecryptAESGCM(ctx context.Context, algorithm EncryptAESGCM
 	if alg.As(client.localClient, &encrypter) {
 		result, err := encrypter.DecryptAESGCM(algorithm, ciphertext, nonce, authenticationTag, additionalAuthenticatedData)
 		if client.localOnly() || !errors.Is(err, internal.ErrUnsupported) {
-			return DecryptAESCBCResult{
-				Algorithm: result.Algorithm,
-				KeyID:     result.KeyID,
-				Plaintext: result.Plaintext,
-			}, err
+			return result, err
 		}
 	}
 
