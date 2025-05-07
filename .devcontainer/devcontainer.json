@@ -17,6 +17,7 @@
       "extensions": [
         "editorconfig.editorconfig",
         "golang.go",
+        "ms-azuretools.azure-dev",
         "streetsidesoftware.code-spell-checker"
       ]
     }

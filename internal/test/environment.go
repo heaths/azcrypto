@@ -10,8 +10,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/azure/azure-dev/cli/azd/pkg/environment/azdcontext"
-	"github.com/joho/godotenv"
+	"github.com/heaths/go-dotazure"
 )
 
 var (
@@ -27,7 +26,7 @@ func loadVariables(t *testing.T) {
 	for k, v := range required {
 		if v == "" {
 			loader.Do(func() {
-				if err := loadEnv(); err != nil {
+				if err := dotazure.Load(); err != nil {
 					t.Fatal(err)
 				}
 			})
@@ -38,27 +37,4 @@ func loadVariables(t *testing.T) {
 			t.Fatalf("environment variable %s must be defined for live tests", k)
 		}
 	}
-}
-
-func loadEnv() error {
-	context, err := azdcontext.NewAzdContext()
-	if err == azdcontext.ErrNoProject {
-		return nil
-	} else if err != nil {
-		return err
-	}
-
-	name := *envFlag
-	if name == "" {
-		if name, err = context.GetDefaultEnvironmentName(); err != nil {
-			return err
-		}
-	}
-
-	path := context.EnvironmentDotEnvPath(name)
-	if err = godotenv.Load(path); err != nil && os.IsNotExist(err) {
-		return nil
-	}
-
-	return err
 }
