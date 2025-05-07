@@ -18,19 +18,17 @@ param vaultName string = ''
 @description('Whether to provision a Key Vault (per-call billing) or Managed HSM (lifetime billing).')
 param managedHsm bool = false
 
-@description('Override the name of the resource group')
-param resourceGroupName string = 'rg-${environmentName}'
-
 @description('How long until the resource group is cleaned up by automated processes.')
 param deleteAfterTime string = dateTimeAdd(utcNow('o'), 'P1D')
 
+var projectName = 'azcrypto'
 var tags = {
   'azd-env-name': environmentName
   DeleteAfter: deleteAfterTime
 }
 
 resource rg 'Microsoft.Resources/resourceGroups@2022-09-01' = {
-  name: resourceGroupName
+  name: 'rg-${projectName}-${environmentName}'
   location: location
   tags: tags
 }
@@ -48,6 +46,6 @@ module resources 'resources.bicep' = {
 }
 
 output AZURE_PRINCIPAL_ID string = resources.outputs.AZURE_PRINCIPAL_ID
-output AZURE_RESOURCE_GROUP string = resourceGroupName
+output AZURE_RESOURCE_GROUP string = rg.name
 output AZURE_KEYVAULT_NAME string = resources.outputs.AZURE_KEYVAULT_NAME
 output AZURE_KEYVAULT_URL string = resources.outputs.AZURE_KEYVAULT_URL
